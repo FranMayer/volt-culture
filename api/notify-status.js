@@ -52,7 +52,7 @@ export default async function handler(req, res) {
         return res.status(403).json({ error: 'Acceso denegado' });
     }
 
-    const { orderId, status } = req.body || {};
+    const { orderId, status, trackingNumber: trackingNumberRaw } = req.body || {};
     if (!orderId || !status) return res.status(400).json({ error: 'Faltan orderId o status' });
 
     if (!STATUS_SUBJECTS[status]) {
@@ -65,13 +65,39 @@ export default async function handler(req, res) {
         const snap = await orderRef.get();
         if (!snap.exists) return res.status(404).json({ error: 'Orden no encontrada' });
 
-        // Actualizar estado en Firestore vía Admin SDK (bypasea reglas de seguridad)
-        await orderRef.update({
+        const orderBefore = snap.data();
+        const updatePayload = {
             status,
             updatedAt: new Date()
-        });
+        };
 
-        const order = snap.data();
+        let trackingNumber = '';
+        if (status === 'shipped') {
+            trackingNumber = String(trackingNumberRaw || '').trim();
+            const existingShipping =
+                orderBefore.shipping && typeof orderBefore.shipping === 'object'
+                    ? orderBefore.shipping
+                    : {};
+            updatePayload.shipping = {
+                ...existingShipping,
+                carrier: 'Andreani'
+            };
+            if (trackingNumber) {
+                updatePayload.shipping.trackingNumber = trackingNumber;
+            }
+        }
+
+        // Actualizar estado en Firestore vía Admin SDK (bypasea reglas de seguridad)
+        await orderRef.update(updatePayload);
+
+        const order = {
+            ...orderBefore,
+            status,
+            shipping: updatePayload.shipping || orderBefore.shipping
+        };
+        if (status === 'shipped' && !trackingNumber && order.shipping?.trackingNumber) {
+            trackingNumber = String(order.shipping.trackingNumber).trim();
+        }
         const customer = order.customer || {};
         const customerEmail = customer.email;
         const customerName = customer.name || 'Cliente VOLT';
@@ -96,6 +122,20 @@ export default async function handler(req, res) {
         const subject = STATUS_SUBJECTS[status];
         const mainMsg = STATUS_MESSAGES[status](customerName);
 
+        let trackingHtml = '';
+        if (status === 'shipped' && trackingNumber) {
+            const trackUrl = `https://www.andreani.com/#!/informacionEnvio/${encodeURIComponent(trackingNumber)}`;
+            const safeTrack = trackingNumber
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            trackingHtml = `
+                    <div style="margin:0 0 20px 0;padding:14px 16px;background:#1a1a1a;border:1px solid #333;border-radius:4px;">
+                        <p style="margin:0 0 8px 0;font-size:15px;"><strong>Seguimiento Andreani:</strong> ${safeTrack}</p>
+                        <p style="margin:0;"><a href="${trackUrl}" style="color:#c1121f;text-decoration:underline;">Seguir envío en Andreani</a></p>
+                    </div>`;
+        }
+
         const resend = new Resend(process.env.RESEND_API_KEY);
         await resend.emails.send({
             from: 'VOLT Store <noreply@voltculture.com.ar>',
@@ -105,6 +145,7 @@ export default async function handler(req, res) {
                 <div style="background:#0b0b0b;color:#f2f2f2;padding:32px 24px;font-family:Arial,Helvetica,sans-serif;line-height:1.6;max-width:560px;margin:0 auto;">
                     <h1 style="margin:0 0 16px 0;color:#c1121f;font-size:22px;letter-spacing:0.05em;">⚡ VOLT</h1>
                     <p style="margin:0 0 16px 0;font-size:16px;">${mainMsg}</p>
+                    ${trackingHtml}
                     <p style="margin:0 0 8px 0;"><strong>Número de orden:</strong> ${order.orderId || orderId}</p>
                     <p style="margin:0 0 16px 0;"><strong>Total:</strong> $${total.toLocaleString('es-AR')}</p>
                     <h2 style="margin:0 0 8px 0;color:#c1121f;font-size:16px;">Productos</h2>

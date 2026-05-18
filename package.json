@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "dev:api": "vercel dev"
+  },
   "dependencies": {
     "@mercadopago/sdk-js": "^0.0.3",
     "firebase": "^12.8.0",

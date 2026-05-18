@@ -4,6 +4,16 @@
 (function () {
     'use strict';
 
+    function productImgFallback() {
+        return window.ProductsService?.getProductImageFallback?.()
+            || 'images-brand/Isotipo color.png';
+    }
+
+    function productImgOnerror() {
+        return window.ProductsService?.getProductImageOnerrorAttr?.()
+            || 'onerror="this.src=\'images-brand/Isotipo color.png\'; this.onerror=null;"';
+    }
+
     function firstProductImage(product) {
         const images = Array.isArray(product.images) ? product.images : [];
         const urls = images
@@ -15,7 +25,7 @@
             .filter(Boolean);
         const main = (product.image || product.imageUrl || '').trim();
         if (main && !urls.includes(main)) urls.unshift(main);
-        return urls[0] || '/images-brand/Isotipo color.png';
+        return urls[0] || productImgFallback();
     }
 
     function escapeHtml(value) {
@@ -59,7 +69,7 @@
                         <article class="home-featured-card">
                             <a href="/pages/catalogo.html" class="home-featured-card__link" aria-label="Ver ${name} en el shop">
                                 <div class="home-featured-card__media">
-                                    <img src="${img}" alt="${name}" class="home-featured-card__img" width="480" height="600" loading="lazy" decoding="async">
+                                    <img src="${img}" alt="${name}" class="home-featured-card__img" width="480" height="600" loading="lazy" decoding="async" ${productImgOnerror()}>
                                     <div class="home-featured-card__overlay" aria-hidden="true">
                                         <span class="home-featured-card__cta">Ver en shop</span>
                                     </div>

@@ -4,6 +4,16 @@
  */
 
 document.addEventListener('DOMContentLoaded', async function() {
+
+    function productImgOnerror() {
+        return window.ProductsService?.getProductImageOnerrorAttr?.()
+            || 'onerror="this.src=\'../images-brand/Isotipo color.png\'; this.onerror=null;"';
+    }
+
+    function productImgFallback() {
+        return window.ProductsService?.getProductImageFallback?.()
+            || '../images-brand/Isotipo color.png';
+    }
     
     // =====================================================
     // INICIALIZACIÓN
@@ -96,7 +106,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         const variants = Array.isArray(product.variants) ? product.variants : [];
         const sizes = Array.isArray(product.sizes) ? product.sizes : [];
         const gallery = getProductGallery(product);
-        const initialImage = gallery[0] || product.image || '/images-brand/Isotipo color.png';
+        const initialImageRaw = gallery[0] || product.image || productImgFallback();
+        const initialImage = escapeHtml(initialImageRaw);
 
         const selectedColor = variants.length > 0 ? variants.find(v => Number(v.stock) > 0)?.color || variants[0].color : '';
         const selectedSize = sizes.length > 0 ? sizes.find(s => Number(s.stock) > 0)?.size || sizes[0].size : '';
@@ -115,7 +126,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         );
 
         card.innerHTML = `
-            <img src="${initialImage}" alt="${product.name}" class="product-image" loading="lazy" role="button" tabindex="0" aria-label="Ampliar imagen de ${product.name}">
+            <img src="${initialImage}" alt="${escapeHtml(product.name)}" class="product-image" loading="lazy" role="button" tabindex="0" aria-label="Ampliar imagen de ${escapeHtml(product.name)}" ${productImgOnerror()}>
             <div class="product-compact">
                 <h3 class="product-title">${product.name}</h3>
                 <p class="product-price">$${formattedPrice}</p>
@@ -803,7 +814,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         overlay.innerHTML = `
             <div class="product-lightbox__dialog" role="dialog" aria-modal="true" aria-label="Imagen ampliada de ${escapeHtml(product.name || 'producto')}">
                 <button type="button" class="product-lightbox__close" aria-label="Cerrar">×</button>
-                <img class="product-lightbox__img" src="${gallery[currentIndex]}" alt="${escapeHtml(product.name || 'Producto')}" />
+                <img class="product-lightbox__img" src="${escapeHtml(gallery[currentIndex])}" alt="${escapeHtml(product.name || 'Producto')}" ${productImgOnerror()} />
                 ${gallery.length > 1 ? '<button type="button" class="product-lightbox__nav prev" aria-label="Imagen anterior">‹</button><button type="button" class="product-lightbox__nav next" aria-label="Imagen siguiente">›</button>' : ''}
             </div>
         `;

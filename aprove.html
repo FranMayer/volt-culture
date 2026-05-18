@@ -3,314 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="images-brand/Isotipo color.png" type="image/png">
-    <title>¡Gracias por tu compra! - VOLT Store</title>
-    
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --volt-black: #0a0a0a;
-            --volt-gray: #1a1a1a;
-            --volt-white: #ffffff;
-            --volt-red: #C1121F;
-            --volt-green: #22c55e;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Barlow', sans-serif;
-            background: 
-                radial-gradient(ellipse at center, rgba(34, 197, 94, 0.1) 0%, transparent 70%),
-                var(--volt-black);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            color: var(--volt-white);
-        }
+    <meta name="robots" content="noindex, nofollow">
+    <title>Redirigiendo… | VOLT</title>
+    <link rel="canonical" href="https://voltculture.com.ar/pages/success.html">
+    <meta http-equiv="refresh" content="0;url=pages/success.html">
+    <script>
+        (function () {
+            var target = 'pages/success.html' + (window.location.search || '') + (window.location.hash || '');
+            window.location.replace(target);
+        })();
+    </script>
 
-        .container {
-            background: var(--volt-gray);
-            padding: 3rem;
-            border: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-            max-width: 500px;
-            width: 100%;
-            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
-        }
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX');
+    </script>
 
-        .logo {
-            display: block;
-            margin: 0 auto 1rem;
-            height: 4.75rem;
-            width: auto;
-            max-width: 340px;
-            object-fit: contain;
-            filter: drop-shadow(0 0 12px rgba(193, 18, 31, 0.35));
-        }
-
-        .success-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            animation: bounce 0.6s ease;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-        }
-
-        h1 {
-            font-family: 'Teko', sans-serif;
-            color: var(--volt-green);
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            letter-spacing: 0.05em;
-        }
-
-        p {
-            color: rgba(255,255,255,0.7);
-            font-size: 1.1rem;
-            margin-bottom: 1.5rem;
-            line-height: 1.6;
-        }
-
-        .order-details {
-            background: var(--volt-black);
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            text-align: left;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .order-details h3 {
-            font-family: 'Teko', sans-serif;
-            color: var(--volt-red);
-            margin-bottom: 1rem;
-            letter-spacing: 0.05em;
-        }
-
-        .order-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .order-row:last-child {
-            border-bottom: none;
-        }
-
-        .order-label {
-            color: rgba(255,255,255,0.5);
-        }
-
-        .order-value {
-            color: var(--volt-white);
-            font-weight: 600;
-        }
-
-        .order-value.amount {
-            color: var(--volt-green);
-            font-family: 'Teko', sans-serif;
-            font-size: 1.3rem;
-        }
-
-        .btn {
-            display: inline-block;
-            background: var(--volt-red);
-            color: white;
-            padding: 1rem 2rem;
-            font-family: 'Teko', sans-serif;
-            font-size: 1.2rem;
-            letter-spacing: 0.1em;
-            border: none;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
-            margin-top: 1rem;
-        }
-
-        .btn:hover {
-            background: #780000;
-            transform: translateY(-2px);
-        }
-
-        .status-saving {
-            color: #fbbf24;
-        }
-
-        .status-saved {
-            color: var(--volt-green);
-        }
-
-        .status-error {
-            color: #ef4444;
-        }
-
-        #saveStatus {
-            margin-top: 1rem;
-            font-size: 0.9rem;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: var(--volt-green);
-            animation: spin 1s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
+    <!-- Meta Pixel -->
+    <script>
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', 'XXXXXXXXXXXXXXX');
+        fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+        src="https://www.facebook.com/tr?id=XXXXXXXXXXXXXXX&ev=PageView&noscript=1"
+        alt="" /></noscript>
 </head>
 <body>
-
-<div class="container">
-    <img class="logo" src="images-brand/Logo color y blanco.svg" width="800" height="800" alt="VOLT — Motorsport Culture">
-    <div class="success-icon">✅</div>
-    <h1>¡GRACIAS POR TU COMPRA!</h1>
-    <p>Tu pago ha sido aprobado. Estamos preparando tu pedido para enviarlo lo antes posible.</p>
-    
-    <div class="order-details" id="orderDetails">
-        <h3>📦 DETALLES DEL PEDIDO</h3>
-        <div class="order-row">
-            <span class="order-label">ID de Pago:</span>
-            <span class="order-value" id="paymentId">-</span>
-        </div>
-        <div class="order-row">
-            <span class="order-label">Estado:</span>
-            <span class="order-value" id="paymentStatus">-</span>
-        </div>
-        <div class="order-row">
-            <span class="order-label">Referencia:</span>
-            <span class="order-value" id="externalRef">-</span>
-        </div>
-        <div class="order-row">
-            <span class="order-label">Total:</span>
-            <span class="order-value amount" id="totalAmount">-</span>
-        </div>
-    </div>
-
-    <div id="saveStatus" class="status-saving">
-        <span class="loading"></span> Guardando tu pedido...
-    </div>
-    
-    <a href="/" class="btn">VOLVER A LA TIENDA</a>
-</div>
-
-<script src="/js/firebase-config.js"></script>
-<script>
-    // Obtener parámetros de la URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const paymentId = urlParams.get('payment_id') || urlParams.get('collection_id');
-    const status = urlParams.get('status') || urlParams.get('collection_status');
-    const externalReference = urlParams.get('external_reference');
-    const paymentType = urlParams.get('payment_type');
-    const merchantOrderId = urlParams.get('merchant_order_id');
-    
-    // Obtener datos del carrito desde localStorage
-    const cartData = JSON.parse(localStorage.getItem('cart') || '[]');
-    const cartTotal = cartData.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    
-    // Mostrar datos en la página
-    document.getElementById('paymentId').textContent = paymentId || 'No disponible';
-    document.getElementById('paymentStatus').textContent = status === 'approved' ? '✅ Aprobado' : status || '-';
-    document.getElementById('externalRef').textContent = externalReference || '-';
-    document.getElementById('totalAmount').textContent = cartTotal > 0 ? `$${cartTotal.toLocaleString('es-AR')}` : '-';
-    
-    // Guardar orden en Firebase
-    async function saveOrder() {
-        const statusEl = document.getElementById('saveStatus');
-        
-        // Solo guardar si el pago fue aprobado
-        if (status !== 'approved') {
-            statusEl.innerHTML = '<span class="status-error">⚠️ El pago no fue aprobado</span>';
-            return;
-        }
-        
-        // Verificar que tenemos payment_id
-        if (!paymentId) {
-            statusEl.innerHTML = '<span class="status-error">⚠️ No se recibió ID de pago</span>';
-            return;
-        }
-        
-        try {
-            // Inicializar Firebase
-            if (!window.FirebaseConfig.init()) {
-                throw new Error('Firebase no está configurado');
-            }
-            
-            const db = window.FirebaseConfig.getDb();
-            
-            // Verificar si ya existe esta orden (evitar duplicados)
-            const existingOrder = await db.collection('orders')
-                .where('payment_id', '==', paymentId)
-                .get();
-            
-            if (!existingOrder.empty) {
-                statusEl.innerHTML = '<span class="status-saved">✅ Pedido ya registrado</span>';
-                console.log('Orden ya existe, no se duplica');
-            // Limpiar carrito
-            localStorage.removeItem('cart');
-            return;
-            }
-            
-            // Crear datos de la orden
-            const orderData = {
-                payment_id: paymentId,
-                status: status,
-                amount: cartTotal,
-                external_reference: externalReference || 'N/A',
-                payment_type: paymentType || 'N/A',
-                merchant_order_id: merchantOrderId || 'N/A',
-                items: cartData.map(item => ({
-                    title: item.name || item.title,
-                    quantity: item.quantity,
-                    unit_price: item.price
-                })),
-                created_at: new Date(),
-                source: 'aprove_page' // Para saber que vino de esta página
-            };
-            
-            // Guardar en Firebase
-            const docRef = await db.collection('orders').add(orderData);
-            
-            console.log('✅ Orden guardada:', docRef.id);
-            statusEl.innerHTML = '<span class="status-saved">✅ Pedido registrado correctamente</span>';
-            
-            // Limpiar carrito
-            localStorage.removeItem('cart');
-            
-        } catch (error) {
-            console.error('Error guardando orden:', error);
-            statusEl.innerHTML = `<span class="status-error">⚠️ Error: ${error.message}</span>`;
-        }
-    }
-    
-    // Ejecutar cuando carga la página
-    document.addEventListener('DOMContentLoaded', saveOrder);
-</script>
-
+    <p>Redirigiendo a la confirmación de compra… <a href="pages/success.html">Continuar</a></p>
 </body>
 </html>

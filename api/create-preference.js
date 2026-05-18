@@ -38,69 +38,39 @@ function generateOrderId() {
     return `VOLT-${token}`;
 }
 
-const SHIPPING_METHODS = new Set(['cadete', 'andreani', 'correo', 'coordinar']);
+const SHIPPING_OPTIONS = new Set(['cordoba', 'andreani']);
+const CORDOBA_SHIPPING_COST = 2500;
 
-function normalizeShipping(raw) {
-    if (raw == null || typeof raw !== 'object' || Array.isArray(raw)) {
-        return {
-            error: 'Faltan datos de envío: el cuerpo del POST no incluye el objeto shipping. Revisá el paso 2 (método de envío) y probá de nuevo.'
-        };
-    }
-    const method = String(raw.method || '')
+function resolveShippingOption(shippingOption) {
+    const option = String(shippingOption || '')
         .trim()
         .toLowerCase();
-    if (!SHIPPING_METHODS.has(method)) {
+    if (!SHIPPING_OPTIONS.has(option)) {
         return {
             error:
-                method === ''
-                    ? 'Elegí un método de envío en el paso 2 del checkout.'
-                    : `Método de envío inválido: "${raw.method}". Usá cadete, andreani, correo o coordinar.`
+                option === ''
+                    ? 'Elegí una opción de envío en el paso 2 del checkout.'
+                    : `Opción de envío inválida: "${shippingOption}". Usá cordoba o andreani.`
         };
     }
-    const addr = raw.address && typeof raw.address === 'object' ? raw.address : {};
-    const shipping = {
-        method,
-        address: {
-            street: String(addr.street || '').trim(),
-            city: String(addr.city || '').trim(),
-            province: String(addr.province || '').trim(),
-            postalCode: String(addr.postalCode || '').trim()
-        },
-        notes: String(raw.notes || '').trim()
+    if (option === 'cordoba') {
+        return {
+            shipping: { type: 'cordoba', cost: CORDOBA_SHIPPING_COST },
+            shippingCost: CORDOBA_SHIPPING_COST
+        };
+    }
+    return {
+        shipping: { type: 'andreani', cost: 0, note: 'A coordinar' },
+        shippingCost: 0
     };
-    if (method === 'andreani' || method === 'correo') {
-        const { street, city, province, postalCode } = shipping.address;
-        if (!street || !city || !province || !postalCode) {
-            return { error: 'Completá calle, ciudad, provincia y código postal para este envío' };
-        }
-    }
-    if (method === 'coordinar' && !shipping.notes) {
-        return { error: 'Indicá cómo preferís recibir tu pedido' };
-    }
-    if (method === 'cadete') {
-        shipping.address = { street: '', city: '', province: '', postalCode: '' };
-        shipping.notes = '';
-    }
-    if (method === 'andreani' || method === 'correo') {
-        shipping.notes = '';
-    }
-    if (method === 'coordinar') {
-        shipping.address = { street: '', city: '', province: '', postalCode: '' };
-    }
-    return { shipping };
 }
 
 /** Una línea para metadata de Mercado Pago (límite práctico de caracteres). */
 function shippingSummaryLine(shipping) {
-    const { method, address, notes } = shipping;
-    if (method === 'andreani' || method === 'correo') {
-        const a = address;
-        return `${method}: ${a.street}, ${a.city} ${a.province} CP${a.postalCode}`.slice(0, 240);
+    if (shipping.type === 'cordoba') {
+        return `cordoba: Envío Córdoba Capital $${CORDOBA_SHIPPING_COST}`;
     }
-    if (method === 'coordinar') {
-        return `coordinar: ${notes}`.slice(0, 240);
-    }
-    return 'cadete: Córdoba Capital';
+    return 'andreani: A coordinar por WhatsApp';
 }
 
 export default async function handler(req, res) {
@@ -133,18 +103,19 @@ export default async function handler(req, res) {
 
         const items = body.items;
         const customer = body.customer;
-        const shippingRaw = body.shipping ?? body.Shipping;
+        const shippingOption = body.shippingOption ?? body.shipping?.type;
         if (!items || !Array.isArray(items) || items.length === 0) {
             return res.status(400).json({ error: 'El carrito está vacío' });
         }
         if (!customer?.name || !customer?.phone || !customer?.email) {
             return res.status(400).json({ error: 'Faltan datos del cliente (nombre, teléfono y email)' });
         }
-        const shipNorm = normalizeShipping(shippingRaw);
+        const shipNorm = resolveShippingOption(shippingOption);
         if (shipNorm.error) {
             return res.status(400).json({ error: shipNorm.error });
         }
         const shipping = shipNorm.shipping;
+        const shippingCost = shipNorm.shippingCost;
 
         const normalizedItems = items.map(item => ({
             id: String(item.id || item.productId || '').trim(),
@@ -197,7 +168,8 @@ export default async function handler(req, res) {
             throw e;
         }
 
-        const total = normalizedItems.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+        const productsTotal = normalizedItems.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+        const total = productsTotal + shippingCost;
         const orderId = generateOrderId();
         const orderRef = db.collection('orders').doc(orderId);
 
@@ -235,6 +207,18 @@ export default async function handler(req, res) {
             unit_price: item.price
         }));
 
+        if (shipping.type === 'cordoba') {
+            mpItems.push({
+                id: 'shipping-cordoba',
+                title: 'Envío Córdoba Capital',
+                description: 'Envío Córdoba Capital (dentro de circunvalación)',
+                category_id: 'others',
+                quantity: 1,
+                currency_id: 'ARS',
+                unit_price: CORDOBA_SHIPPING_COST
+            });
+        }
+
         const siteUrl = process.env.SITE_URL || 'https://voltculture.com.ar';
         const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
         const preference = new Preference(client);
@@ -257,7 +241,7 @@ export default async function handler(req, res) {
                         customer_name: String(customer.name).trim(),
                         customer_phone: String(customer.phone).trim(),
                         customer_email: String(customer.email).trim(),
-                        shipping_method: shipping.method,
+                        shipping_option: shipping.type,
                         shipping_summary: shippingSummaryLine(shipping)
                     }
                 }

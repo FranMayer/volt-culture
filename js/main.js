@@ -15,7 +15,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const addToCartButtons = document.querySelectorAll(".add-to-cart");
     const cartBadge = document.getElementById("cartBadge");
 
-    const CART_IMG_FALLBACK = "/images-brand/Isotipo color.png";
+    function cartImgFallback() {
+        return window.ProductsService?.getProductImageFallback?.()
+            || '../images-brand/Isotipo color.png';
+    }
+
+    function cartImgOnerrorAttr() {
+        return window.ProductsService?.getProductImageOnerrorAttr?.()
+            || 'onerror="this.src=\'../images-brand/Isotipo color.png\'; this.onerror=null;"';
+    }
 
     // =====================================================
     // AGREGAR PRODUCTO AL CARRITO
@@ -108,13 +116,18 @@ document.addEventListener("DOMContentLoaded", function () {
             total += item.price * item.quantity;
             itemCount += item.quantity;
 
-            const imgSrc = item.image || CART_IMG_FALLBACK;
+            const imgSrc = window.ProductsService?.sanitizeImageUrl?.(item.image)
+                || item.image
+                || cartImgFallback();
+            const imgSrcSafe = String(imgSrc)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;');
 
             const li = document.createElement("li");
             li.classList.add("cart-item");
             li.style.animation = 'slideIn 0.3s ease forwards';
             li.innerHTML = `
-                <img class="cart-item__thumb" src="${imgSrc}" alt="" width="64" height="64" loading="lazy">
+                <img class="cart-item__thumb" src="${imgSrcSafe}" alt="" width="64" height="64" loading="lazy" ${cartImgOnerrorAttr()}>
                 <div class="cart-item__body">
                     <div class="cart-item__title">${item.title}</div>
                     <div class="cart-item__meta">x${item.quantity} - $${(item.price * item.quantity).toLocaleString('es-AR')}</div>
@@ -124,12 +137,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 </button>
             `;
             cartList.appendChild(li);
-            const thumb = li.querySelector(".cart-item__thumb");
-            if (thumb) {
-                thumb.addEventListener("error", function () {
-                    this.src = CART_IMG_FALLBACK;
-                }, { once: true });
-            }
         });
 
         cartTotal.innerText = `$${total.toLocaleString('es-AR')}`;

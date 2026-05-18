@@ -103,9 +103,65 @@ const SAMPLE_PRODUCTS = [
 ];
 
 // =====================================================
+// IMÁGENES DE PRODUCTO (fallback + URLs rotas de Storage)
+// =====================================================
+
+/**
+ * Ruta relativa al isotipo según la página actual (raíz vs pages/).
+ * @returns {string}
+ */
+function getProductImageFallback() {
+    if (typeof window !== 'undefined' && window.location && window.location.pathname) {
+        if (window.location.pathname.includes('/pages/')) {
+            return '../images-brand/Isotipo color.png';
+        }
+    }
+    return 'images-brand/Isotipo color.png';
+}
+
+/**
+ * Reemplaza URLs de Firebase Storage inactivo por el fallback local.
+ * @param {string|null|undefined} url
+ * @returns {string|null|undefined}
+ */
+function sanitizeImageUrl(url) {
+    if (url == null || url === '') return url;
+    const str = typeof url === 'string' ? url : String(url);
+    const trimmed = str.trim().replace(/^["']|["']$/g, '').trim();
+    if (!trimmed) return trimmed;
+    if (trimmed.includes('firebasestorage.googleapis.com')) {
+        return getProductImageFallback();
+    }
+    return trimmed;
+}
+
+function sanitizeImageMap(map) {
+    if (!map || typeof map !== 'object' || Array.isArray(map)) return map;
+    const out = {};
+    Object.keys(map).forEach((key) => {
+        const val = map[key];
+        out[key] = typeof val === 'string' ? sanitizeImageUrl(val) : val;
+    });
+    return out;
+}
+
+/**
+ * Atributo onerror para <img> de producto (cubre URLs que se escapen del sanitize).
+ * @returns {string}
+ */
+function getProductImageOnerrorAttr() {
+    const fallback = getProductImageFallback().replace(/'/g, "\\'");
+    return `onerror="this.src='${fallback}'; this.onerror=null;"`;
+}
+
+// =====================================================
 // SERVICIO DE PRODUCTOS
 // =====================================================
 const ProductsService = {
+
+    getProductImageFallback,
+    sanitizeImageUrl,
+    getProductImageOnerrorAttr,
     
     /**
      * Obtener todos los productos
@@ -218,10 +274,14 @@ const ProductsService = {
             normalized.imageUrl = normalized.image;
         }
         if (normalized.image && typeof normalized.image === 'string') {
-            normalized.image = normalized.image.trim().replace(/^["']|["']$/g, '').trim();
+            normalized.image = sanitizeImageUrl(
+                normalized.image.trim().replace(/^["']|["']$/g, '').trim()
+            );
         }
         if (normalized.imageUrl && typeof normalized.imageUrl === 'string') {
-            normalized.imageUrl = normalized.imageUrl.trim().replace(/^["']|["']$/g, '').trim();
+            normalized.imageUrl = sanitizeImageUrl(
+                normalized.imageUrl.trim().replace(/^["']|["']$/g, '').trim()
+            );
         }
 
         if (!Array.isArray(normalized.images)) {
@@ -229,16 +289,26 @@ const ProductsService = {
         } else {
             normalized.images = normalized.images
                 .map(img => {
-                    if (typeof img === 'string') return img.trim();
+                    if (typeof img === 'string') return sanitizeImageUrl(img.trim());
                     if (img && typeof img === 'object') {
+                        const rawUrl = (img.url || img.src || '').trim();
+                        const url = sanitizeImageUrl(rawUrl);
                         return {
                             ...img,
-                            url: (img.url || img.src || '').trim()
+                            url,
+                            ...(img.src ? { src: url } : {})
                         };
                     }
                     return null;
                 })
                 .filter(Boolean);
+        }
+
+        if (normalized.variantImages) {
+            normalized.variantImages = sanitizeImageMap(normalized.variantImages);
+        }
+        if (normalized.imagesByColor) {
+            normalized.imagesByColor = sanitizeImageMap(normalized.imagesByColor);
         }
 
         if (!Array.isArray(normalized.variants)) {

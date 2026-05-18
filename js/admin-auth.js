@@ -162,5 +162,13 @@
         });
     }
 
-    window.VoltAdminAuth = { init, ADMIN_EMAIL };
+    async function getIdToken() {
+        const user = auth?.currentUser;
+        if (!user) {
+            throw new Error('Sesión expirada. Volvé a iniciar sesión en el panel.');
+        }
+        return user.getIdToken();
+    }
+
+    window.VoltAdminAuth = { init, ADMIN_EMAIL, getIdToken };
 })();

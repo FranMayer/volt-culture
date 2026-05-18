@@ -27,13 +27,12 @@ document.addEventListener("DOMContentLoaded", () => {
         : "http://localhost:8080/create_preference.php";
 
     const SHIPPING_LABELS = {
-        cadete: "Cadete en moto (Córdoba Capital)",
-        andreani: "Andreani",
-        correo: "Correo Argentino",
-        coordinar: "Coordinar entrega",
+        cordoba: "Envío Córdoba Capital (dentro de circunvalación) — $2.500",
+        andreani: "Andreani / Interior del país — A coordinar",
     };
 
-    const SHIPPING_METHODS = ["cadete", "andreani", "correo", "coordinar"];
+    const SHIPPING_OPTIONS = ["cordoba", "andreani"];
+    const CORDOBA_SHIPPING_COST = 2500;
 
     function injectCheckoutStyles() {
         if (document.getElementById("voltCheckoutModalStyles")) return;
@@ -111,49 +110,20 @@ document.addEventListener("DOMContentLoaded", () => {
                         </div>
 
                         <div id="checkoutStep2" class="volt-step-panel">
-                            <p class="small text-secondary mb-2" style="font-family:Barlow,sans-serif;">Elegí un método de envío</p>
-                            <div class="volt-ship-grid mb-3" role="radiogroup" aria-label="Método de envío">
-                                <button type="button" class="volt-ship-card" data-shipping="cadete" aria-pressed="false">
-                                    <div class="volt-ship-card__title">🏍️ Cadete en moto</div>
-                                    <p class="volt-ship-card__meta">Solo Córdoba Capital. Coordinamos la entrega por WhatsApp. Sin costo adicional en este paso.</p>
+                            <p class="small text-secondary mb-2" style="font-family:Barlow,sans-serif;">Elegí cómo querés recibir tu pedido</p>
+                            <div class="volt-ship-grid mb-3" role="radiogroup" aria-label="Opción de envío">
+                                <button type="button" class="volt-ship-card" data-shipping="cordoba" aria-pressed="false">
+                                    <div class="volt-ship-card__title">Envío Córdoba Capital</div>
+                                    <p class="volt-ship-card__meta">Dentro de circunvalación — $2.500. Se suma al total de Mercado Pago.</p>
                                 </button>
                                 <button type="button" class="volt-ship-card" data-shipping="andreani" aria-pressed="false">
-                                    <div class="volt-ship-card__title">📦 Andreani</div>
-                                    <p class="volt-ship-card__meta">Para todo el país. El costo de envío se coordina por WhatsApp después de la compra.</p>
-                                </button>
-                                <button type="button" class="volt-ship-card" data-shipping="correo" aria-pressed="false">
-                                    <div class="volt-ship-card__title">📮 Correo Argentino</div>
-                                    <p class="volt-ship-card__meta">Para localidades sin cobertura Andreani. El costo de envío se coordina por WhatsApp después de la compra.</p>
-                                </button>
-                                <button type="button" class="volt-ship-card" data-shipping="coordinar" aria-pressed="false">
-                                    <div class="volt-ship-card__title">🤝 Coordinar entrega</div>
-                                    <p class="volt-ship-card__meta">Para casos especiales. Contanos cómo preferís recibir tu pedido.</p>
+                                    <div class="volt-ship-card__title">Andreani / Interior del país</div>
+                                    <p class="volt-ship-card__meta">Sin costo en este paso. Coordinamos el envío y el monto adicional por WhatsApp.</p>
                                 </button>
                             </div>
-                            <div id="shippingAddressFields" class="d-none">
-                                <div class="mb-2">
-                                    <label class="form-label" for="shipStreet">Calle y número</label>
-                                    <input type="text" class="form-control" id="shipStreet" style="background:#1a1a1a;border-color:#44464c;color:#f2f2f2;">
-                                </div>
-                                <div class="row g-2">
-                                    <div class="col-md-6 mb-2">
-                                        <label class="form-label" for="shipCity">Ciudad</label>
-                                        <input type="text" class="form-control" id="shipCity" style="background:#1a1a1a;border-color:#44464c;color:#f2f2f2;">
-                                    </div>
-                                    <div class="col-md-6 mb-2">
-                                        <label class="form-label" for="shipProvince">Provincia</label>
-                                        <input type="text" class="form-control" id="shipProvince" style="background:#1a1a1a;border-color:#44464c;color:#f2f2f2;">
-                                    </div>
-                                </div>
-                                <div class="mb-2">
-                                    <label class="form-label" for="shipPostalCode">Código postal</label>
-                                    <input type="text" class="form-control" id="shipPostalCode" style="background:#1a1a1a;border-color:#44464c;color:#f2f2f2;">
-                                </div>
-                            </div>
-                            <div id="shippingCoordinarField" class="d-none mb-1">
-                                <label class="form-label" for="shipNotes">Contanos cómo preferís recibir tu pedido</label>
-                                <textarea class="form-control" id="shipNotes" rows="3" style="background:#1a1a1a;border-color:#44464c;color:#f2f2f2;"></textarea>
-                            </div>
+                            <p id="shippingAndreaniNote" class="small mb-0 d-none" style="font-family:Barlow,sans-serif;color:#ccc;line-height:1.45;">
+                                Te contactaremos por WhatsApp para coordinar el envío y el costo adicional.
+                            </p>
                         </div>
 
                         <div id="checkoutStep3" class="volt-step-panel">
@@ -197,23 +167,18 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
-    function getSelectedCardMethod(modalEl) {
+    function getSelectedShippingOption(modalEl) {
         const card = modalEl.querySelector(".volt-ship-card.is-selected");
         if (!card) return null;
-        const method = card.getAttribute("data-shipping");
-        if (!method || !SHIPPING_METHODS.includes(method)) return null;
-        return method;
+        const option = card.getAttribute("data-shipping");
+        if (!option || !SHIPPING_OPTIONS.includes(option)) return null;
+        return option;
     }
 
     function updateShippingFieldVisibility(modalEl) {
-        const method = getSelectedCardMethod(modalEl);
-        const addrBlock = modalEl.querySelector("#shippingAddressFields");
-        const coordBlock = modalEl.querySelector("#shippingCoordinarField");
-        if (!addrBlock || !coordBlock) return;
-        const showAddr = method === "andreani" || method === "correo";
-        const showCoord = method === "coordinar";
-        addrBlock.classList.toggle("d-none", !showAddr);
-        coordBlock.classList.toggle("d-none", !showCoord);
+        const note = modalEl.querySelector("#shippingAndreaniNote");
+        if (!note) return;
+        note.classList.toggle("d-none", getSelectedShippingOption(modalEl) !== "andreani");
     }
 
     function bindShippingCards(modalEl) {
@@ -230,39 +195,20 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function normalizeShippingShape(s) {
-        const emptyAddr = { street: "", city: "", province: "", postalCode: "" };
-        if (!s || typeof s !== "object") {
-            return { method: "", address: { ...emptyAddr }, notes: "" };
-        }
-        const a = s.address && typeof s.address === "object" ? s.address : {};
-        return {
-            method: String(s.method || "").trim(),
-            address: {
-                street: String(a.street || "").trim(),
-                city: String(a.city || "").trim(),
-                province: String(a.province || "").trim(),
-                postalCode: String(a.postalCode || "").trim(),
-            },
-            notes: String(s.notes || "").trim(),
-        };
-    }
-
-    function cloneShipping(s) {
-        const n = normalizeShippingShape(s);
-        return { ...n, address: { ...n.address } };
-    }
-
     function formatMoney(n) {
         return `$${Number(n || 0).toLocaleString("es-AR")}`;
     }
 
-    function renderSummary(modalEl, cart, customer, shipping) {
+    function renderSummary(modalEl, cart, customer, shippingState) {
         const itemsEl = modalEl.querySelector("#checkoutSummaryItems");
         const shipEl = modalEl.querySelector("#checkoutSummaryShipping");
         if (!itemsEl || !shipEl) return;
 
-        itemsEl.innerHTML = cart
+        const option = shippingState.shippingOption;
+        const productsTotal = cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0);
+        const shippingCost = option === "cordoba" ? CORDOBA_SHIPPING_COST : 0;
+
+        const productLines = cart
             .map((item) => {
                 const title = item.title || "Producto";
                 const qty = item.quantity || 1;
@@ -275,16 +221,18 @@ document.addEventListener("DOMContentLoaded", () => {
             })
             .join("");
 
-        const methodLabel = SHIPPING_LABELS[shipping.method] || shipping.method;
+        const shippingLine =
+            option === "cordoba"
+                ? `<li><span>Envío Córdoba Capital</span><span>${formatMoney(CORDOBA_SHIPPING_COST)}</span></li>`
+                : "";
+        const totalLine = `<li><span><strong>Total</strong></span><span><strong>${formatMoney(productsTotal + shippingCost)}</strong></span></li>`;
+
+        itemsEl.innerHTML = productLines + shippingLine + totalLine;
+
+        const methodLabel = SHIPPING_LABELS[option] || option;
         let shipText = `${methodLabel}\n`;
-        if (shipping.method === "andreani" || shipping.method === "correo") {
-            const a = shipping.address;
-            shipText += `${a.street}\n${a.city}, ${a.province} — CP ${a.postalCode}\n`;
-            shipText += "El costo de envío se coordina por WhatsApp después de la compra.";
-        } else if (shipping.method === "cadete") {
-            shipText += "Córdoba Capital. Coordinamos la entrega por WhatsApp.";
-        } else if (shipping.method === "coordinar") {
-            shipText += shipping.notes;
+        if (option === "andreani") {
+            shipText += "Te contactaremos por WhatsApp para coordinar el envío y el costo adicional.";
         }
         shipText += `\n\nContacto: ${customer.name} · ${customer.email} · ${customer.phone}`;
         shipEl.textContent = shipText;
@@ -295,48 +243,17 @@ document.addEventListener("DOMContentLoaded", () => {
      * @returns {object|null}
      */
     function confirmShippingStep2(modalEl) {
-        const card = modalEl.querySelector(".volt-ship-card.is-selected");
-        if (!card) {
-            alert("Elegí un método de envío.");
+        const option = getSelectedShippingOption(modalEl);
+        if (!option) {
+            alert("Elegí una opción de envío.");
             return null;
         }
-        const method = card.getAttribute("data-shipping");
-        if (!method || !SHIPPING_METHODS.includes(method)) {
-            alert("Elegí un método de envío.");
-            return null;
-        }
-
-        const emptyAddr = { street: "", city: "", province: "", postalCode: "" };
-
-        if (method === "andreani" || method === "correo") {
-            const address = {
-                street: (modalEl.querySelector("#shipStreet")?.value || "").trim(),
-                city: (modalEl.querySelector("#shipCity")?.value || "").trim(),
-                province: (modalEl.querySelector("#shipProvince")?.value || "").trim(),
-                postalCode: (modalEl.querySelector("#shipPostalCode")?.value || "").trim(),
-            };
-            if (!address.street || !address.city || !address.province || !address.postalCode) {
-                alert("Completá calle y número, ciudad, provincia y código postal.");
-                return null;
-            }
-            return { method, address, notes: "" };
-        }
-
-        if (method === "coordinar") {
-            const notes = (modalEl.querySelector("#shipNotes")?.value || "").trim();
-            if (!notes) {
-                alert("Contanos cómo preferís recibir tu pedido.");
-                return null;
-            }
-            return { method, address: { ...emptyAddr }, notes };
-        }
-
-        return { method, address: { ...emptyAddr }, notes: "" };
+        return { shippingOption: option };
     }
 
     /**
      * @param {Array} cart — ítems del carrito local
-     * @returns {Promise<{customer: object, shipping: object} | null>}
+     * @returns {Promise<{customer: object, shippingOption: string} | null>}
      */
     function askCheckoutData(cart) {
         createCustomerModal();
@@ -353,10 +270,6 @@ document.addEventListener("DOMContentLoaded", () => {
         modalEl.querySelectorAll(".volt-ship-card").forEach((b) => {
             b.classList.remove("is-selected");
             b.setAttribute("aria-pressed", "false");
-        });
-        ["#shipStreet", "#shipCity", "#shipProvince", "#shipPostalCode", "#shipNotes"].forEach((sel) => {
-            const el = modalEl.querySelector(sel);
-            if (el) el.value = "";
         });
         updateShippingFieldVisibility(modalEl);
 
@@ -459,28 +372,9 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             const onPay = () => {
-                if (!_shippingConfirmado || !String(_shippingConfirmado.method || "").trim()) {
-                    alert("Por favor volvé al paso 2 y elegí un método de envío");
-                    currentStep = 2;
-                    setStepperUI();
-                    return;
-                }
-
-                const shipping = cloneShipping(_shippingConfirmado);
-                const a = shipping.address;
-
-                if (shipping.method === "andreani" || shipping.method === "correo") {
-                    if (!a.street || !a.city || !a.province || !a.postalCode) {
-                        alert("Completá la dirección de envío.");
-                        _shippingConfirmado = null;
-                        currentStep = 2;
-                        setStepperUI();
-                        return;
-                    }
-                }
-                if (shipping.method === "coordinar" && !shipping.notes.trim()) {
-                    alert("Contanos cómo preferís recibir tu pedido.");
-                    _shippingConfirmado = null;
+                const shippingOption = _shippingConfirmado?.shippingOption;
+                if (!shippingOption || !SHIPPING_OPTIONS.includes(shippingOption)) {
+                    alert("Por favor volvé al paso 2 y elegí una opción de envío.");
                     currentStep = 2;
                     setStepperUI();
                     return;
@@ -499,7 +393,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 setSavedCustomerData(customer);
-                const payload = { customer, shipping: cloneShipping(_shippingConfirmado) };
+                const payload = { customer, shippingOption };
                 _shippingConfirmado = null;
                 finish(payload);
             };
@@ -546,7 +440,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 checkoutBtn.disabled = false;
                 return;
             }
-            const { customer, shipping } = result;
+            const { customer, shippingOption } = result;
 
             const missingId = cart.find((item) => !item.id);
             if (missingId) {
@@ -567,7 +461,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const postBody = {
                 items,
                 customer,
-                shipping: normalizeShippingShape(shipping),
+                shippingOption,
             };
 
             const response = await fetch(API_URL, {

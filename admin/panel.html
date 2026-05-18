@@ -19,7 +19,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 
     <title>VOLT Store - Panel Admin</title>
     
@@ -350,6 +349,13 @@
             letter-spacing: 0.1em;
         }
         
+        .shipped-tracking-panel {
+            padding: 0.85rem 1rem;
+            border: 1px solid rgba(193, 18, 31, 0.45);
+            border-radius: 4px;
+            background: rgba(193, 18, 31, 0.08);
+        }
+
         .modal-footer {
             border-top: 1px solid rgba(255,255,255,0.1);
         }
@@ -1233,8 +1239,8 @@
                     tbody.innerHTML = products.map(p => `
                         <tr>
                             <td>
-                                <img src="${p.image}" alt="${p.name}" class="product-thumb" 
-                                     onerror="this.src='../images-brand/Isotipo color.png'">
+                                <img src="${escapeHtml(p.image || '')}" alt="${escapeHtml(p.name)}" class="product-thumb" 
+                                     onerror="this.onerror=null;this.src='../images-brand/Isotipo color.png'">
                             </td>
                             <td><strong>${p.name}</strong><br><small class="text-muted">${p.id}</small></td>
                             <td>${p.category}</td>
@@ -1421,71 +1427,91 @@
             });
         }
 
-        function initImagesDropzone() {
-            const dropzone = document.getElementById('imagesDropzone');
-            ['dragenter', 'dragover'].forEach(type => {
-                dropzone.addEventListener(type, e => {
-                    e.preventDefault();
-                    dropzone.classList.add('is-dragover');
-                });
-            });
-            ['dragleave', 'drop'].forEach(type => {
-                dropzone.addEventListener(type, e => {
-                    e.preventDefault();
-                    dropzone.classList.remove('is-dragover');
-                });
-            });
-            dropzone.addEventListener('drop', async e => {
-                const files = Array.from(e.dataTransfer.files || []);
-                await uploadImageFiles(files);
+        // ── Dropzone + subida a Cloudinary ──────────────────────────────
+        const CLOUDINARY_CLOUD = 'dlkhcge7l';
+        const CLOUDINARY_PRESET = 'VoltCulture';
+
+        function uploadToCloudinary(file) {
+            return new Promise((resolve, reject) => {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', CLOUDINARY_PRESET);
+                formData.append('folder', 'volt/products');
+
+                fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.secure_url) resolve(data.secure_url);
+                        else reject(new Error(data.error?.message || 'Upload failed'));
+                    })
+                    .catch(reject);
             });
         }
 
-        async function handleImagesInput(e) {
-            const files = Array.from(e.target.files || []);
-            await uploadImageFiles(files);
+        function handleImageFiles(files) {
+            Array.from(files).forEach(file => {
+                if (!file.type.startsWith('image/')) return;
+
+                const id = Date.now() + Math.random();
+                const previewUrl = URL.createObjectURL(file);
+
+                adminFormState.images.push({ id, url: previewUrl, uploading: true });
+                renderImages();
+
+                uploadToCloudinary(file)
+                    .then(secureUrl => {
+                        const item = adminFormState.images.find(i => i.id === id);
+                        if (item) {
+                            URL.revokeObjectURL(previewUrl);
+                            item.url = secureUrl;
+                            item.uploading = false;
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Cloudinary upload error:', err);
+                        adminFormState.images = adminFormState.images.filter(i => i.id !== id);
+                        alert('❌ Error al subir imagen');
+                    })
+                    .finally(() => renderImages());
+            });
+        }
+
+        function handleImagesInput(e) {
+            handleImageFiles(e.target.files || []);
             e.target.value = '';
         }
 
-        async function uploadImageFiles(files) {
-            const imageFiles = files.filter(f => f.type && f.type.startsWith('image/'));
-            for (const file of imageFiles) {
-                const tempId = crypto.randomUUID();
-                const preview = URL.createObjectURL(file);
-                adminFormState.images.push({ id: tempId, url: preview, uploading: true });
-                renderImages();
-                try {
-                    const uploadedUrl = await uploadSingleImageToStorage(file);
-                    const item = adminFormState.images.find(i => i.id === tempId);
-                    if (item) {
-                        item.url = uploadedUrl;
-                        item.uploading = false;
-                    }
-                } catch (error) {
-                    console.error('Error subiendo imagen:', error);
-                    adminFormState.images = adminFormState.images.filter(i => i.id !== tempId);
-                    alert('❌ Error al subir una imagen a Firebase Storage');
-                } finally {
-                    renderImages();
-                }
-            }
-        }
+        function initImagesDropzone() {
+            const dropzone = document.getElementById('imagesDropzone');
+            if (!dropzone) return;
 
-        // Sube un archivo al bucket y devuelve su URL pública.
-        async function uploadSingleImageToStorage(file) {
-            if (!window.FirebaseConfig || !window.FirebaseConfig.isInitialized()) {
-                throw new Error('Firebase no está configurado');
-            }
-            if (!firebase?.storage) {
-                throw new Error('Firebase Storage no está disponible');
-            }
-            const app = firebase.app();
-            const storage = firebase.storage(app);
-            const safeName = file.name.replace(/[^\w.\-]/g, '_');
-            const path = `products/${Date.now()}-${safeName}`;
-            const ref = storage.ref().child(path);
-            await ref.put(file);
-            return await ref.getDownloadURL();
+            dropzone.addEventListener('click', (e) => {
+                if (e.target.closest('#imagesInput')) return;
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.multiple = true;
+                input.onchange = ev => handleImageFiles(ev.target.files);
+                input.click();
+            });
+
+            dropzone.addEventListener('dragover', e => {
+                e.preventDefault();
+                dropzone.classList.add('is-dragover');
+            });
+
+            dropzone.addEventListener('dragleave', () => {
+                dropzone.classList.remove('is-dragover');
+            });
+
+            dropzone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropzone.classList.remove('is-dragover');
+                handleImageFiles(e.dataTransfer.files);
+            });
         }
 
         function addDirectImageUrl() {
@@ -1813,14 +1839,20 @@
 
         function adminShippingHtml(o) {
             const s = o.shipping;
-            if (s && s.method) {
+            const shipKey = s?.method || s?.type;
+            if (s && shipKey) {
                 const labels = {
                     cadete: 'Cadete en moto (Córdoba Capital)',
-                    andreani: 'Andreani',
+                    cordoba: 'Envío Córdoba Capital (circunvalación)',
+                    andreani: 'Andreani / Interior',
                     correo: 'Correo Argentino',
                     coordinar: 'Coordinar entrega'
                 };
-                const bits = [`<strong>Envío:</strong> ${labels[s.method] || s.method}`];
+                const bits = [`<strong>Envío:</strong> ${labels[shipKey] || shipKey}`];
+                if (s.cost != null && shipKey === 'cordoba') {
+                    bits.push(`<strong>Costo envío:</strong> $${Number(s.cost).toLocaleString('es-AR')}`);
+                }
+                if (s.note) bits.push(`<strong>Nota:</strong> ${s.note}`);
                 if (s.method === 'andreani' || s.method === 'correo') {
                     const a = s.address || {};
                     bits.push(`<strong>Dirección:</strong> ${a.street || '-'}`);
@@ -1829,27 +1861,91 @@
                     bits.push('<span style="color:rgba(255,255,255,0.5)">Coordinar entrega por WhatsApp</span>');
                 }
                 if (s.notes) bits.push(`<strong>Nota:</strong> ${s.notes}`);
+                if (s.trackingNumber) {
+                    const trackUrl = `https://www.andreani.com/#!/informacionEnvio/${encodeURIComponent(s.trackingNumber)}`;
+                    bits.push(`<strong>Tracking ${s.carrier || 'Andreani'}:</strong> <a href="${trackUrl}" target="_blank" rel="noopener">${s.trackingNumber}</a>`);
+                }
                 return bits.join('<br>');
+            }
+            if (o.shipping?.trackingNumber) {
+                const trackUrl = `https://www.andreani.com/#!/informacionEnvio/${encodeURIComponent(o.shipping.trackingNumber)}`;
+                return `<strong>Tracking Andreani:</strong> <a href="${trackUrl}" target="_blank" rel="noopener">${o.shipping.trackingNumber}</a>`;
             }
             return `<strong>Dirección:</strong> ${o.customer?.address || '-'}`;
         }
 
+        function cleanupOrphanModalState() {
+            if (document.querySelector('.modal.show')) return;
+            document.querySelectorAll('.modal-backdrop').forEach((el) => el.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+        }
+
+        /** Live Server no ejecuta /api; en local apunta al backend en Vercel (o vercel dev). */
+        function getAdminApiUrl(path) {
+            const host = window.location.hostname;
+            const isLocal = host === 'localhost' || host === '127.0.0.1';
+            if (!isLocal) return path;
+            const base = (localStorage.getItem('volt_admin_api_base') || 'https://voltculture.com.ar').replace(/\/$/, '');
+            return `${base}${path}`;
+        }
+
+        function formatAdminApiError(resp, body) {
+            if (resp.status === 405) {
+                return 'La API no corre en Live Server (puerto 5500). Usá el sitio en producción, o en la carpeta del proyecto ejecutá: npx vercel dev — y abrí http://localhost:3000/admin/panel.html';
+            }
+            return body?.error || `Error ${resp.status}`;
+        }
+
+        async function submitOrderStatusUpdate(orderId, newStatus, trackingNumber) {
+            const token = await window.VoltAdminAuth.getIdToken();
+            const payload = { orderId, status: newStatus };
+            if (newStatus === 'shipped') {
+                payload.trackingNumber = trackingNumber || '';
+            }
+            const resp = await fetch(getAdminApiUrl('/api/notify-status'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+            if (!resp.ok) {
+                const err = await resp.json().catch(() => ({}));
+                throw new Error(formatAdminApiError(resp, err));
+            }
+            return resp.json();
+        }
+
         function adminShippingPlain(o) {
             const s = o.shipping;
-            if (s && s.method) {
+            const shipKey = s?.method || s?.type;
+            if (s && shipKey) {
                 const labels = {
                     cadete: 'Cadete en moto (Córdoba Capital)',
-                    andreani: 'Andreani',
+                    cordoba: 'Envío Córdoba Capital (circunvalación)',
+                    andreani: 'Andreani / Interior',
                     correo: 'Correo Argentino',
                     coordinar: 'Coordinar entrega'
                 };
-                let t = `Envío: ${labels[s.method] || s.method}\n`;
+                let t = `Envío: ${labels[shipKey] || shipKey}\n`;
+                if (s.cost != null && shipKey === 'cordoba') t += `Costo envío: $${Number(s.cost).toLocaleString('es-AR')}\n`;
+                if (s.note) t += `Nota: ${s.note}\n`;
                 if (s.method === 'andreani' || s.method === 'correo') {
                     const a = s.address || {};
                     t += `Calle: ${a.street || ''}\nCiudad: ${a.city || ''}\nProvincia: ${a.province || ''}\nCP: ${a.postalCode || ''}\n`;
                 }
                 if (s.notes) t += `Nota: ${s.notes}\n`;
+                if (s.trackingNumber) {
+                    t += `Tracking ${s.carrier || 'Andreani'}: ${s.trackingNumber}\n`;
+                    t += `https://www.andreani.com/#!/informacionEnvio/${s.trackingNumber}\n`;
+                }
                 return t.trimEnd();
+            }
+            if (o.shipping?.trackingNumber) {
+                return `Tracking Andreani: ${o.shipping.trackingNumber}\nhttps://www.andreani.com/#!/informacionEnvio/${o.shipping.trackingNumber}`;
             }
             return `Direccion: ${o.customer?.address || '-'}`;
         }
@@ -1977,7 +2073,7 @@
             const o = selectedOrder;
             const items = (o.items || []).map(i => `
                 <li style="margin-bottom:8px;">
-                    ${i.image ? `<img src="${i.image}" style="width:46px;height:46px;object-fit:cover;border:1px solid #44464c;margin-right:8px;">` : ''}
+                    ${i.image ? `<img src="${escapeHtml(i.image)}" style="width:46px;height:46px;object-fit:cover;border:1px solid #44464c;margin-right:8px;" onerror="this.style.display='none'">` : ''}
                     ${i.title || i.name} ${i.variantColor ? `| ${i.variantColor}` : ''} ${i.variantSize ? `| ${i.variantSize}` : ''} x${i.quantity} - $${Number(i.price || 0).toLocaleString('es-AR')}
                 </li>
             `).join('');
@@ -2000,27 +2096,37 @@
                     </select>
                     <button class="btn btn-volt btn-sm" id="saveOrderStatusBtn">Actualizar estado</button>
                 </div>
+                <div id="shippedTrackingPanel" class="shipped-tracking-panel d-none mt-3">
+                    <p class="small text-secondary mb-2">Opcional pero recomendado: el cliente lo recibirá por email con link de seguimiento en Andreani.</p>
+                    <label class="form-label" for="andreaniTrackingInput">Número de tracking Andreani</label>
+                    <input type="text" class="form-control form-control-sm" id="andreaniTrackingInput" placeholder="Ej: 1234567890" autocomplete="off">
+                </div>
             `;
-            document.getElementById('manualOrderStatus').value = ['paid', 'shipped', 'delivered', 'cancelled', 'pending_payment'].includes(o.status) ? o.status : 'paid';
+            const statusSelect = document.getElementById('manualOrderStatus');
+            const trackingPanel = document.getElementById('shippedTrackingPanel');
+            const trackingInput = document.getElementById('andreaniTrackingInput');
+
+            statusSelect.value = ['paid', 'shipped', 'delivered', 'cancelled', 'pending_payment'].includes(o.status) ? o.status : 'paid';
+
+            function syncShippedTrackingPanel() {
+                const isShipped = statusSelect.value === 'shipped';
+                trackingPanel.classList.toggle('d-none', !isShipped);
+                if (isShipped) {
+                    trackingInput.value = o.shipping?.trackingNumber || '';
+                }
+            }
+            statusSelect.addEventListener('change', syncShippedTrackingPanel);
+            syncShippedTrackingPanel();
+
             document.getElementById('saveOrderStatusBtn').onclick = async () => {
-                const newStatus = document.getElementById('manualOrderStatus').value;
+                const newStatus = statusSelect.value;
                 const saveBtn = document.getElementById('saveOrderStatusBtn');
+                const trackingNumber = newStatus === 'shipped' ? (trackingInput.value || '').trim() : '';
+
                 saveBtn.disabled = true;
                 saveBtn.textContent = 'Guardando...';
                 try {
-                    const token = await auth.currentUser.getIdToken();
-                    const resp = await fetch('/api/notify-status', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ orderId: o.id, status: newStatus })
-                    });
-                    if (!resp.ok) {
-                        const err = await resp.json().catch(() => ({}));
-                        throw new Error(err.error || `Error ${resp.status}`);
-                    }
+                    await submitOrderStatusUpdate(o.id, newStatus, trackingNumber);
                     await loadOrders();
                     bootstrap.Modal.getInstance(document.getElementById('orderDetailModal')).hide();
                 } catch (err) {
@@ -2030,7 +2136,11 @@
                     saveBtn.textContent = 'Actualizar estado';
                 }
             };
-            new bootstrap.Modal(document.getElementById('orderDetailModal')).show();
+            const orderModalEl = document.getElementById('orderDetailModal');
+            cleanupOrphanModalState();
+            let orderModal = bootstrap.Modal.getInstance(orderModalEl);
+            if (!orderModal) orderModal = new bootstrap.Modal(orderModalEl);
+            orderModal.show();
         };
 
         document.getElementById('copyShippingBtn').addEventListener('click', async function() {
@@ -2060,8 +2170,8 @@
             btn.textContent = 'Eliminando...';
 
             try {
-                const token = await auth.currentUser.getIdToken();
-                const resp = await fetch('/api/admin-cleanup', {
+                const token = await window.VoltAdminAuth.getIdToken();
+                const resp = await fetch(getAdminApiUrl('/api/admin-cleanup'), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -2071,7 +2181,7 @@
                 });
                 if (!resp.ok) {
                     const err = await resp.json().catch(() => ({}));
-                    throw new Error(err.error || `Error ${resp.status}`);
+                    throw new Error(formatAdminApiError(resp, err));
                 }
                 const data = await resp.json();
                 const lines = Object.entries(data.deleted)
