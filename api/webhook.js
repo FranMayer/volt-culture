@@ -4,6 +4,7 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { Resend } from 'resend';
 import { createHmac } from 'crypto';
 import { applyStockDecrement } from './_stock.js';
+import { applyRateLimit } from './_rate-limit.js';
 
 const ADMIN_SALE_EMAIL = 'volt.streetcba@gmail.com';
 
@@ -351,6 +352,7 @@ async function applyPaidTransition(db, orderRef, paymentInfo) {
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
+    if (!(await applyRateLimit(req, res, 'public-default'))) return;
 
     try {
         const { type, data } = req.body || {};

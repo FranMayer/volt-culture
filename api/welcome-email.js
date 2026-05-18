@@ -1,9 +1,11 @@
 import { Resend } from 'resend';
+import { applyRateLimit } from './_rate-limit.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Método no permitido' });
     }
+    if (!(await applyRateLimit(req, res, 'welcome-email'))) return;
 
     const { email, name } = req.body || {};
 

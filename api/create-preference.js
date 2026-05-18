@@ -2,6 +2,7 @@ import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { computeAvailableStock } from './_stock.js';
+import { applyRateLimit } from './_rate-limit.js';
 
 function initAdmin() {
     if (!process.env.FIREBASE_PRIVATE_KEY) {
@@ -80,6 +81,7 @@ export default async function handler(req, res) {
 
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
+    if (!(await applyRateLimit(req, res, 'create-preference'))) return;
 
     try {
         if (!process.env.MP_ACCESS_TOKEN) {

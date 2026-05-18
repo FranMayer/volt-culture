@@ -88,6 +88,28 @@ python -m http.server 8000
 
 ---
 
+## 🔒 Rate limiting (Upstash Redis)
+
+Las APIs públicas usan [Upstash Redis](https://upstash.com/) para limitar abuso por IP (`api/_rate-limit.js`):
+
+| Ruta | Límite |
+|------|--------|
+| `/api/create-preference` | 5 solicitudes / IP cada 10 min |
+| `/api/newsletter` | 3 / IP cada hora |
+| `/api/welcome-email` | 3 / IP cada hora |
+| Resto de APIs públicas (ej. `/api/webhook`) | 20 / IP por minuto |
+
+Las rutas con token admin (`notify-status`, `admin-cleanup`, etc.) no llevan este límite.
+
+Variables en Vercel y en `.env.local` (ver `.env.example`):
+
+- `UPSTASH_REDIS_REST_URL`
+- `UPSTASH_REDIS_REST_TOKEN`
+
+Para probar APIs en local: `npm run dev:api` (`vercel dev`).
+
+---
+
 ## 💳 Mercado Pago
 
 La integración usa **Checkout Pro** vía el SDK de Mercado Pago.  

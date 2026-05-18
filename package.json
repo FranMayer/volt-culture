@@ -4,6 +4,8 @@
   },
   "dependencies": {
     "@mercadopago/sdk-js": "^0.0.3",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.38.0",
     "firebase": "^12.8.0",
     "firebase-admin": "^12.7.0",
     "mercadopago": "^2.0.0",
