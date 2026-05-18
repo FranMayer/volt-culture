@@ -1004,9 +1004,9 @@ input[type="submit"],
 }
 
 .footer-logo-img {
-    height: 52px;
+    height: 76px;
     width: auto;
-    max-width: 260px;
+    max-width: 340px;
     object-fit: contain;
     display: block;
     margin-bottom: 8px;
@@ -3389,8 +3389,8 @@ body.lightbox-open {
 }
 
 .footer.footer--telemetry .footer-logo-img {
-    height: 40px;
-    max-width: 220px;
+    height: 48px;
+    max-width: 260px;
 }
 
 .footer.footer--telemetry .footer-bottom {

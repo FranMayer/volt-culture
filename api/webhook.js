@@ -387,13 +387,21 @@ export default async function handler(req, res) {
                         return res.status(200).json({ received: true });
                     }
 
+                    const orderSnapAfterPaid = await orderRef.get();
+                    if (!orderSnapAfterPaid.exists) {
+                        console.warn(
+                            `[Webhook] Pago MP ${paymentInfo.id} aprobado con external_reference "${orderId}" pero no hay documento en orders — probable cobro fuera del checkout VOLT o referencia incorrecta. No se envían mails ni WhatsApp.`
+                        );
+                        return res.status(200).json({ received: true });
+                    }
+
                     try {
                         if (!process.env.RESEND_API_KEY) {
                             throw new Error('RESEND_API_KEY no configurada');
                         }
 
-                        const orderSnap = await orderRef.get();
-                        const orderData = orderSnap.exists ? orderSnap.data() : {};
+                        const orderSnap = orderSnapAfterPaid;
+                        const orderData = orderSnap.data();
                         const customer = orderData.customer || {};
                         const items = Array.isArray(orderData.items) ? orderData.items : [];
                         const total = Number(orderData.total || 0);
@@ -437,8 +445,7 @@ export default async function handler(req, res) {
                             throw new Error('RESEND_API_KEY no configurada');
                         }
 
-                        const orderSnap = await orderRef.get();
-                        const orderData = orderSnap.exists ? orderSnap.data() : {};
+                        const orderData = orderSnapAfterPaid.data();
                         const customer = orderData.customer || {};
                         const items = Array.isArray(orderData.items) ? orderData.items : [];
                         const total = Number(orderData.total || 0);
@@ -473,9 +480,7 @@ export default async function handler(req, res) {
                     }
 
                     try {
-                        const waSnap = await orderRef.get();
-                        const waOrderData = waSnap.exists ? waSnap.data() : {};
-                        await sendAdminWhatsApp(waOrderData);
+                        await sendAdminWhatsApp(orderSnapAfterPaid.data());
                     } catch (waError) {
                         console.error('Error enviando WhatsApp al admin:', waError.message);
                     }

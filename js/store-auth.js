@@ -26,6 +26,8 @@
                 this._clearErrors();
             });
 
+            this._handleGoogleRedirectReturn();
+
             firebase.auth().onAuthStateChanged((user) => {
                 this._updateNavbar(user);
 
@@ -256,6 +258,69 @@
             `;
         },
 
+        async _handleGoogleRedirectReturn() {
+            if (!window.VoltGoogleAuth) return;
+            let panelId = 'auth-panel-login';
+            try {
+                panelId = sessionStorage.getItem('voltGoogleRedirectPanel') || panelId;
+                sessionStorage.removeItem('voltGoogleRedirectPanel');
+                const result = await window.VoltGoogleAuth.completeRedirectIfNeeded();
+                if (!result?.user) return;
+                await this._processGoogleSignInResult(result);
+            } catch (err) {
+                const msgs = {
+                    'auth/account-exists-with-different-credential': 'Ya existe una cuenta con ese email usando otro método de ingreso.',
+                    'auth/network-request-failed': 'Error de red. Verificá tu conexión.',
+                    'auth/operation-not-allowed': 'Google Sign-In no está habilitado en el proyecto.',
+                };
+                this._showModal();
+                this._showError(panelId, msgs[err.code] || err.message || 'Error al conectar con Google. Intentá de nuevo.');
+            }
+        },
+
+        async _processGoogleSignInResult(result) {
+            const user = result.user;
+            const isNew = result.additionalUserInfo?.isNewUser === true;
+            if (!isNew) return;
+
+            const db = window.FirebaseConfig?.getDb();
+            try {
+                if (db) {
+                    await db.collection('users').doc(user.uid).set({
+                        uid: user.uid,
+                        email: user.email || '',
+                        displayName: user.displayName || '',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastAddress: null
+                    });
+                }
+                fetch('/api/welcome-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: user.email || '',
+                        name: this._userName(user)
+                    })
+                }).catch(() => {});
+            } catch (fsErr) {
+                await firebase.auth().signOut();
+                throw fsErr;
+            }
+        },
+
+        _googleSignInErrorMessage(err) {
+            const msgs = {
+                'auth/popup-closed-by-user': null,
+                'auth/cancelled-popup-request': null,
+                'auth/popup-blocked': 'El navegador bloqueó la ventana de Google. Permití ventanas emergentes e intentá de nuevo.',
+                'auth/account-exists-with-different-credential': 'Ya existe una cuenta con ese email usando otro método de ingreso.',
+                'auth/network-request-failed': 'Error de red. Verificá tu conexión.',
+                'auth/operation-not-allowed': 'Google Sign-In no está habilitado en el proyecto.',
+            };
+            if (msgs[err.code] === null) return null;
+            return msgs[err.code] || err.message || 'Error al conectar con Google. Intentá de nuevo.';
+        },
+
         async _handleGoogleSignIn(panelId) {
             const btnId = panelId === 'auth-panel-login' ? 'googleLoginBtn' : 'googleRegisterBtn';
             const btn = document.getElementById(btnId);
@@ -271,66 +336,22 @@
             btn.disabled = true;
             btn.innerHTML = '<span>Conectando...</span>';
 
-            const hangMs = 120000;
-            const hangTimer = setTimeout(() => {
-                if (btn.disabled) {
-                    restoreGoogleBtn();
-                    this._showError(panelId, 'La conexión tardó demasiado. Intentá de nuevo.');
-                }
-            }, hangMs);
-
             try {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                const result = await firebase.auth().signInWithPopup(provider);
-                const user = result.user;
-                const isNew = result.additionalUserInfo?.isNewUser === true;
-
-                if (isNew) {
-                    const db = window.FirebaseConfig?.getDb();
-                    try {
-                        if (db) {
-                            await db.collection('users').doc(user.uid).set({
-                                uid: user.uid,
-                                email: user.email || '',
-                                displayName: user.displayName || '',
-                                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                                lastAddress: null
-                            });
-                        }
-                        fetch('/api/welcome-email', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                email: user.email || '',
-                                name: this._userName(user)
-                            })
-                        }).catch(() => {});
-                    } catch (fsErr) {
-                        await firebase.auth().signOut();
-                        restoreGoogleBtn();
-                        this._showError(panelId, 'No pudimos guardar tu cuenta. Intentá de nuevo.');
-                        return;
-                    }
-                }
-                restoreGoogleBtn();
-                // onAuthStateChanged cierra el modal, sync carrito y navbar
-            } catch (err) {
-                restoreGoogleBtn();
-                if (
-                    err.code === 'auth/popup-closed-by-user' ||
-                    err.code === 'auth/cancelled-popup-request'
-                ) {
+                if (window.VoltGoogleAuth) {
+                    sessionStorage.setItem('voltGoogleRedirectPanel', panelId);
+                    await window.VoltGoogleAuth.signInWithGoogle();
                     return;
                 }
-                const msgs = {
-                    'auth/popup-blocked': 'El navegador bloqueó la ventana de Google. Permití ventanas emergentes e intentá de nuevo.',
-                    'auth/account-exists-with-different-credential': 'Ya existe una cuenta con ese email usando otro método de ingreso.',
-                    'auth/network-request-failed': 'Error de red. Verificá tu conexión.',
-                    'auth/operation-not-allowed': 'Google Sign-In no está habilitado en el proyecto.',
-                };
-                this._showError(panelId, msgs[err.code] || err.message || 'Error al conectar con Google. Intentá de nuevo.');
-            } finally {
-                clearTimeout(hangTimer);
+
+                const provider = new firebase.auth.GoogleAuthProvider();
+                const result = await firebase.auth().signInWithPopup(provider);
+                await this._processGoogleSignInResult(result);
+                restoreGoogleBtn();
+            } catch (err) {
+                sessionStorage.removeItem('voltGoogleRedirectPanel');
+                restoreGoogleBtn();
+                const msg = this._googleSignInErrorMessage(err);
+                if (msg) this._showError(panelId, msg);
             }
         },
 
@@ -385,6 +406,7 @@
                                     <div class="auth-modal-success" id="resetSuccessMsg" style="display:none;"></div>
                                     <button type="submit" id="loginSubmitBtn" class="auth-submit-btn">Ingresar</button>
                                 </form>
+                                <p style="font-size:11px; color:#555; text-align:center; margin-top:10px; line-height:1.4;">Si antes ingresaste con Google, usá el botón de arriba.</p>
                             </div>
 
                             <!-- PANEL: REGISTRO -->

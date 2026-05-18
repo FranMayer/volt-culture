@@ -14,7 +14,7 @@
     --volt-ds-grid-line: rgba(255, 255, 255, 0.07);
     --volt-ds-label: #666666;
     --volt-ds-body: #888888;
-    --volt-ds-header-h: 72px;
+    --volt-ds-header-h: 112px;
     --font-ds-display: "Teko", sans-serif;
     --font-ds-mono: "DM Mono", monospace;
     --font-ds-body: "DM Sans", sans-serif;
@@ -263,9 +263,9 @@ body.page-leaving {
 }
 
 .site-logo--navbar {
-    height: 52px !important;
+    height: 94px !important;
     width: auto !important;
-    max-width: min(280px, 52vw) !important;
+    max-width: min(480px, 62vw) !important;
     object-fit: contain !important;
     display: block !important;
 }
@@ -278,12 +278,12 @@ body.page-leaving {
     }
 
     :root {
-        --volt-ds-header-h: 56px;
+        --volt-ds-header-h: 78px;
     }
 
     .site-logo--navbar {
-        height: 36px !important;
-        max-width: min(220px, 62vw) !important;
+        height: 60px !important;
+        max-width: min(360px, 76vw) !important;
     }
 }
 

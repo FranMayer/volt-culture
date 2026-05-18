@@ -65,9 +65,9 @@
         .login-logo {
             display: block;
             margin: 0 auto 0.75rem;
-            height: 3.25rem;
+            height: 5.25rem;
             width: auto;
-            max-width: 240px;
+            max-width: 340px;
             object-fit: contain;
             filter: drop-shadow(0 0 12px rgba(193, 18, 31, 0.35));
         }
@@ -693,14 +693,18 @@
     ============================================ -->
     <div class="login-screen" id="loginScreen" style="display:none;">
         <div class="login-box" style="text-align:center;">
-            <img class="login-logo" src="../images-brand/Logo blanco.png" width="240" height="58" alt="VOLT — Motorsport Culture">
+            <img class="login-logo" src="../images-brand/Logo color y blanco.svg" width="800" height="800" alt="VOLT — Motorsport Culture">
             <div class="login-subtitle">Panel de Administración</div>
-            <p style="color:rgba(255,255,255,0.6); font-size:0.9rem; margin-bottom:1.5rem;">
-                Iniciá sesión con tu cuenta de Google en la tienda para acceder al panel.
-            </p>
-            <a href="/pages/catalogo.html" class="login-btn" style="display:inline-block; text-decoration:none; padding:1rem 2rem;">
-                IR A LA TIENDA
-            </a>
+            <div id="adminLoginError" style="display:none; background:rgba(193,18,31,0.2); border:1px solid #c1121f; color:#fff; padding:0.75rem; margin-bottom:1rem; font-size:0.9rem;"></div>
+            <button id="adminGoogleBtn" class="login-btn" style="display:flex; align-items:center; justify-content:center; gap:12px; width:100%;">
+                <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6C44.98 37.03 48 31.45 48 24.55z"/>
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                </svg>
+                INGRESAR CON GOOGLE
+            </button>
         </div>
     </div>
 
@@ -1143,50 +1147,9 @@
     <!-- VOLT Store Scripts -->
     <script src="/js/firebase-config.js"></script>
     <script src="/js/products-service.js"></script>
+    <script src="/js/admin-auth.js"></script>
     
     <script>
-        // =====================================================
-        // AUTH GATE — Firebase Auth + Custom Claims
-        // El admin se loguea desde la tienda (store-auth.js).
-        // Este script solo verifica el claim y redirige si no es admin.
-        // =====================================================
-
-        window.FirebaseConfig.init();
-        const auth = firebase.auth();
-
-        const ADMIN_EMAIL = 'volt.streetcba@gmail.com';
-
-        auth.onAuthStateChanged(async (user) => {
-            // Sin sesión → mostrar pantalla de login
-            if (!user) {
-                document.getElementById('adminLoader').style.display = 'none';
-                document.getElementById('loginScreen').style.display = 'flex';
-                return;
-            }
-
-            // Cuenta incorrecta → cerrar sesión y mostrar login
-            if (user.email !== ADMIN_EMAIL) {
-                await auth.signOut();
-                document.getElementById('adminLoader').style.display = 'none';
-                document.getElementById('loginScreen').style.display = 'flex';
-                return;
-            }
-
-            // Email admin confirmado → mostrar panel
-            document.getElementById('adminLoader').style.display = 'none';
-            const panel = document.getElementById('adminPanel');
-            if (!panel.classList.contains('authenticated')) {
-                panel.classList.add('authenticated');
-                initAdminPanel();
-            }
-        });
-
-        // Logout → cierra sesión y vuelve a la tienda
-        document.getElementById('logoutBtn').addEventListener('click', async function () {
-            await auth.signOut();
-            window.location.href = '/pages/catalogo.html';
-        });
-
         // =====================================================
         // PANEL DE ADMINISTRACIÓN
         // =====================================================
@@ -1964,7 +1927,7 @@
                 updateOrderStats(allOrders);
             } catch (error) {
                 console.error('Error al cargar pedidos:', error);
-                tbody.innerHTML = `<tr><td colspan="7" class="orders-empty"><div class="orders-empty-icon">❌</div><p>Error al cargar pedidos</p><small style="color: rgba(255,255,255,0.3)">${error.message}</small></td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="orders-empty"><div class="orders-empty-icon">❌</div><p>Error al cargar pedidos</p><small style="color: rgba(255,255,255,0.3)">${(error.code === 'permission-denied' || /permission/i.test(error.message)) ? 'Sin permiso admin en Firestore. Cerrá sesión, ejecutá set-admin.mjs y volvé a ingresar.' : error.message}</small></td></tr>`;
             }
         }
 
@@ -2130,6 +2093,8 @@
         document.getElementById('cleanOrdersBtn').addEventListener('click', () => runCleanup('orders', 'todos los pedidos'));
         document.getElementById('cleanProductsBtn').addEventListener('click', () => runCleanup('products', 'todos los productos'));
         document.getElementById('cleanAllBtn').addEventListener('click', () => runCleanup('all', 'TODOS los pedidos y productos'));
+
+        window.VoltAdminAuth.init();
     </script>
 </body>
 </html>
