@@ -41,6 +41,18 @@
             padding: 2rem 1rem 4rem;
         }
 
+        /* Lista de pedidos: layout explícito cuando hay cards (evita flex residual de --empty) */
+        #ordersList {
+            display: block;
+            width: 100%;
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .orders-page:not(.orders-page--empty):not(.orders-page--load-error) {
+            display: block;
+        }
+
         .orders-page--empty {
             max-width: none;
             display: flex;
@@ -223,10 +235,13 @@
 
         /* ── Tarjeta de orden ─────────────────────────────────── */
         .order-card {
-            background: #141414;
-            border: 1px solid rgba(255, 255, 255, 0.07);
+            background: #141414 !important;
+            border: 1px solid rgba(255, 255, 255, 0.07) !important;
             margin-bottom: 1.25rem;
             transition: border-color 0.2s;
+            color: #f2f2f2;
+            position: relative;
+            z-index: 1;
         }
 
         .order-card:hover { border-color: rgba(232, 25, 44, 0.35); }
@@ -535,7 +550,7 @@
                 : '<div class="order-item" style="color:rgba(242,242,242,0.3)">Sin detalle de productos</div>';
 
             return `
-            <div class="order-card" data-order-id="${orderId}">
+            <div class="order-card" data-order-id="${orderId}" style="border: 2px solid red; color: white; padding: 20px;">
                 <div class="order-card__header">
                     <div>
                         <div class="order-card__id">${orderId}</div>
@@ -678,9 +693,31 @@
             console.log('[MisPedidos] renderizando pedidos: ' + cards.length);
             currentOrders = normalizedOrders;
             clearOrdersPageState();
+            list.style.display = 'block';
+            list.style.visibility = 'visible';
+            list.style.opacity = '1';
             subheading.style.display = '';
             subheading.textContent = `${cards.length} pedido${cards.length !== 1 ? 's' : ''}`;
             list.innerHTML = cards.join('');
+
+            const firstCard = list.querySelector('.order-card');
+            if (firstCard) {
+                const cs = getComputedStyle(firstCard);
+                console.log('[MisPedidos] debug card computed:', {
+                    display: cs.display,
+                    visibility: cs.visibility,
+                    opacity: cs.opacity,
+                    color: cs.color,
+                    background: cs.backgroundColor,
+                    height: cs.height,
+                    zIndex: cs.zIndex
+                });
+            }
+            const page = document.getElementById('pageContent');
+            if (page) {
+                console.log('[MisPedidos] pageContent classes:', page.className);
+                console.log('[MisPedidos] #ordersList computed display:', getComputedStyle(list).display);
+            }
         }
 
 
