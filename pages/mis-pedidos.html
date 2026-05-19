@@ -499,8 +499,13 @@
         }
 
         function renderEmpty() {
-            clearOrdersPageState();
+            console.log('[MisPedidos] renderizando empty state');
             const page = document.getElementById('pageContent');
+            const list = document.getElementById('ordersList');
+            console.log('[MisPedidos] pageContent display:', page ? getComputedStyle(page).display : '(sin #pageContent)');
+            console.log('[MisPedidos] pageContent visibility:', page ? getComputedStyle(page).visibility : '(sin #pageContent)');
+            console.log('[MisPedidos] ordersList display:', list ? getComputedStyle(list).display : '(sin #ordersList)');
+            clearOrdersPageState();
             page.classList.add('orders-page--empty');
             document.getElementById('ordersSubheading').style.display = 'none';
             document.getElementById('ordersList').innerHTML = `
@@ -547,11 +552,14 @@
         }
 
         function renderOrders(orders) {
+            console.log('[MisPedidos] pedidos encontrados: ' + orders.length);
             currentOrders = orders;
             const subheading = document.getElementById('ordersSubheading');
             const list       = document.getElementById('ordersList');
 
             if (orders.length === 0) { renderEmpty(); return; }
+
+            console.log('[MisPedidos] renderizando pedidos');
 
             clearOrdersPageState();
             subheading.style.display = '';
@@ -651,8 +659,13 @@
         let unsubscribeOrders = null;
 
         function subscribeOrders(user) {
+            console.log('[MisPedidos] consultando Firestore...');
             const db = window.FirebaseConfig?.getDb();
-            if (!db) { renderNetworkError(); return; }
+            if (!db) {
+                console.log('[MisPedidos] error: Firestore no disponible (FirebaseConfig.getDb() null)');
+                renderNetworkError();
+                return;
+            }
 
             const sortByDate = (a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0);
 
@@ -663,6 +676,7 @@
                 .onSnapshot(
                     (snap) => {
                         const orders = snap.docs.map(d => d.data()).sort(sortByDate);
+                        console.log('[MisPedidos] snapshot recibido, docs: ' + snap.size);
 
                         // Primer snapshot → render completo
                         if (firstSnapshot) {
@@ -693,6 +707,7 @@
                         });
                     },
                     (err) => {
+                        console.log('[MisPedidos] error: ' + (err?.message || err));
                         console.error('[MisPedidos]', err);
                         if (isNetworkError(err)) {
                             renderNetworkError();
@@ -712,20 +727,28 @@
 
         // ── Auth gate ──────────────────────────────────────────────────────
 
-        window.FirebaseConfig.init();
+        console.log('[MisPedidos] script iniciado, FirebaseConfig.init()...');
+        const initOk = window.FirebaseConfig.init();
+        console.log('[MisPedidos] FirebaseConfig.init() →', initOk);
+        console.log('[MisPedidos] firebase.auth().currentUser al cargar:', firebase.auth().currentUser?.email || '(null)');
 
         firebase.auth().onAuthStateChanged((user) => {
+            console.log('[MisPedidos] onAuthStateChanged disparado, user:', user ? user.email : '(null)');
             const loader  = document.getElementById('pageLoader');
             const content = document.getElementById('pageContent');
 
             if (!user) {
+                console.log('[MisPedidos] sin usuario → redirect a catálogo');
                 cleanup();
                 window.location.href = '/pages/catalogo.html';
                 return;
             }
 
+            console.log('[MisPedidos] usuario detectado: ' + user.email);
             loader.style.display  = 'none';
             content.style.display = 'block';
+            console.log('[MisPedidos] pageContent.style.display =', content.style.display);
+            console.log('[MisPedidos] pageLoader oculto, mostrando #pageContent');
 
             subscribeOrders(user);
         });
