@@ -236,10 +236,10 @@
         /* ── Tarjeta de orden ─────────────────────────────────── */
         .order-card {
             background: #141414 !important;
-            border: 1px solid rgba(255, 255, 255, 0.07) !important;
+            color: #f2f2f2;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
             margin-bottom: 1.25rem;
             transition: border-color 0.2s;
-            color: #f2f2f2;
             position: relative;
             z-index: 1;
         }
@@ -550,7 +550,7 @@
                 : '<div class="order-item" style="color:rgba(242,242,242,0.3)">Sin detalle de productos</div>';
 
             return `
-            <div class="order-card" data-order-id="${orderId}" style="border: 2px solid red; color: white; padding: 20px;">
+            <div class="order-card" data-order-id="${orderId}">
                 <div class="order-card__header">
                     <div>
                         <div class="order-card__id">${orderId}</div>
@@ -606,12 +606,7 @@
         }
 
         function renderEmpty() {
-            console.log('[MisPedidos] renderizando empty state');
             const page = document.getElementById('pageContent');
-            const list = document.getElementById('ordersList');
-            console.log('[MisPedidos] pageContent display:', page ? getComputedStyle(page).display : '(sin #pageContent)');
-            console.log('[MisPedidos] pageContent visibility:', page ? getComputedStyle(page).visibility : '(sin #pageContent)');
-            console.log('[MisPedidos] ordersList display:', list ? getComputedStyle(list).display : '(sin #ordersList)');
             clearOrdersPageState();
             page.classList.add('orders-page--empty');
             document.getElementById('ordersSubheading').style.display = 'none';
@@ -659,7 +654,6 @@
         }
 
         function renderOrders(ordersWithMeta) {
-            console.log('[MisPedidos] pedidos encontrados: ' + ordersWithMeta.length);
             const subheading = document.getElementById('ordersSubheading');
             const list       = document.getElementById('ordersList');
 
@@ -673,24 +667,19 @@
                 const docId = entry.docId;
                 try {
                     if (isLegacyOrIncompleteOrder(raw, docId)) {
-                        console.warn('[MisPedidos] pedido omitido (incompleto/legacy):', { docId, raw });
                         continue;
                     }
                     const order = normalizeOrder(raw, docId);
                     cards.push(buildOrderCardHtml(order));
                     normalizedOrders.push(order);
-                } catch (error) {
-                    console.error('[MisPedidos] error renderizando orden:', raw, error);
-                }
+                } catch { /* pedido malformado */ }
             }
 
             if (cards.length === 0) {
-                console.log('[MisPedidos] ningún pedido renderizable → empty state');
                 renderEmpty();
                 return;
             }
 
-            console.log('[MisPedidos] renderizando pedidos: ' + cards.length);
             currentOrders = normalizedOrders;
             clearOrdersPageState();
             list.style.display = 'block';
@@ -699,25 +688,6 @@
             subheading.style.display = '';
             subheading.textContent = `${cards.length} pedido${cards.length !== 1 ? 's' : ''}`;
             list.innerHTML = cards.join('');
-
-            const firstCard = list.querySelector('.order-card');
-            if (firstCard) {
-                const cs = getComputedStyle(firstCard);
-                console.log('[MisPedidos] debug card computed:', {
-                    display: cs.display,
-                    visibility: cs.visibility,
-                    opacity: cs.opacity,
-                    color: cs.color,
-                    background: cs.backgroundColor,
-                    height: cs.height,
-                    zIndex: cs.zIndex
-                });
-            }
-            const page = document.getElementById('pageContent');
-            if (page) {
-                console.log('[MisPedidos] pageContent classes:', page.className);
-                console.log('[MisPedidos] #ordersList computed display:', getComputedStyle(list).display);
-            }
         }
 
 
@@ -777,10 +747,8 @@
         let unsubscribeOrders = null;
 
         function subscribeOrders(user) {
-            console.log('[MisPedidos] consultando Firestore...');
             const db = window.FirebaseConfig?.getDb();
             if (!db) {
-                console.log('[MisPedidos] error: Firestore no disponible (FirebaseConfig.getDb() null)');
                 renderNetworkError();
                 return;
             }
@@ -800,7 +768,6 @@
                         const orders = snap.docs
                             .map((d) => ({ docId: d.id, data: d.data() }))
                             .sort(sortByDate);
-                        console.log('[MisPedidos] snapshot recibido, docs: ' + snap.size);
 
                         // Primer snapshot → render completo
                         if (firstSnapshot) {
@@ -832,8 +799,6 @@
                         });
                     },
                     (err) => {
-                        console.log('[MisPedidos] error: ' + (err?.message || err));
-                        console.error('[MisPedidos]', err);
                         if (isNetworkError(err)) {
                             renderNetworkError();
                         } else {
@@ -852,28 +817,20 @@
 
         // ── Auth gate ──────────────────────────────────────────────────────
 
-        console.log('[MisPedidos] script iniciado, FirebaseConfig.init()...');
-        const initOk = window.FirebaseConfig.init();
-        console.log('[MisPedidos] FirebaseConfig.init() →', initOk);
-        console.log('[MisPedidos] firebase.auth().currentUser al cargar:', firebase.auth().currentUser?.email || '(null)');
+        window.FirebaseConfig.init();
 
         firebase.auth().onAuthStateChanged((user) => {
-            console.log('[MisPedidos] onAuthStateChanged disparado, user:', user ? user.email : '(null)');
             const loader  = document.getElementById('pageLoader');
             const content = document.getElementById('pageContent');
 
             if (!user) {
-                console.log('[MisPedidos] sin usuario → redirect a catálogo');
                 cleanup();
                 window.location.href = '/pages/catalogo.html';
                 return;
             }
 
-            console.log('[MisPedidos] usuario detectado: ' + user.email);
             loader.style.display  = 'none';
             content.style.display = 'block';
-            console.log('[MisPedidos] pageContent.style.display =', content.style.display);
-            console.log('[MisPedidos] pageLoader oculto, mostrando #pageContent');
 
             subscribeOrders(user);
         });
