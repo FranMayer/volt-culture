@@ -7,6 +7,8 @@
 (function () {
     'use strict';
 
+    const LOG = '[VoltStoreAuth]';
+
     const VoltStoreAuth = {
         _modalEl: null,
         _resolveAuth: null,
@@ -14,43 +16,59 @@
 
         // ── Inicialización ───────────────────────────────────────────────
 
-        init() {
-            // Firebase debe estar inicializado antes de llamar a auth()
-            if (window.FirebaseConfig) window.FirebaseConfig.init();
-
-            this._buildModal();
-
-            // Al cerrar el modal (cualquier causa): volver botones y Google al estado inicial
-            this._modalEl.addEventListener('hidden.bs.modal', () => {
-                this._resetAuthModalFormState();
-                this._clearErrors();
-            });
-
-            this._handleGoogleRedirectReturn();
-
-            firebase.auth().onAuthStateChanged((user) => {
-                this._updateNavbar(user);
-
-                if (user) {
-                    // Cargar carrito desde Firestore y mergear con el local
-                    window.VoltCartSync?.loadAndMerge(user.uid);
-
-                    if (this._resolveAuth) {
-                        const resolve = this._resolveAuth;
-                        this._resolveAuth = null;
-                        resolve(user);
-                    }
-
-                    // Cerrar modal también si abrió desde "Ingresar" (sin requireAuth → _resolveAuth era null)
-                    const inst = bootstrap.Modal.getInstance(this._modalEl);
-                    if (inst && this._modalEl.classList.contains('show')) {
-                        inst.hide();
-                    }
-                } else {
-                    // Limpiar carrito local al cerrar sesión
-                    window.VoltCartSync?.clearLocal();
+        async init() {
+            try {
+                if (typeof firebase === 'undefined' || typeof firebase.auth !== 'function') {
+                    console.error(LOG, 'Firebase Auth SDK no cargó. Revisá los <script> de gstatic firebase-*-compat.');
+                    this._buildModal();
+                    this._updateNavbar(null);
+                    return;
                 }
-            });
+
+                if (window.FirebaseConfig) {
+                    const ok = window.FirebaseConfig.init();
+                    if (!ok) console.warn(LOG, 'FirebaseConfig.init() devolvió false');
+                }
+
+                this._buildModal();
+
+                // Navbar visible de inmediato (no esperar onAuthStateChanged)
+                this._updateNavbar(firebase.auth().currentUser);
+
+                this._modalEl.addEventListener('hidden.bs.modal', () => {
+                    this._resetAuthModalFormState();
+                    this._clearErrors();
+                });
+
+                await this._handleGoogleRedirectReturn();
+
+                firebase.auth().onAuthStateChanged((user) => {
+                    this._updateNavbar(user);
+
+                    if (user) {
+                        window.VoltCartSync?.loadAndMerge(user.uid);
+
+                        if (this._resolveAuth) {
+                            const resolve = this._resolveAuth;
+                            this._resolveAuth = null;
+                            resolve(user);
+                        }
+
+                        const inst = typeof bootstrap !== 'undefined'
+                            ? bootstrap.Modal.getInstance(this._modalEl)
+                            : null;
+                        if (inst && this._modalEl.classList.contains('show')) {
+                            inst.hide();
+                        }
+                    } else {
+                        window.VoltCartSync?.clearLocal();
+                    }
+                });
+            } catch (err) {
+                console.error(LOG, 'Error en init:', err);
+                this._buildModal();
+                this._updateNavbar(null);
+            }
         },
 
         // ── API pública ──────────────────────────────────────────────────
@@ -113,7 +131,7 @@
                         link.textContent = '⚡ Panel';
                         nav.prepend(link);
                     }
-                }).catch(() => {});
+                }).catch((e) => console.warn(LOG, 'admin claim check:', e.message));
             } else {
                 nav.innerHTML = `
                     <button class="auth-btn auth-btn--in" id="voltSignInBtn">Ingresar</button>
@@ -129,6 +147,10 @@
         _showModal() {
             this._switchTab('login');
             this._clearErrors();
+            if (typeof bootstrap === 'undefined') {
+                console.error(LOG, 'Bootstrap no cargó; el modal de login no puede abrirse.');
+                return;
+            }
             bootstrap.Modal.getOrCreateInstance(this._modalEl).show();
         },
 
@@ -189,6 +211,7 @@
                 await firebase.auth().signInWithEmailAndPassword(email, password);
                 // onAuthStateChanged cierra el modal automáticamente
             } catch (err) {
+                console.error(LOG, 'login:', err.code, err.message);
                 btn.disabled = false;
                 btn.textContent = original;
                 const msgs = {
@@ -197,6 +220,8 @@
                     'auth/invalid-email':     'Email inválido.',
                     'auth/too-many-requests': 'Demasiados intentos. Esperá unos minutos.',
                     'auth/invalid-credential':'Email o contraseña incorrectos.',
+                    'auth/unauthorized-domain': 'Dominio no autorizado en Firebase. Contactá soporte.',
+                    'auth/operation-not-allowed': 'Ingreso con email no habilitado en Firebase Console.',
                 };
                 this._showError('auth-panel-login', msgs[err.code] || 'Error al ingresar.');
             }
@@ -232,12 +257,15 @@
 
                 // onAuthStateChanged cierra el modal automáticamente
             } catch (err) {
+                console.error(LOG, 'register:', err.code, err.message);
                 btn.disabled = false;
                 btn.textContent = original;
                 const msgs = {
                     'auth/email-already-in-use': 'Ya existe una cuenta con ese email. Ingresá en la otra pestaña.',
                     'auth/weak-password':        'La contraseña debe tener al menos 6 caracteres.',
                     'auth/invalid-email':        'Email inválido.',
+                    'auth/unauthorized-domain': 'Dominio no autorizado en Firebase. Contactá soporte.',
+                    'auth/operation-not-allowed': 'Registro con email no habilitado en Firebase Console.',
                 };
                 this._showError('auth-panel-register', msgs[err.code] || 'Error al crear la cuenta.');
             }
@@ -268,10 +296,12 @@
                 if (!result?.user) return;
                 await this._processGoogleSignInResult(result);
             } catch (err) {
+                console.error(LOG, 'google redirect:', err.code, err.message);
                 const msgs = {
                     'auth/account-exists-with-different-credential': 'Ya existe una cuenta con ese email usando otro método de ingreso.',
                     'auth/network-request-failed': 'Error de red. Verificá tu conexión.',
                     'auth/operation-not-allowed': 'Google Sign-In no está habilitado en el proyecto.',
+                    'auth/unauthorized-domain': 'Dominio no autorizado en Firebase.',
                 };
                 this._showModal();
                 this._showError(panelId, msgs[err.code] || err.message || 'Error al conectar con Google. Intentá de nuevo.');
@@ -303,7 +333,7 @@
                     })
                 }).catch(() => {});
             } catch (fsErr) {
-                await firebase.auth().signOut();
+                console.error(LOG, 'perfil Firestore (Google):', fsErr.code || fsErr.message, fsErr);
                 throw fsErr;
             }
         },
@@ -343,11 +373,13 @@
                     return;
                 }
 
+                // Fallback si firebase-google-auth.js no cargó
                 const provider = new firebase.auth.GoogleAuthProvider();
                 const result = await firebase.auth().signInWithPopup(provider);
                 await this._processGoogleSignInResult(result);
                 restoreGoogleBtn();
             } catch (err) {
+                console.error(LOG, 'google sign-in:', err.code, err.message);
                 sessionStorage.removeItem('voltGoogleRedirectPanel');
                 restoreGoogleBtn();
                 const msg = this._googleSignInErrorMessage(err);
@@ -531,10 +563,14 @@
     };
 
     // ── Inicializar cuando el DOM esté listo ──────────────────────────────
+    function boot() {
+        VoltStoreAuth.init().catch((err) => console.error(LOG, 'init falló:', err));
+    }
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => VoltStoreAuth.init());
+        document.addEventListener('DOMContentLoaded', boot);
     } else {
-        VoltStoreAuth.init();
+        boot();
     }
 
     window.VoltStoreAuth = VoltStoreAuth;

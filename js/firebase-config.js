@@ -40,6 +40,10 @@ function initializeFirebase() {
             firebase.initializeApp(firebaseConfig);
         }
         db = firebase.firestore();
+        // Tocar Auth para validar que el SDK cargó (misma app que Firestore)
+        if (typeof firebase.auth === 'function') {
+            firebase.auth();
+        }
         firebaseInitialized = true;
         console.log('✅ Firebase inicializado correctamente');
         return true;
@@ -56,5 +60,6 @@ window.FirebaseConfig = {
     init: initializeFirebase,
     isConfigured: isFirebaseConfigured,
     getDb: () => db,
+    getAuth: () => (firebaseInitialized && typeof firebase.auth === 'function' ? firebase.auth() : null),
     isInitialized: () => firebaseInitialized
 };

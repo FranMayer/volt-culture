@@ -26,13 +26,11 @@
         },
 
         /**
-         * Llamar al cargar la página tras un redirect de Google.
-         * Siempre consume getRedirectResult una vez (recomendación Firebase).
+         * Llamar al cargar cada página. Firebase exige getRedirectResult() tras
+         * signInWithRedirect aunque sessionStorage se haya perdido (Safari, ITP, etc.).
          */
         async completeRedirectIfNeeded() {
-            const pending = this.isRedirectPending();
             this.clearRedirectPending();
-            if (!pending) return null;
             return firebase.auth().getRedirectResult();
         }
     };

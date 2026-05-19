@@ -380,7 +380,7 @@ body.page-leaving {
     display: flex !important;
     justify-content: flex-end !important;
     flex-shrink: 0 !important;
-    visibility: hidden;
+    visibility: visible;
 }
 
 .nav-auth {
@@ -390,11 +390,6 @@ body.page-leaving {
     gap: 16px;
     justify-content: flex-end;
     flex-shrink: 1;
-    visibility: hidden;
-}
-
-.nav-auth.loaded,
-.auth-nav.loaded {
     visibility: visible;
 }
 
