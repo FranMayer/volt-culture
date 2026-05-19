@@ -2084,23 +2084,26 @@ body.lightbox-open {
 
 .about-photo-placeholder {
     width: 100%;
-    min-height: 280px;
+    max-width: 320px;
+    height: 320px;
+    max-height: 320px;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto;
     background: #000000;
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-lg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: block;
     overflow: hidden;
     padding: 0;
+    flex-shrink: 0;
 }
 
 .about-photo-placeholder img.about-section-photo {
     width: 100%;
-    height: 100%;
-    min-height: 280px;
+    height: 320px;
+    max-height: 320px;
     object-fit: cover;
-    object-position: center top;
+    object-position: center;
     display: block;
     filter: brightness(0.75);
 }
@@ -3596,6 +3599,18 @@ body.lightbox-open {
     border-top: 1px solid #1a1a1a;
 }
 
+.about-split__text,
+.about-split__visual {
+    align-self: center;
+}
+
+.about-split__visual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-height: 320px;
+}
+
 .about-split--reverse .about-split__text {
     order: 2;
 }
@@ -3630,6 +3645,10 @@ body.lightbox-open {
 .about-split__visual .about-photo-placeholder {
     border-radius: 8px;
     border: 1px solid #252525;
+    width: 100%;
+    max-width: 320px;
+    height: 320px;
+    max-height: 320px;
 }
 
 @media (max-width: 768px) {
