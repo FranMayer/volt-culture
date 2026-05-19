@@ -8,6 +8,7 @@
     'use strict';
 
     const LOG = '[VoltStoreAuth]';
+    const LEGACY_GOOGLE_REDIRECT_KEYS = ['voltGoogleRedirectPending', 'voltGoogleRedirectPanel'];
 
     const VoltStoreAuth = {
         _modalEl: null,
@@ -16,8 +17,17 @@
 
         // ── Inicialización ───────────────────────────────────────────────
 
+        _clearLegacyGoogleRedirectState() {
+            window.VoltGoogleAuth?.clearRedirectPending?.();
+            LEGACY_GOOGLE_REDIRECT_KEYS.forEach((key) => {
+                try { sessionStorage.removeItem(key); } catch (_) { /* ignore */ }
+            });
+        },
+
         async init() {
             try {
+                this._clearLegacyGoogleRedirectState();
+
                 if (typeof firebase === 'undefined' || typeof firebase.auth !== 'function') {
                     console.error(LOG, 'Firebase Auth SDK no cargó. Revisá los <script> de gstatic firebase-*-compat.');
                     this._buildModal();
@@ -343,7 +353,7 @@
             btn.innerHTML = '<span>Conectando...</span>';
 
             try {
-                if (window.VoltGoogleAuth) {
+                if (typeof window.VoltGoogleAuth?.signInWithGoogle === 'function') {
                     const result = await window.VoltGoogleAuth.signInWithGoogle();
                     await this._processGoogleSignInResult(result);
                     restoreGoogleBtn();
