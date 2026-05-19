@@ -443,25 +443,117 @@
             pending:         'Pendiente',
             pending_payment: 'En proceso',
             failed:          'Rechazado',
-            mp_error:        'Error'
+            mp_error:        'Error',
+            shipped:         'Enviado',
+            delivered:       'Entregado',
+            cancelled:       'Cancelado'
         };
 
+        function escHtml(str) {
+            return String(str ?? '').replace(/[&<>"']/g, (c) => (
+                { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+            ));
+        }
+
         function statusBadge(status) {
-            const label = STATUS_LABEL[status] || status || 'Desconocido';
-            const cls   = `order-badge--${status}`;
-            return `<span class="order-badge ${cls}">${label}</span>`;
+            const key = String(status || 'pending').trim().toLowerCase().replace(/[^a-z0-9_]/g, '_') || 'pending';
+            const label = STATUS_LABEL[key] || STATUS_LABEL[status] || status || 'Desconocido';
+            const cls   = STATUS_LABEL[key] !== undefined ? `order-badge--${key}` : 'order-badge--pending';
+            return `<span class="order-badge ${cls}">${escHtml(label)}</span>`;
         }
 
         function formatDate(timestamp) {
             if (!timestamp) return '—';
-            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-            return date.toLocaleDateString('es-AR', {
-                day: 'numeric', month: 'long', year: 'numeric'
-            });
+            try {
+                const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+                if (Number.isNaN(date.getTime())) return '—';
+                return date.toLocaleDateString('es-AR', {
+                    day: 'numeric', month: 'long', year: 'numeric'
+                });
+            } catch {
+                return '—';
+            }
         }
 
         function formatPrice(n) {
             return `$${Number(n || 0).toLocaleString('es-AR')}`;
+        }
+
+        /** Campos esperados del order-card: orderId, createdAt, status, items[{title,quantity,price}], total */
+        function normalizeOrder(raw, docId) {
+            const order = { ...(raw && typeof raw === 'object' ? raw : {}) };
+            order.orderId = String(order.orderId || order.id || docId || '').trim();
+            order.status = String(order.status || 'pending').trim() || 'pending';
+
+            let items = order.items;
+            if (items != null && !Array.isArray(items)) {
+                items = [];
+            }
+            order.items = (items || []).map((item) => {
+                const row = item && typeof item === 'object' ? item : {};
+                return {
+                    title: row.title || row.name || 'Producto',
+                    quantity: Math.max(1, Number(row.quantity) || 1),
+                    price: Number(row.price) || 0,
+                    variantSize: row.variantSize || '',
+                    variantColor: row.variantColor || ''
+                };
+            });
+
+            let total = Number(order.total);
+            if (Number.isNaN(total)) {
+                total = order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            }
+            order.total = total;
+            return order;
+        }
+
+        function isLegacyOrIncompleteOrder(raw, docId) {
+            if (!raw || typeof raw !== 'object') return true;
+            const id = String(raw.orderId || raw.id || docId || '').trim();
+            if (!id) return true;
+            if (raw.test === true || raw.isTest === true || raw.legacy === true) return true;
+            if (/^test[-_]/i.test(id)) return true;
+            if (raw.items != null && !Array.isArray(raw.items)) return true;
+            return false;
+        }
+
+        function buildOrderCardHtml(order) {
+            const orderId = escHtml(order.orderId);
+            const items = order.items;
+            const itemsHtml = items.length
+                ? items.map((item) => `
+                    <div class="order-item">
+                        <span>
+                            ${escHtml(item.title)}
+                            <span class="order-item__qty">x${item.quantity}</span>
+                        </span>
+                        <span class="order-item__price">
+                            ${formatPrice(item.price * item.quantity)}
+                        </span>
+                    </div>`).join('')
+                : '<div class="order-item" style="color:rgba(242,242,242,0.3)">Sin detalle de productos</div>';
+
+            return `
+            <div class="order-card" data-order-id="${orderId}">
+                <div class="order-card__header">
+                    <div>
+                        <div class="order-card__id">${orderId}</div>
+                        <div class="order-card__date">${formatDate(order.createdAt)}</div>
+                    </div>
+                    ${statusBadge(order.status)}
+                </div>
+                <div class="order-card__items">${itemsHtml}</div>
+                <div class="order-card__footer">
+                    <button class="btn-reorder" data-order-id="${orderId}" type="button">
+                        Repetir pedido
+                    </button>
+                    <div class="order-card__total-group">
+                        <span class="order-card__total-label">Total</span>
+                        <span class="order-card__total-amount">${formatPrice(order.total)}</span>
+                    </div>
+                </div>
+            </div>`;
         }
 
         // ── Render ─────────────────────────────────────────────────────────
@@ -551,57 +643,46 @@
             `;
         }
 
-        function renderOrders(orders) {
-            console.log('[MisPedidos] pedidos encontrados: ' + orders.length);
-            currentOrders = orders;
+        function renderOrders(ordersWithMeta) {
+            console.log('[MisPedidos] pedidos encontrados: ' + ordersWithMeta.length);
             const subheading = document.getElementById('ordersSubheading');
             const list       = document.getElementById('ordersList');
 
-            if (orders.length === 0) { renderEmpty(); return; }
+            if (ordersWithMeta.length === 0) { renderEmpty(); return; }
 
-            console.log('[MisPedidos] renderizando pedidos');
+            const cards = [];
+            const normalizedOrders = [];
 
+            for (const entry of ordersWithMeta) {
+                const raw = entry.data;
+                const docId = entry.docId;
+                try {
+                    if (isLegacyOrIncompleteOrder(raw, docId)) {
+                        console.warn('[MisPedidos] pedido omitido (incompleto/legacy):', { docId, raw });
+                        continue;
+                    }
+                    const order = normalizeOrder(raw, docId);
+                    cards.push(buildOrderCardHtml(order));
+                    normalizedOrders.push(order);
+                } catch (error) {
+                    console.error('[MisPedidos] error renderizando orden:', raw, error);
+                }
+            }
+
+            if (cards.length === 0) {
+                console.log('[MisPedidos] ningún pedido renderizable → empty state');
+                renderEmpty();
+                return;
+            }
+
+            console.log('[MisPedidos] renderizando pedidos: ' + cards.length);
+            currentOrders = normalizedOrders;
             clearOrdersPageState();
             subheading.style.display = '';
-            subheading.textContent = `${orders.length} pedido${orders.length !== 1 ? 's' : ''}`;
-
-            list.innerHTML = orders.map(order => {
-                const items = Array.isArray(order.items) ? order.items : [];
-                const itemsHtml = items.length
-                    ? items.map(item => `
-                        <div class="order-item">
-                            <span>
-                                ${item.title || 'Producto'}
-                                <span class="order-item__qty">x${item.quantity || 1}</span>
-                            </span>
-                            <span class="order-item__price">
-                                ${formatPrice((item.price || 0) * (item.quantity || 1))}
-                            </span>
-                        </div>`).join('')
-                    : '<div class="order-item" style="color:rgba(242,242,242,0.3)">Sin detalle de productos</div>';
-
-                return `
-                <div class="order-card" data-order-id="${order.orderId}">
-                    <div class="order-card__header">
-                        <div>
-                            <div class="order-card__id">${order.orderId || '—'}</div>
-                            <div class="order-card__date">${formatDate(order.createdAt)}</div>
-                        </div>
-                        ${statusBadge(order.status)}
-                    </div>
-                    <div class="order-card__items">${itemsHtml}</div>
-                    <div class="order-card__footer">
-                        <button class="btn-reorder" data-order-id="${order.orderId}" type="button">
-                            Repetir pedido
-                        </button>
-                        <div class="order-card__total-group">
-                            <span class="order-card__total-label">Total</span>
-                            <span class="order-card__total-amount">${formatPrice(order.total)}</span>
-                        </div>
-                    </div>
-                </div>`;
-            }).join('');
+            subheading.textContent = `${cards.length} pedido${cards.length !== 1 ? 's' : ''}`;
+            list.innerHTML = cards.join('');
         }
+
 
         // ── Repetir pedido ────────────────────────────────────────────────
 
@@ -667,7 +748,11 @@
                 return;
             }
 
-            const sortByDate = (a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0);
+            const sortByDate = (a, b) => {
+                const ta = a.data?.createdAt?.toMillis?.() ?? 0;
+                const tb = b.data?.createdAt?.toMillis?.() ?? 0;
+                return tb - ta;
+            };
 
             let firstSnapshot = true;
 
@@ -675,7 +760,9 @@
                 .where('customer.email', '==', user.email)
                 .onSnapshot(
                     (snap) => {
-                        const orders = snap.docs.map(d => d.data()).sort(sortByDate);
+                        const orders = snap.docs
+                            .map((d) => ({ docId: d.id, data: d.data() }))
+                            .sort(sortByDate);
                         console.log('[MisPedidos] snapshot recibido, docs: ' + snap.size);
 
                         // Primer snapshot → render completo
@@ -696,7 +783,8 @@
                         // Solo cambios de estado → actualizar únicamente el badge
                         snap.docChanges().forEach(change => {
                             const order = change.doc.data();
-                            const card  = document.querySelector(`[data-order-id="${order.orderId}"]`);
+                            const orderId = order.orderId || change.doc.id;
+                            const card  = document.querySelector(`[data-order-id="${orderId}"]`);
                             if (!card) return;
                             const badge = card.querySelector('.order-badge');
                             if (!badge) return;
