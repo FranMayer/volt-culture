@@ -5,6 +5,11 @@ import { Resend } from 'resend';
 import { createHmac } from 'crypto';
 import { applyStockDecrement } from './_stock.js';
 import { applyRateLimit } from './_rate-limit.js';
+import {
+    formatShippingBlockAdminHtml,
+    formatShippingBlockClientHtml,
+    formatShippingWhatsAppBlock
+} from './_shipping-email.js';
 
 const ADMIN_SALE_EMAIL = 'volt.streetcba@gmail.com';
 
@@ -92,74 +97,6 @@ function formatItemLineHtml(item) {
     return `<li style="margin:0 0 6px 0;">${line} ×${qty} — $${price.toLocaleString('es-AR')}</li>`;
 }
 
-const SHIPPING_METHOD_LABELS = {
-    cadete: 'Cadete en moto (Córdoba Capital)',
-    andreani: 'Andreani',
-    correo: 'Correo Argentino',
-    coordinar: 'Coordinar entrega'
-};
-
-/** Bloque HTML de envío para el cliente (orden nueva con `shipping` u orden legada). */
-function formatShippingBlockClientHtml(orderData) {
-    const s = orderData.shipping;
-    if (s && s.method && SHIPPING_METHOD_LABELS[s.method]) {
-        const label = escapeHtmlAttr(SHIPPING_METHOD_LABELS[s.method]);
-        const parts = [`<p style="margin:0 0 8px 0;"><strong>Método de envío:</strong> ${label}</p>`];
-        if (s.method === 'andreani' || s.method === 'correo') {
-            const a = s.address || {};
-            parts.push(
-                `<p style="margin:0 0 4px 0;"><strong>Dirección:</strong> ${escapeHtmlAttr(a.street || '')}</p>`,
-                `<p style="margin:0 0 4px 0;"><strong>Ciudad:</strong> ${escapeHtmlAttr(a.city || '')} · <strong>Provincia:</strong> ${escapeHtmlAttr(a.province || '')}</p>`,
-                `<p style="margin:0 0 8px 0;"><strong>Código postal:</strong> ${escapeHtmlAttr(a.postalCode || '')}</p>`,
-                `<p style="margin:0 0 12px 0;color:#bdbdbd;font-size:13px;">El costo de envío se coordina por WhatsApp después de la compra.</p>`
-            );
-        } else if (s.method === 'cadete') {
-            parts.push(
-                `<p style="margin:0 0 12px 0;color:#bdbdbd;font-size:13px;">Coordinamos la entrega por WhatsApp (Córdoba Capital).</p>`
-            );
-        } else if (s.method === 'coordinar' && s.notes) {
-            parts.push(`<p style="margin:0 0 12px 0;"><strong>Tu indicación:</strong> ${escapeHtmlAttr(s.notes)}</p>`);
-        }
-        return parts.join('');
-    }
-    const c = orderData.customer || {};
-    return `
-        <p style="margin:0 0 8px 0;"><strong>Dirección de envío:</strong> ${escapeHtmlAttr(c.address || 'Sin dirección')}</p>
-        <p style="margin:0 0 12px 0;"><strong>Código postal:</strong> ${escapeHtmlAttr(c.postalCode || 'Sin código postal')}</p>
-    `;
-}
-
-/** Bloque HTML de envío para el admin (incluye notas completas). */
-function formatShippingBlockAdminHtml(orderData) {
-    const s = orderData.shipping;
-    if (s && s.method && SHIPPING_METHOD_LABELS[s.method]) {
-        const label = escapeHtmlAttr(SHIPPING_METHOD_LABELS[s.method]);
-        const parts = [`<p style="margin:0 0 8px 0;"><strong>Método de envío:</strong> ${label}</p>`];
-        if (s.method === 'andreani' || s.method === 'correo') {
-            const a = s.address || {};
-            parts.push(
-                `<p style="margin:0 0 4px 0;"><strong>Calle y número:</strong> ${escapeHtmlAttr(a.street || '')}</p>`,
-                `<p style="margin:0 0 4px 0;"><strong>Ciudad:</strong> ${escapeHtmlAttr(a.city || '')}</p>`,
-                `<p style="margin:0 0 4px 0;"><strong>Provincia:</strong> ${escapeHtmlAttr(a.province || '')}</p>`,
-                `<p style="margin:0 0 8px 0;"><strong>Código postal:</strong> ${escapeHtmlAttr(a.postalCode || '')}</p>`
-            );
-        } else if (s.method === 'cadete') {
-            parts.push(`<p style="margin:0 0 8px 0;color:#bdbdbd;">Córdoba Capital — coordinar por WhatsApp.</p>`);
-        }
-        if (s.notes) {
-            parts.push(`<p style="margin:0 0 12px 0;"><strong>Nota / indicación:</strong> ${escapeHtmlAttr(s.notes)}</p>`);
-        } else {
-            parts.push('<p style="margin:0 0 12px 0;"></p>');
-        }
-        return parts.join('');
-    }
-    const c = orderData.customer || {};
-    return `
-        <p style="margin:0 0 8px 0;"><strong>Dirección:</strong> ${escapeHtmlAttr(c.address || '-')}</p>
-        <p style="margin:0 0 12px 0;"><strong>Código postal:</strong> ${escapeHtmlAttr(c.postalCode || '-')}</p>
-    `;
-}
-
 function plainWhatsApp(s) {
     return String(s ?? '')
         .trim()
@@ -178,32 +115,6 @@ function formatOrderItemsWhatsAppLines(items) {
             return `- ${title} | Talle: ${talle} | Color: ${color} | x${qty}`;
         })
         .join('\n');
-}
-
-/** Bloque ENVÍO en texto plano para CallMeBot (sin HTML). */
-function formatShippingWhatsAppBlock(orderData) {
-    const s = orderData.shipping;
-    if (s && s.method && SHIPPING_METHOD_LABELS[s.method]) {
-        const label = SHIPPING_METHOD_LABELS[s.method];
-        const lines = [`ENVÍO: ${label}`];
-        if (s.method === 'andreani' || s.method === 'correo') {
-            const a = s.address || {};
-            lines.push(
-                `Dirección: ${plainWhatsApp(a.street) || '—'}, ${plainWhatsApp(a.city) || '—'}, ${plainWhatsApp(a.province) || '—'} CP:${plainWhatsApp(a.postalCode) || '—'}`
-            );
-        } else if (s.method === 'cadete') {
-            lines.push('Coordinar por WhatsApp');
-        } else if (s.method === 'coordinar') {
-            lines.push(`Nota: ${plainWhatsApp(s.notes) || '—'}`);
-        }
-        return lines.join('\n');
-    }
-    const c = orderData.customer || {};
-    return [
-        'ENVÍO: (pedido anterior)',
-        `Dirección: ${plainWhatsApp(c.address) || '—'}`,
-        `CP: ${plainWhatsApp(c.postalCode) || '—'}`
-    ].join('\n');
 }
 
 function buildAdminWhatsAppMessage(orderData) {

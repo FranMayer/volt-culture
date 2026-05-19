@@ -120,18 +120,15 @@ function getProductImageFallback() {
 }
 
 /**
- * Reemplaza URLs de Firebase Storage inactivo por el fallback local.
+ * Normaliza la URL; usa isotipo solo si falta o está vacía.
  * @param {string|null|undefined} url
- * @returns {string|null|undefined}
+ * @returns {string}
  */
 function sanitizeImageUrl(url) {
-    if (url == null || url === '') return url;
+    if (url == null || url === '') return getProductImageFallback();
     const str = typeof url === 'string' ? url : String(url);
     const trimmed = str.trim().replace(/^["']|["']$/g, '').trim();
-    if (!trimmed) return trimmed;
-    if (trimmed.includes('firebasestorage.googleapis.com')) {
-        return getProductImageFallback();
-    }
+    if (!trimmed) return getProductImageFallback();
     return trimmed;
 }
 

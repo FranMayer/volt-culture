@@ -2,6 +2,7 @@ import { initializeApp, cert, getApps } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { Resend } from 'resend';
+import { formatShippingBlockClientHtml } from './_shipping-email.js';
 
 const ADMIN_EMAIL = 'volt.streetcba@gmail.com';
 
@@ -121,6 +122,7 @@ export default async function handler(req, res) {
 
         const subject = STATUS_SUBJECTS[status];
         const mainMsg = STATUS_MESSAGES[status](customerName);
+        const shippingHtml = formatShippingBlockClientHtml(order);
 
         let trackingHtml = '';
         if (status === 'shipped' && trackingNumber) {
@@ -148,6 +150,8 @@ export default async function handler(req, res) {
                     ${trackingHtml}
                     <p style="margin:0 0 8px 0;"><strong>Número de orden:</strong> ${order.orderId || orderId}</p>
                     <p style="margin:0 0 16px 0;"><strong>Total:</strong> $${total.toLocaleString('es-AR')}</p>
+                    <h2 style="margin:0 0 8px 0;color:#c1121f;font-size:16px;">Envío</h2>
+                    ${shippingHtml}
                     <h2 style="margin:0 0 8px 0;color:#c1121f;font-size:16px;">Productos</h2>
                     <ul style="margin:0 0 24px 18px;padding:0;">${itemsHtml}</ul>
                     <p style="margin:0;color:#888;font-size:12px;">VOLT — Motorsport Culture · voltculture.com.ar</p>
