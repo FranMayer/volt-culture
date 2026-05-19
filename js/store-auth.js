@@ -40,8 +40,6 @@
                     this._clearErrors();
                 });
 
-                await this._handleGoogleRedirectReturn();
-
                 firebase.auth().onAuthStateChanged((user) => {
                     this._updateNavbar(user);
 
@@ -286,28 +284,6 @@
             `;
         },
 
-        async _handleGoogleRedirectReturn() {
-            if (!window.VoltGoogleAuth) return;
-            let panelId = 'auth-panel-login';
-            try {
-                panelId = sessionStorage.getItem('voltGoogleRedirectPanel') || panelId;
-                sessionStorage.removeItem('voltGoogleRedirectPanel');
-                const result = await window.VoltGoogleAuth.completeRedirectIfNeeded();
-                if (!result?.user) return;
-                await this._processGoogleSignInResult(result);
-            } catch (err) {
-                console.error(LOG, 'google redirect:', err.code, err.message);
-                const msgs = {
-                    'auth/account-exists-with-different-credential': 'Ya existe una cuenta con ese email usando otro método de ingreso.',
-                    'auth/network-request-failed': 'Error de red. Verificá tu conexión.',
-                    'auth/operation-not-allowed': 'Google Sign-In no está habilitado en el proyecto.',
-                    'auth/unauthorized-domain': 'Dominio no autorizado en Firebase.',
-                };
-                this._showModal();
-                this._showError(panelId, msgs[err.code] || err.message || 'Error al conectar con Google. Intentá de nuevo.');
-            }
-        },
-
         async _processGoogleSignInResult(result) {
             const user = result.user;
             const isNew = result.additionalUserInfo?.isNewUser === true;
@@ -368,19 +344,18 @@
 
             try {
                 if (window.VoltGoogleAuth) {
-                    sessionStorage.setItem('voltGoogleRedirectPanel', panelId);
-                    await window.VoltGoogleAuth.signInWithGoogle();
+                    const result = await window.VoltGoogleAuth.signInWithGoogle();
+                    await this._processGoogleSignInResult(result);
+                    restoreGoogleBtn();
                     return;
                 }
 
-                // Fallback si firebase-google-auth.js no cargó
                 const provider = new firebase.auth.GoogleAuthProvider();
                 const result = await firebase.auth().signInWithPopup(provider);
                 await this._processGoogleSignInResult(result);
                 restoreGoogleBtn();
             } catch (err) {
                 console.error(LOG, 'google sign-in:', err.code, err.message);
-                sessionStorage.removeItem('voltGoogleRedirectPanel');
                 restoreGoogleBtn();
                 const msg = this._googleSignInErrorMessage(err);
                 if (msg) this._showError(panelId, msg);
