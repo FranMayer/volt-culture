@@ -27,6 +27,54 @@
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }
       ]
+    },
+    {
+      "source": "/",
+      "headers": [
+        { "key": "Cross-Origin-Opener-Policy", "value": "unsafe-none" }
+      ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
+        { "key": "Cross-Origin-Opener-Policy", "value": "unsafe-none" }
+      ]
+    },
+    {
+      "source": "/pages/catalogo.html",
+      "headers": [
+        { "key": "Cross-Origin-Opener-Policy", "value": "unsafe-none" }
+      ]
+    },
+    {
+      "source": "/pages/about.html",
+      "headers": [
+        { "key": "Cross-Origin-Opener-Policy", "value": "unsafe-none" }
+      ]
+    },
+    {
+      "source": "/pages/envios.html",
+      "headers": [
+        { "key": "Cross-Origin-Opener-Policy", "value": "unsafe-none" }
+      ]
+    },
+    {
+      "source": "/pages/novedades.html",
+      "headers": [
+        { "key": "Cross-Origin-Opener-Policy", "value": "unsafe-none" }
+      ]
+    },
+    {
+      "source": "/pages/mis-pedidos.html",
+      "headers": [
+        { "key": "Cross-Origin-Opener-Policy", "value": "unsafe-none" }
+      ]
+    },
+    {
+      "source": "/admin/panel.html",
+      "headers": [
+        { "key": "Cross-Origin-Opener-Policy", "value": "unsafe-none" }
+      ]
     }
   ]
 }

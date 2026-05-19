@@ -1,5 +1,5 @@
 /**
- * DRS Store - Products Service
+ * Volt - Products Service
  * Capa de abstracción para manejar productos
  * 
  * Esta capa permite cambiar fácilmente de Firebase a otra base de datos

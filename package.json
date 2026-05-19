@@ -1,6 +1,8 @@
 {
   "scripts": {
-    "dev:api": "vercel dev"
+    "dev:api": "vercel dev",
+    "test:smoke": "node tests/smoke.test.js",
+    "test:smoke:prod": "BASE_URL=https://voltculture.com.ar node tests/smoke.test.js"
   },
   "dependencies": {
     "@mercadopago/sdk-js": "^0.0.3",

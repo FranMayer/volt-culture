@@ -29,9 +29,9 @@
     <style>
         /* ── Layout ───────────────────────────────────────────── */
         body {
-            background: #0b0b0b;
-            color: #f2f2f2;
-            font-family: 'Barlow', sans-serif;
+            background: #000000;
+            color: #ffffff;
+            font-family: 'DM Sans', sans-serif;
             min-height: 100vh;
         }
 
@@ -39,6 +39,26 @@
             max-width: 800px;
             margin: 0 auto;
             padding: 2rem 1rem 4rem;
+        }
+
+        .orders-page--empty {
+            max-width: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - var(--volt-ds-header-h, 112px));
+            padding: 2rem 1rem;
+        }
+
+        .orders-page--empty .orders-heading {
+            display: none !important;
+        }
+
+        .orders-page--empty #ordersList {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .orders-heading {
@@ -84,46 +104,67 @@
 
         /* ── Estado vacío ─────────────────────────────────────── */
         .orders-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             text-align: center;
-            padding: 4rem 1rem;
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
         }
 
         .orders-empty__icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.4;
+            margin: 0 0 1.5rem;
+            line-height: 0;
+        }
+
+        .orders-empty__icon svg {
+            display: block;
+            width: 72px;
+            height: 72px;
         }
 
         .orders-empty__title {
             font-family: 'Teko', sans-serif;
-            font-size: 1.8rem;
-            letter-spacing: 0.06em;
+            font-size: clamp(2.25rem, 7vw, 3.25rem);
+            font-weight: 700;
+            line-height: 1.05;
+            letter-spacing: 0.02em;
             text-transform: uppercase;
-            color: rgba(242, 242, 242, 0.7);
-            margin-bottom: 0.5rem;
+            color: #ffffff;
+            margin: 0 0 0.75rem;
         }
 
         .orders-empty__desc {
-            color: rgba(242, 242, 242, 0.35);
-            font-size: 0.9rem;
-            margin-bottom: 2rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            font-weight: 300;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.65);
+            margin: 0 0 2rem;
         }
 
         .orders-empty__cta {
             display: inline-block;
-            background: #E8192C;
-            color: #fff;
-            font-family: 'Barlow', sans-serif;
-            font-weight: 700;
-            font-size: 0.85rem;
-            letter-spacing: 0.08em;
+            background: #c1121f;
+            color: #ffffff;
+            border: none;
+            font-family: 'DM Mono', monospace;
+            font-weight: 500;
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
             text-transform: uppercase;
             text-decoration: none;
-            padding: 0.75rem 2rem;
-            transition: background 0.2s;
+            padding: 0.85rem 1.75rem;
+            transition: background 0.2s, color 0.2s;
         }
 
-        .orders-empty__cta:hover { background: #780000; color: #fff; }
+        .orders-empty__cta:hover {
+            background: #9b0e19;
+            color: #ffffff;
+        }
 
         /* ── Tarjeta de orden ─────────────────────────────────── */
         .order-card {
@@ -285,23 +326,6 @@
         gtag('js', new Date());
         gtag('config', 'G-V8T1VZYLVB');
     </script>
-
-    <!-- Meta Pixel -->
-    <script>
-        !function(f,b,e,v,n,t,s)
-        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-        n.queue=[];t=b.createElement(e);t.async=!0;
-        t.src=v;s=b.getElementsByTagName(e)[0];
-        s.parentNode.insertBefore(t,s)}(window, document,'script',
-        'https://connect.facebook.net/en_US/fbevents.js');
-        fbq('init', 'XXXXXXXXXXXXXXX');
-        fbq('track', 'PageView');
-    </script>
-    <noscript><img height="1" width="1" style="display:none"
-        src="https://www.facebook.com/tr?id=XXXXXXXXXXXXXXX&ev=PageView&noscript=1"
-        alt="" /></noscript>
 </head>
 
 <body>
@@ -387,14 +411,26 @@
 
         // ── Render ─────────────────────────────────────────────────────────
 
+        const PACKAGE_ICON_SVG = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                <path d="M24 28v14" stroke="#ffffff" stroke-width="1.75" stroke-linecap="round"/>
+                <path d="M8 18l16-9 16 9-16 9-16-9Z" stroke="#ffffff" stroke-width="1.75" stroke-linejoin="round"/>
+                <path d="M8 18v12l16 9 16-9V18" stroke="#ffffff" stroke-width="1.75" stroke-linejoin="round"/>
+                <path d="M24 19V5" stroke="#ffffff" stroke-width="1.75" stroke-linecap="round"/>
+                <path d="M8 18l16 9 16-9" stroke="#ffffff" stroke-width="1.75" stroke-linejoin="round"/>
+            </svg>
+        `.trim();
+
         function renderEmpty() {
+            const page = document.getElementById('pageContent');
+            page.classList.add('orders-page--empty');
             document.getElementById('ordersSubheading').style.display = 'none';
             document.getElementById('ordersList').innerHTML = `
-                <div class="orders-empty">
-                    <div class="orders-empty__icon">🏎️</div>
-                    <p class="orders-empty__title">Todavía no hiciste ninguna compra</p>
-                    <p class="orders-empty__desc">Explorá el catálogo y encontrá tu próximo look motorsport.</p>
-                    <a href="/pages/catalogo.html" class="orders-empty__cta">Ir al Shop</a>
+                <div class="orders-empty" role="status">
+                    <div class="orders-empty__icon">${PACKAGE_ICON_SVG}</div>
+                    <h2 class="orders-empty__title">Todavía no hiciste ningún pedido</h2>
+                    <p class="orders-empty__desc">Cuando compres algo, lo vas a ver acá.</p>
+                    <a href="/pages/catalogo.html" class="orders-empty__cta">Ir al Shop →</a>
                 </div>
             `;
         }
@@ -415,6 +451,8 @@
 
             if (orders.length === 0) { renderEmpty(); return; }
 
+            document.getElementById('pageContent').classList.remove('orders-page--empty');
+            subheading.style.display = '';
             subheading.textContent = `${orders.length} pedido${orders.length !== 1 ? 's' : ''}`;
 
             list.innerHTML = orders.map(order => {

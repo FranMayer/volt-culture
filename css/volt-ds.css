@@ -1209,16 +1209,16 @@ body.page-leaving {
     font-size: 11px !important;
     text-transform: uppercase !important;
     letter-spacing: 0.14em !important;
-    background: var(--volt-ds-white) !important;
-    color: var(--volt-ds-black) !important;
-    border: 1px solid var(--volt-ds-white) !important;
+    background: #c1121f !important;
+    color: var(--volt-ds-white) !important;
+    border: none !important;
     border-radius: 0 !important;
 }
 
 .orders-empty__cta:hover {
-    background: var(--volt-ds-red) !important;
+    background: #9b0e19 !important;
     color: var(--volt-ds-white) !important;
-    border-color: var(--volt-ds-red) !important;
+    border: none !important;
 }
 
 #pageLoader {

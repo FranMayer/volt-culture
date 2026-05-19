@@ -32,6 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const SHIPPING_OPTIONS = ["cordoba", "andreani"];
+    /** Debe coincidir con CORDOBA_SHIPPING_COST en api/create-preference.js */
     const CORDOBA_SHIPPING_COST = 2500;
 
     function injectCheckoutStyles() {
@@ -113,12 +114,12 @@ document.addEventListener("DOMContentLoaded", () => {
                             <p class="small text-secondary mb-2" style="font-family:Barlow,sans-serif;">Elegí cómo querés recibir tu pedido</p>
                             <div class="volt-ship-grid mb-3" role="radiogroup" aria-label="Opción de envío">
                                 <button type="button" class="volt-ship-card" data-shipping="cordoba" aria-pressed="false">
-                                    <div class="volt-ship-card__title">Envío Córdoba Capital</div>
-                                    <p class="volt-ship-card__meta">Dentro de circunvalación — $2.500. Se suma al total de Mercado Pago.</p>
+                                    <div class="volt-ship-card__title">Envío Córdoba Capital — $2.500</div>
+                                    <p class="volt-ship-card__meta">Dentro de circunvalación. Costo fijo $2.500, se suma al total en Mercado Pago.</p>
                                 </button>
                                 <button type="button" class="volt-ship-card" data-shipping="andreani" aria-pressed="false">
                                     <div class="volt-ship-card__title">Andreani / Interior del país</div>
-                                    <p class="volt-ship-card__meta">Sin costo en este paso. Coordinamos el envío y el monto adicional por WhatsApp.</p>
+                                    <p class="volt-ship-card__meta">Andreani u OCA. El costo se calcula según destino y se coordina por WhatsApp antes del despacho.</p>
                                 </button>
                             </div>
                             <p id="shippingAndreaniNote" class="small mb-0 d-none" style="font-family:Barlow,sans-serif;color:#ccc;line-height:1.45;">
@@ -231,8 +232,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const methodLabel = SHIPPING_LABELS[option] || option;
         let shipText = `${methodLabel}\n`;
-        if (option === "andreani") {
-            shipText += "Te contactaremos por WhatsApp para coordinar el envío y el costo adicional.";
+        if (option === "cordoba") {
+            shipText += `Costo fijo de envío: ${formatMoney(CORDOBA_SHIPPING_COST)} (incluido en el total de Mercado Pago).\n`;
+        } else if (option === "andreani") {
+            shipText += "Te contactaremos por WhatsApp para coordinar el envío y el costo según tu destino.";
         }
         shipText += `\n\nContacto: ${customer.name} · ${customer.email} · ${customer.phone}`;
         shipEl.textContent = shipText;
@@ -458,6 +461,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 variantSize: item.variantSize || "",
             }));
 
+            // Córdoba: create-preference suma shippingCost 2500 y línea MP unit_price 2500
             const postBody = {
                 items,
                 customer,

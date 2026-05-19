@@ -1,0 +1,43 @@
+name: Smoke Tests
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Wait for Vercel deploy
+        run: sleep 30
+
+      - name: Run smoke tests (production)
+        id: smoke
+        run: |
+          set -o pipefail
+          npm run test:smoke:prod 2>&1 | tee smoke-output.txt
+
+      - name: Report failure in job summary
+        if: failure()
+        run: |
+          {
+            echo "## Smoke tests failed"
+            echo ""
+            echo "Los smoke tests contra **https://voltculture.com.ar** fallaron después del deploy en \`main\`."
+            echo ""
+            echo "### Salida"
+            echo '```'
+            cat smoke-output.txt
+            echo '```'
+            echo ""
+            echo "Revisá el deploy en Vercel y volvé a correr localmente con \`npm run test:smoke:prod\`."
+          } >> "$GITHUB_STEP_SUMMARY"
