@@ -5,7 +5,6 @@
 (function () {
     'use strict';
 
-    const ADMIN_EMAIL = 'volt.streetcba@gmail.com';
     const STORE_REDIRECT_KEYS = ['voltGoogleRedirectPending', 'voltGoogleRedirectPanel'];
 
     let auth = null;
@@ -52,13 +51,6 @@
     }
 
     async function ensureAdminAccess(user) {
-        const email = (user.email || '').toLowerCase();
-        if (email !== ADMIN_EMAIL) {
-            await auth.signOut();
-            showAdminLogin('Solo ' + ADMIN_EMAIL + ' puede acceder. Cerrá sesión de otras cuentas de Google e intentá de nuevo.');
-            return false;
-        }
-
         let token;
         try {
             token = await user.getIdTokenResult(true);
@@ -67,16 +59,17 @@
             token = await user.getIdTokenResult();
         }
 
-        if (!token.claims.admin) {
-            showAdminLogin(
-                'Sin permisos de administrador en Firestore. ' +
-                'Ejecutá: node scripts/set-admin.mjs ' + ADMIN_EMAIL +
-                ' — cerrá sesión en la tienda, volvé a ingresar acá y probá de nuevo.'
-            );
-            return false;
+        if (token.claims.admin === true) {
+            return true;
         }
 
-        return true;
+        await auth.signOut();
+        showAdminLogin(
+            'Esta cuenta no tiene permisos de administrador (claim admin). ' +
+            'Si recién asignaste el rol: node scripts/set-admin.mjs <tu-email> — ' +
+            'volvé a ingresar con Google.'
+        );
+        return false;
     }
 
     async function handleAuthState(user) {
@@ -170,5 +163,5 @@
         return user.getIdToken();
     }
 
-    window.VoltAdminAuth = { init, ADMIN_EMAIL, getIdToken };
+    window.VoltAdminAuth = { init, getIdToken };
 })();

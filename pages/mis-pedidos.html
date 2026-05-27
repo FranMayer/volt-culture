@@ -824,13 +824,24 @@
 
         window.FirebaseConfig.init();
 
-        firebase.auth().onAuthStateChanged((user) => {
+        firebase.auth().onAuthStateChanged(async (user) => {
             const loader  = document.getElementById('pageLoader');
             const content = document.getElementById('pageContent');
 
             if (!user) {
                 cleanup();
-                window.location.href = '/pages/catalogo.html';
+                content.style.display = 'none';
+                loader.style.display = '';
+
+                if (!window.VoltStoreAuth?.requireAuth) {
+                    window.location.href = '/pages/catalogo.html';
+                    return;
+                }
+
+                const authedUser = await window.VoltStoreAuth.requireAuth();
+                if (!authedUser) {
+                    window.location.href = '/pages/catalogo.html';
+                }
                 return;
             }
 
