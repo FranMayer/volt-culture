@@ -494,7 +494,7 @@
             return `$${Number(n || 0).toLocaleString('es-AR')}`;
         }
 
-        /** Campos esperados del order-card: orderId, createdAt, status, items[{title,quantity,price}], total */
+        /** Campos esperados del order-card: orderId, createdAt, status, items[{id,title,quantity,price}], total */
         function normalizeOrder(raw, docId) {
             const order = { ...(raw && typeof raw === 'object' ? raw : {}) };
             order.orderId = String(order.orderId || order.id || docId || '').trim();
@@ -507,6 +507,7 @@
             order.items = (items || []).map((item) => {
                 const row = item && typeof item === 'object' ? item : {};
                 return {
+                    id: String(row.id || row.productId || '').trim(),
                     title: row.title || row.name || 'Producto',
                     quantity: Math.max(1, Number(row.quantity) || 1),
                     price: Number(row.price) || 0,
@@ -704,18 +705,22 @@
             try { cart = JSON.parse(localStorage.getItem('cart')) || []; } catch { cart = []; }
 
             order.items.forEach(item => {
-                const existing = cart.find(c => c.title === item.title);
+                const productId = String(item.id || item.productId || '').trim();
+                const existing = productId
+                    ? cart.find(c => c.id === productId)
+                    : cart.find(c => !c.id && c.title === item.title);
                 if (existing) {
                     existing.quantity += (item.quantity || 1);
+                    if (productId && !existing.id) existing.id = productId;
                 } else {
                     cart.push({
-                        id: item.title,
+                        id: productId,
                         title: item.title,
                         price: item.price || 0,
                         quantity: item.quantity || 1,
-                        image: '',
-                        variantColor: '',
-                        variantSize: ''
+                        image: item.image || '',
+                        variantColor: item.variantColor || '',
+                        variantSize: item.variantSize || ''
                     });
                 }
             });
