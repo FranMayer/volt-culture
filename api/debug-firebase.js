@@ -1,6 +1,10 @@
 import { verifyAdmin } from './_verify-admin.js';
 
 export default async function handler(req, res) {
+    if (process.env.VERCEL_ENV === 'production') {
+        return res.status(404).end();
+    }
+
     const decoded = await verifyAdmin(req, res);
     if (!decoded) return;
 
