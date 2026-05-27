@@ -1849,6 +1849,8 @@
             const s = o.shipping;
             const shipKey = s?.method || s?.type;
             if (s && shipKey) {
+                const needsAddress =
+                    s.type === 'andreani' || s.method === 'andreani' || s.method === 'correo';
                 const labels = {
                     cadete: 'Cadete en moto (Córdoba Capital)',
                     cordoba: 'Envío Córdoba Capital (circunvalación)',
@@ -1861,23 +1863,28 @@
                     bits.push(`<strong>Costo envío:</strong> $${Number(s.cost).toLocaleString('es-AR')}`);
                 }
                 if (s.note) bits.push(`<strong>Nota:</strong> ${s.note}`);
-                if (s.method === 'andreani' || s.method === 'correo') {
+                if (needsAddress) {
                     const a = s.address || {};
                     bits.push(`<strong>Dirección:</strong> ${a.street || '-'}`);
                     bits.push(`${a.city || '-'}, ${a.province || '-'} — CP ${a.postalCode || '-'}`);
+                } else if (s.type === 'cordoba') {
+                    bits.push('<span style="color:rgba(255,255,255,0.5)">Entrega local — coordinar por WhatsApp</span>');
                 } else if (s.method === 'cadete') {
                     bits.push('<span style="color:rgba(255,255,255,0.5)">Coordinar entrega por WhatsApp</span>');
                 }
                 if (s.notes) bits.push(`<strong>Nota:</strong> ${s.notes}`);
-                if (s.trackingNumber) {
+                if (needsAddress && s.trackingNumber) {
                     const trackUrl = `https://www.andreani.com/#!/informacionEnvio/${encodeURIComponent(s.trackingNumber)}`;
                     bits.push(`<strong>Tracking ${s.carrier || 'Andreani'}:</strong> <a href="${trackUrl}" target="_blank" rel="noopener">${s.trackingNumber}</a>`);
                 }
                 return bits.join('<br>');
             }
-            if (o.shipping?.trackingNumber) {
-                const trackUrl = `https://www.andreani.com/#!/informacionEnvio/${encodeURIComponent(o.shipping.trackingNumber)}`;
-                return `<strong>Tracking Andreani:</strong> <a href="${trackUrl}" target="_blank" rel="noopener">${o.shipping.trackingNumber}</a>`;
+            const legacy = o.shipping;
+            const legacyNeedsAddress =
+                legacy?.type === 'andreani' || legacy?.method === 'andreani' || legacy?.method === 'correo';
+            if (legacyNeedsAddress && legacy?.trackingNumber) {
+                const trackUrl = `https://www.andreani.com/#!/informacionEnvio/${encodeURIComponent(legacy.trackingNumber)}`;
+                return `<strong>Tracking Andreani:</strong> <a href="${trackUrl}" target="_blank" rel="noopener">${legacy.trackingNumber}</a>`;
             }
             return `<strong>Dirección:</strong> ${o.customer?.address || '-'}`;
         }
@@ -1931,6 +1938,8 @@
             const s = o.shipping;
             const shipKey = s?.method || s?.type;
             if (s && shipKey) {
+                const needsAddress =
+                    s.type === 'andreani' || s.method === 'andreani' || s.method === 'correo';
                 const labels = {
                     cadete: 'Cadete en moto (Córdoba Capital)',
                     cordoba: 'Envío Córdoba Capital (circunvalación)',
@@ -1941,19 +1950,24 @@
                 let t = `Envío: ${labels[shipKey] || shipKey}\n`;
                 if (s.cost != null && shipKey === 'cordoba') t += `Costo envío: $${Number(s.cost).toLocaleString('es-AR')}\n`;
                 if (s.note) t += `Nota: ${s.note}\n`;
-                if (s.method === 'andreani' || s.method === 'correo') {
+                if (needsAddress) {
                     const a = s.address || {};
                     t += `Calle: ${a.street || ''}\nCiudad: ${a.city || ''}\nProvincia: ${a.province || ''}\nCP: ${a.postalCode || ''}\n`;
+                } else if (s.type === 'cordoba') {
+                    t += 'Entrega local — coordinar por WhatsApp\n';
                 }
                 if (s.notes) t += `Nota: ${s.notes}\n`;
-                if (s.trackingNumber) {
+                if (needsAddress && s.trackingNumber) {
                     t += `Tracking ${s.carrier || 'Andreani'}: ${s.trackingNumber}\n`;
                     t += `https://www.andreani.com/#!/informacionEnvio/${s.trackingNumber}\n`;
                 }
                 return t.trimEnd();
             }
-            if (o.shipping?.trackingNumber) {
-                return `Tracking Andreani: ${o.shipping.trackingNumber}\nhttps://www.andreani.com/#!/informacionEnvio/${o.shipping.trackingNumber}`;
+            const legacy = o.shipping;
+            const legacyNeedsAddress =
+                legacy?.type === 'andreani' || legacy?.method === 'andreani' || legacy?.method === 'correo';
+            if (legacyNeedsAddress && legacy?.trackingNumber) {
+                return `Tracking Andreani: ${legacy.trackingNumber}\nhttps://www.andreani.com/#!/informacionEnvio/${legacy.trackingNumber}`;
             }
             return `Direccion: ${o.customer?.address || '-'}`;
         }
@@ -2109,19 +2123,37 @@
                     <label class="form-label" for="andreaniTrackingInput">Número de tracking Andreani</label>
                     <input type="text" class="form-control form-control-sm" id="andreaniTrackingInput" placeholder="Ej: 1234567890" autocomplete="off">
                 </div>
+                <div id="shippedCordobaPanel" class="shipped-tracking-panel d-none mt-3">
+                    <p class="small mb-0" style="color:rgba(255,255,255,0.65);">Entrega local — coordinar por WhatsApp</p>
+                </div>
             `;
             const statusSelect = document.getElementById('manualOrderStatus');
             const trackingPanel = document.getElementById('shippedTrackingPanel');
+            const cordobaPanel = document.getElementById('shippedCordobaPanel');
             const trackingInput = document.getElementById('andreaniTrackingInput');
+            const ship = o.shipping || {};
+            const needsAddress =
+                ship.type === 'andreani' || ship.method === 'andreani' || ship.method === 'correo';
+            const isCordoba = ship.type === 'cordoba';
 
             statusSelect.value = ['paid', 'shipped', 'delivered', 'cancelled', 'pending_payment'].includes(o.status) ? o.status : 'paid';
 
             function syncShippedTrackingPanel() {
                 const isShipped = statusSelect.value === 'shipped';
-                trackingPanel.classList.toggle('d-none', !isShipped);
-                if (isShipped) {
-                    trackingInput.value = o.shipping?.trackingNumber || '';
+                if (isCordoba) {
+                    trackingPanel.classList.add('d-none');
+                    cordobaPanel.classList.toggle('d-none', !isShipped);
+                    return;
                 }
+                cordobaPanel.classList.add('d-none');
+                if (needsAddress) {
+                    trackingPanel.classList.toggle('d-none', !isShipped);
+                    if (isShipped) {
+                        trackingInput.value = o.shipping?.trackingNumber || '';
+                    }
+                    return;
+                }
+                trackingPanel.classList.add('d-none');
             }
             statusSelect.addEventListener('change', syncShippedTrackingPanel);
             syncShippedTrackingPanel();
@@ -2129,7 +2161,8 @@
             document.getElementById('saveOrderStatusBtn').onclick = async () => {
                 const newStatus = statusSelect.value;
                 const saveBtn = document.getElementById('saveOrderStatusBtn');
-                const trackingNumber = newStatus === 'shipped' ? (trackingInput.value || '').trim() : '';
+                const trackingNumber =
+                    newStatus === 'shipped' && needsAddress ? (trackingInput.value || '').trim() : '';
 
                 saveBtn.disabled = true;
                 saveBtn.textContent = 'Guardando...';

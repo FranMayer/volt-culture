@@ -1,7 +1,13 @@
+import { SHIPPING_CONFIG } from '../js/shipping-config.js';
+
+function formatShippingCostArs(amount) {
+    return Number(amount).toLocaleString('es-AR');
+}
+
 /** Textos para checkout actual (shipping.type: cordoba | andreani). */
 export const SHIPPING_TYPE_DISPLAY = {
-    cordoba: 'Envío a Córdoba Capital — $2.500',
-    andreani: 'Andreani — a coordinar dirección'
+    cordoba: `Envío a ${SHIPPING_CONFIG.cordoba.label} — $${formatShippingCostArs(SHIPPING_CONFIG.cordoba.cost)}`,
+    andreani: `${SHIPPING_CONFIG.andreani.label} — a coordinar dirección`
 };
 
 /** Pedidos anteriores con shipping.method. */

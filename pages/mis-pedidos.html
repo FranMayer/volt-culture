@@ -315,6 +315,40 @@
             margin-left: 1rem;
         }
 
+        /* ── Envío en la tarjeta ──────────────────────────────── */
+        .order-card__shipping {
+            padding: 0.75rem 1.25rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 0.85rem;
+            line-height: 1.45;
+            color: rgba(242, 242, 242, 0.75);
+        }
+
+        .order-card__ship-line {
+            margin-bottom: 0.35rem;
+        }
+
+        .order-card__ship-line:last-child {
+            margin-bottom: 0;
+        }
+
+        .order-card__ship-address {
+            margin: 0.35rem 0 0.5rem;
+            padding-left: 0.5rem;
+            border-left: 2px solid rgba(232, 25, 44, 0.45);
+            color: rgba(242, 242, 242, 0.6);
+            font-size: 0.8rem;
+        }
+
+        .order-card__shipping a {
+            color: #E8192C;
+            text-decoration: underline;
+        }
+
+        .order-card__shipping a:hover {
+            color: #ff4d5e;
+        }
+
         /* ── Pie de la tarjeta ────────────────────────────────── */
         .order-card__footer {
             display: flex;
@@ -534,6 +568,83 @@
             return false;
         }
 
+        const LEGACY_SHIPPING_METHOD_LABELS = {
+            cadete: 'Cadete (Córdoba Capital)',
+            andreani: 'Andreani / Interior',
+            correo: 'Correo Argentino',
+            coordinar: 'Coordinar entrega'
+        };
+
+        function appendShippingAddressLines(lines, address) {
+            if (!address || typeof address !== 'object') return;
+            const street = String(address.street || '').trim();
+            const city = String(address.city || '').trim();
+            const province = String(address.province || '').trim();
+            const postalCode = String(address.postalCode || '').trim();
+            if (!street && !city && !province && !postalCode) return;
+
+            const parts = [];
+            if (street) parts.push(escHtml(street));
+            if (city || province) {
+                parts.push(escHtml([city, province].filter(Boolean).join(', ')));
+            }
+            if (postalCode) parts.push(`CP ${escHtml(postalCode)}`);
+            lines.push(`<div class="order-card__ship-address">${parts.join('<br>')}</div>`);
+        }
+
+        function appendShippingTrackingLine(lines, orderStatus, trackingNumber) {
+            if (String(orderStatus || '').toLowerCase() !== 'shipped') return;
+            const tn = String(trackingNumber || '').trim();
+            if (!tn) return;
+            const trackUrl =
+                'https://www.andreani.com/personas/rastrearEnvio?claveDeRastreo=' +
+                encodeURIComponent(tn);
+            lines.push(
+                `<div class="order-card__ship-line"><strong>Seguimiento:</strong> ` +
+                `<a href="${trackUrl}" target="_blank" rel="noopener noreferrer">${escHtml(tn)}</a></div>`
+            );
+        }
+
+        /** Bloque de envío; cadena vacía si no hay datos reconocibles. */
+        function buildOrderShippingHtml(order) {
+            const s = order.shipping;
+            if (!s || typeof s !== 'object') return '';
+
+            const type = String(s.type || '').trim().toLowerCase();
+            const method = String(s.method || '').trim().toLowerCase();
+            const status = String(order.status || '').trim().toLowerCase();
+            const lines = [];
+
+            if (type === 'cordoba') {
+                const costLabel =
+                    s.cost != null && !Number.isNaN(Number(s.cost))
+                        ? formatPrice(s.cost)
+                        : '$2.500';
+                lines.push(
+                    `<div class="order-card__ship-line"><strong>Envío:</strong> Córdoba Capital — ${costLabel}</div>`
+                );
+            } else if (type === 'andreani') {
+                lines.push(
+                    '<div class="order-card__ship-line"><strong>Envío:</strong> Andreani / Interior — A coordinar</div>'
+                );
+                appendShippingAddressLines(lines, s.address);
+                appendShippingTrackingLine(lines, status, s.trackingNumber);
+            } else if (method && LEGACY_SHIPPING_METHOD_LABELS[method]) {
+                lines.push(
+                    `<div class="order-card__ship-line"><strong>Envío:</strong> ${escHtml(LEGACY_SHIPPING_METHOD_LABELS[method])}</div>`
+                );
+                if (method === 'andreani' || method === 'correo') {
+                    appendShippingAddressLines(lines, s.address);
+                }
+                appendShippingTrackingLine(lines, status, s.trackingNumber);
+            } else {
+                return '';
+            }
+
+            if (!lines.length) return '';
+            return `<div class="order-card__shipping">${lines.join('')}</div>`;
+        }
+
         function buildOrderCardHtml(order) {
             const orderId = escHtml(order.orderId);
             const items = order.items;
@@ -560,6 +671,7 @@
                     ${statusBadge(order.status)}
                 </div>
                 <div class="order-card__items">${itemsHtml}</div>
+                ${buildOrderShippingHtml(order)}
                 <div class="order-card__footer">
                     <button class="btn-reorder" data-order-id="${orderId}" type="button">
                         Repetir pedido

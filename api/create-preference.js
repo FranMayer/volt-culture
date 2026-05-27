@@ -3,6 +3,7 @@ import { initializeApp, cert, getApps } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { computeAvailableStock } from './_stock.js';
 import { applyRateLimit } from './_rate-limit.js';
+import { SHIPPING_CONFIG } from '../js/shipping-config.js';
 
 function initAdmin() {
     if (!process.env.FIREBASE_PRIVATE_KEY) {
@@ -39,8 +40,7 @@ function generateOrderId() {
     return `VOLT-${token}`;
 }
 
-const SHIPPING_OPTIONS = new Set(['cordoba', 'andreani']);
-const CORDOBA_SHIPPING_COST = 2500;
+const SHIPPING_OPTIONS = new Set(Object.keys(SHIPPING_CONFIG));
 
 function resolveShippingOption(shippingOption) {
     const option = String(shippingOption || '')
@@ -55,23 +55,47 @@ function resolveShippingOption(shippingOption) {
         };
     }
     if (option === 'cordoba') {
+        const cost = SHIPPING_CONFIG.cordoba.cost;
         return {
-            shipping: { type: 'cordoba', cost: CORDOBA_SHIPPING_COST },
-            shippingCost: CORDOBA_SHIPPING_COST
+            shipping: { type: 'cordoba', cost },
+            shippingCost: cost
         };
     }
     return {
-        shipping: { type: 'andreani', cost: 0, note: 'A coordinar' },
-        shippingCost: 0
+        shipping: {
+            type: 'andreani',
+            cost: SHIPPING_CONFIG.andreani.cost,
+            note: SHIPPING_CONFIG.andreani.note
+        },
+        shippingCost: SHIPPING_CONFIG.andreani.cost
+    };
+}
+
+function normalizeAndreaniAddress(address) {
+    if (!address || typeof address !== 'object' || Array.isArray(address)) {
+        return { error: 'Para envío Andreani completá la dirección de entrega.' };
+    }
+    const street = String(address.street || '').trim();
+    const city = String(address.city || '').trim();
+    const province = String(address.province || '').trim();
+    const postalCode = String(address.postalCode || '').trim();
+    if (!street || !city || !province || !postalCode) {
+        return {
+            error:
+                'Para envío Andreani completá calle y número, ciudad, provincia y código postal.'
+        };
+    }
+    return {
+        address: { street, city, province, postalCode }
     };
 }
 
 /** Una línea para metadata de Mercado Pago (límite práctico de caracteres). */
 function shippingSummaryLine(shipping) {
     if (shipping.type === 'cordoba') {
-        return `cordoba: Envío Córdoba Capital $${CORDOBA_SHIPPING_COST}`;
+        return `cordoba: Envío ${SHIPPING_CONFIG.cordoba.label} $${SHIPPING_CONFIG.cordoba.cost}`;
     }
-    return 'andreani: A coordinar por WhatsApp';
+    return `andreani: ${SHIPPING_CONFIG.andreani.note} por WhatsApp`;
 }
 
 const ALLOWED_ORIGINS = new Set([
@@ -140,6 +164,15 @@ export default async function handler(req, res) {
         }
         const shipping = shipNorm.shipping;
         const shippingCost = shipNorm.shippingCost;
+
+        if (shipping.type === 'andreani') {
+            const addressInput = body.shipping?.address ?? body.shippingAddress;
+            const addrNorm = normalizeAndreaniAddress(addressInput);
+            if (addrNorm.error) {
+                return res.status(400).json({ error: addrNorm.error });
+            }
+            shipping.address = addrNorm.address;
+        }
 
         const normalizedItems = items.map(item => ({
             id: String(item.id || item.productId || '').trim(),
@@ -240,12 +273,12 @@ export default async function handler(req, res) {
         if (shipping.type === 'cordoba') {
             mpItems.push({
                 id: 'shipping-cordoba',
-                title: 'Envío Córdoba Capital',
-                description: 'Envío Córdoba Capital (dentro de circunvalación)',
+                title: `Envío ${SHIPPING_CONFIG.cordoba.label}`,
+                description: `Envío ${SHIPPING_CONFIG.cordoba.label} (dentro de circunvalación)`,
                 category_id: 'others',
                 quantity: 1,
                 currency_id: 'ARS',
-                unit_price: CORDOBA_SHIPPING_COST
+                unit_price: SHIPPING_CONFIG.cordoba.cost
             });
         }
 
