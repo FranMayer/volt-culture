@@ -1,10 +1,8 @@
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { Resend } from 'resend';
 import { formatShippingBlockClientHtml } from './_shipping-email.js';
-
-const ADMIN_EMAIL = 'volt.streetcba@gmail.com';
+import { verifyAdmin } from './_verify-admin.js';
 
 function initAdmin() {
     const projectId   = (process.env.FIREBASE_PROJECT_ID   || '').replace(/^"|"$/g, '').trim();
@@ -15,7 +13,7 @@ function initAdmin() {
     if (!getApps().length) {
         initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
     }
-    return { auth: getAuth(), db: getFirestore() };
+    return getFirestore();
 }
 
 const STATUS_SUBJECTS = {
@@ -37,21 +35,8 @@ const STATUS_MESSAGES = {
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
 
-    // Verificar token de Firebase
-    const rawToken = (req.headers['authorization'] || '').replace('Bearer ', '').trim();
-    if (!rawToken) return res.status(401).json({ error: 'Token no proporcionado' });
-
-    let decoded;
-    try {
-        const { auth } = initAdmin();
-        decoded = await auth.verifyIdToken(rawToken);
-    } catch {
-        return res.status(401).json({ error: 'Token inválido o expirado' });
-    }
-
-    if (decoded.email !== ADMIN_EMAIL && decoded.admin !== true) {
-        return res.status(403).json({ error: 'Acceso denegado' });
-    }
+    const decoded = await verifyAdmin(req, res);
+    if (!decoded) return;
 
     const { orderId, status, trackingNumber: trackingNumberRaw } = req.body || {};
     if (!orderId || !status) return res.status(400).json({ error: 'Faltan orderId o status' });
@@ -61,7 +46,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { db } = initAdmin();
+        const db = initAdmin();
         const orderRef = db.collection('orders').doc(orderId);
         const snap = await orderRef.get();
         if (!snap.exists) return res.status(404).json({ error: 'Orden no encontrada' });
