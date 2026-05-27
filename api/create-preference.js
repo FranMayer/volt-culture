@@ -145,7 +145,6 @@ export default async function handler(req, res) {
             id: String(item.id || item.productId || '').trim(),
             title: String(item.title || 'Producto'),
             quantity: Math.max(1, Number(item.quantity) || 1),
-            price: Math.max(0, Number(item.price) || 0),
             image: item.image || '',
             variantColor: item.variantColor || '',
             variantSize: item.variantSize || ''
@@ -177,6 +176,13 @@ export default async function handler(req, res) {
                         err.code = 'STOCK_INSUFFICIENT';
                         throw err;
                     }
+                    const serverPrice = Number(data.price);
+                    if (!Number.isFinite(serverPrice) || serverPrice <= 0) {
+                        const err = new Error(`Precio inválido en catálogo: ${item.title}`);
+                        err.code = 'STOCK_INSUFFICIENT';
+                        throw err;
+                    }
+                    item.price = serverPrice;
                     const available = computeAvailableStock(data, item.variantColor, item.variantSize);
                     if (available < item.quantity) {
                         const err = new Error(`Stock insuficiente para ${item.title}`);
