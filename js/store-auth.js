@@ -257,11 +257,16 @@
                     });
                 }
                 // Email de bienvenida — fire-and-forget
-                fetch('/api/welcome-email', {
-                    method:  'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body:    JSON.stringify({ email, name: this._userName(cred.user) })
-                }).catch(() => {});
+                cred.user.getIdToken().then((idToken) =>
+                    fetch('/api/welcome-email', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${idToken}`
+                        },
+                        body: JSON.stringify({ email, name: this._userName(cred.user) })
+                    })
+                ).catch(() => {});
 
                 // onAuthStateChanged cierra el modal automáticamente
             } catch (err) {
@@ -310,14 +315,19 @@
                         lastAddress: null
                     });
                 }
-                fetch('/api/welcome-email', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email: user.email || '',
-                        name: this._userName(user)
+                user.getIdToken().then((idToken) =>
+                    fetch('/api/welcome-email', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${idToken}`
+                        },
+                        body: JSON.stringify({
+                            email: user.email || '',
+                            name: this._userName(user)
+                        })
                     })
-                }).catch(() => {});
+                ).catch(() => {});
             } catch (fsErr) {
                 console.error(LOG, 'perfil Firestore (Google):', fsErr.code || fsErr.message, fsErr);
                 throw fsErr;

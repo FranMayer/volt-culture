@@ -1,5 +1,23 @@
 import { Resend } from 'resend';
+import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 import { applyRateLimit } from './_rate-limit.js';
+
+function initAdminAuth() {
+    const projectId = (process.env.FIREBASE_PROJECT_ID || '').replace(/^"|"$/g, '').trim();
+    const clientEmail = (process.env.FIREBASE_CLIENT_EMAIL || '').replace(/^"|"$/g, '').trim();
+    const privateKey = (process.env.FIREBASE_PRIVATE_KEY || '')
+        .replace(/\\n/g, '\n')
+        .replace(/^"|"$/g, '')
+        .trim();
+
+    if (!getApps().length) {
+        initializeApp({
+            credential: cert({ projectId, clientEmail, privateKey })
+        });
+    }
+    return getAuth();
+}
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -7,10 +25,30 @@ export default async function handler(req, res) {
     }
     if (!(await applyRateLimit(req, res, 'welcome-email'))) return;
 
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
+    if (!token) {
+        return res.status(401).json({ error: 'Token no proporcionado' });
+    }
+
+    let decoded;
+    try {
+        const auth = initAdminAuth();
+        decoded = await auth.verifyIdToken(token);
+    } catch {
+        return res.status(401).json({ error: 'Token inválido o expirado' });
+    }
+
     const { email, name } = req.body || {};
 
     if (!email || !name) {
         return res.status(400).json({ error: 'Faltan los campos email y/o name' });
+    }
+
+    const bodyEmail = String(email).trim().toLowerCase();
+    const tokenEmail = (decoded.email || '').trim().toLowerCase();
+    if (!tokenEmail || tokenEmail !== bodyEmail) {
+        return res.status(403).json({ error: 'El email no coincide con la sesión autenticada' });
     }
 
     if (!process.env.RESEND_API_KEY) {
