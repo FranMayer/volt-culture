@@ -36,6 +36,8 @@
         }
 
         .orders-page {
+            position: relative;
+            z-index: 1;
             max-width: 800px;
             margin: 0 auto;
             padding: 2rem 1rem 4rem;
@@ -67,7 +69,9 @@
         }
 
         .orders-page--empty #ordersList {
+            flex: 1;
             width: 100%;
+            min-height: 40vh;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -187,7 +191,7 @@
 
         .orders-empty__cta {
             display: inline-block;
-            background: #c1121f;
+            background: #E8001D;
             color: #ffffff;
             border: none;
             font-family: 'DM Mono', monospace;
@@ -201,8 +205,13 @@
         }
 
         .orders-empty__cta:hover {
-            background: #9b0e19;
+            background: #c40018;
             color: #ffffff;
+        }
+
+        .orders-empty__cta:focus-visible {
+            outline: 2px solid #ffffff;
+            outline-offset: 3px;
         }
 
         .orders-empty__actions {
@@ -467,10 +476,25 @@
     </nav>
 
     <!-- Contenido principal -->
-    <main class="orders-page" id="pageContent" style="display:none;">
+    <main class="orders-page orders-page--empty" id="pageContent" style="display:none;">
         <h1 class="orders-heading">Mis <span>Pedidos</span></h1>
-        <p class="orders-subheading" id="ordersSubheading">Cargando tus pedidos...</p>
-        <div id="ordersList"></div>
+        <p class="orders-subheading" id="ordersSubheading" hidden>Cargando tus pedidos...</p>
+        <div id="ordersList">
+            <div class="orders-empty" id="ordersEmptyDefault" role="status">
+                <div class="orders-empty__icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" focusable="false">
+                        <path d="M24 28v14" stroke="#ffffff" stroke-width="1.75" stroke-linecap="round"/>
+                        <path d="M8 18l16-9 16 9-16 9-16-9Z" stroke="#ffffff" stroke-width="1.75" stroke-linejoin="round"/>
+                        <path d="M8 18v12l16 9 16-9V18" stroke="#ffffff" stroke-width="1.75" stroke-linejoin="round"/>
+                        <path d="M24 19V5" stroke="#ffffff" stroke-width="1.75" stroke-linecap="round"/>
+                        <path d="M8 18l16 9 16-9" stroke="#ffffff" stroke-width="1.75" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h2 class="orders-empty__title">Todavía no hiciste ningún pedido</h2>
+                <p class="orders-empty__desc">Cuando compres en la tienda, vas a ver el detalle y el estado de envío acá.</p>
+                <a href="/pages/catalogo.html" class="orders-empty__cta">Ir a la tienda</a>
+            </div>
+        </div>
     </main>
 
     <!-- Scripts -->
@@ -720,15 +744,17 @@
 
         function renderEmpty() {
             const page = document.getElementById('pageContent');
+            const subheading = document.getElementById('ordersSubheading');
             clearOrdersPageState();
             page.classList.add('orders-page--empty');
-            document.getElementById('ordersSubheading').style.display = 'none';
+            subheading.hidden = true;
+            subheading.style.display = 'none';
             document.getElementById('ordersList').innerHTML = `
                 <div class="orders-empty" role="status">
-                    <div class="orders-empty__icon">${PACKAGE_ICON_SVG}</div>
+                    <div class="orders-empty__icon" aria-hidden="true">${PACKAGE_ICON_SVG}</div>
                     <h2 class="orders-empty__title">Todavía no hiciste ningún pedido</h2>
-                    <p class="orders-empty__desc">Cuando compres algo, lo vas a ver acá.</p>
-                    <a href="/pages/catalogo.html" class="orders-empty__cta">Ir a la Tienda →</a>
+                    <p class="orders-empty__desc">Cuando compres en la tienda, vas a ver el detalle y el estado de envío acá.</p>
+                    <a href="/pages/catalogo.html" class="orders-empty__cta">Ir a la tienda</a>
                 </div>
             `;
         }
@@ -737,6 +763,7 @@
             clearOrdersPageState();
             document.getElementById('pageContent').classList.add('orders-page--load-error');
             const subheading = document.getElementById('ordersSubheading');
+            subheading.hidden = false;
             subheading.style.display = '';
             subheading.textContent = 'No pudimos cargar tus pedidos. Revisá tu conexión e intentá de nuevo.';
             document.getElementById('ordersList').innerHTML = `
@@ -758,7 +785,9 @@
                 return;
             }
             clearOrdersPageState();
-            document.getElementById('ordersSubheading').style.display = 'none';
+            const subheading = document.getElementById('ordersSubheading');
+            subheading.hidden = true;
+            subheading.style.display = 'none';
             document.getElementById('ordersList').innerHTML = `
                 <div class="orders-error">
                     ${msg || 'No pudimos cargar tus pedidos. Intentá de nuevo más tarde.'}
@@ -798,6 +827,7 @@
             list.style.display = 'block';
             list.style.visibility = 'visible';
             list.style.opacity = '1';
+            subheading.hidden = false;
             subheading.style.display = '';
             subheading.textContent = `${cards.length} pedido${cards.length !== 1 ? 's' : ''}`;
             list.innerHTML = cards.join('');
