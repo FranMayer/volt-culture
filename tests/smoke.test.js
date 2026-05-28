@@ -7,6 +7,46 @@
 const BASE = (process.env.BASE_URL || 'https://voltculture.com.ar').replace(/\/$/, '');
 const ORIGIN = BASE;
 
+/** GET /api/webhook debe responder 405 (solo POST permitido). */
+const WEBHOOK_GET_STATUS = 405;
+
+const RETRYABLE_STATUSES = new Set([500, 502, 503, 504]);
+const RETRY_ATTEMPTS = Number(process.env.SMOKE_RETRY_ATTEMPTS || 6);
+const RETRY_DELAY_MS = Number(process.env.SMOKE_RETRY_DELAY_MS || 5000);
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Reintenta solo ante 5xx transitorios (deploy / cold start).
+ * No relaja criterios de éxito: el status esperado sigue siendo obligatorio.
+ */
+async function fetchUntilStatus(url, init, expectedStatus, label = url) {
+  let lastStatus = 0;
+
+  for (let attempt = 1; attempt <= RETRY_ATTEMPTS; attempt++) {
+    const res = await fetch(url, init);
+    lastStatus = res.status;
+
+    if (res.status === expectedStatus) {
+      return res;
+    }
+
+    if (RETRYABLE_STATUSES.has(res.status) && attempt < RETRY_ATTEMPTS) {
+      console.warn(
+        `  ${label}: HTTP ${res.status} (intento ${attempt}/${RETRY_ATTEMPTS}), reintento en ${RETRY_DELAY_MS / 1000}s…`
+      );
+      await sleep(RETRY_DELAY_MS);
+      continue;
+    }
+
+    return res;
+  }
+
+  return { status: lastStatus };
+}
+
 async function runTest(name, fn) {
   const start = performance.now();
   const ms = () => Math.round(performance.now() - start);
@@ -74,8 +114,16 @@ const tests = [
   {
     name: 'WEBHOOK',
     run: async () => {
-      const res = await fetch(`${BASE}/api/webhook`, { method: 'GET' });
-      return res.status !== 500;
+      const res = await fetchUntilStatus(
+        `${BASE}/api/webhook`,
+        { method: 'GET' },
+        WEBHOOK_GET_STATUS,
+        'WEBHOOK'
+      );
+      if (res.status !== WEBHOOK_GET_STATUS) {
+        console.warn(`  WEBHOOK: se esperaba ${WEBHOOK_GET_STATUS}, recibido ${res.status}`);
+      }
+      return res.status === WEBHOOK_GET_STATUS;
     },
   },
 ];

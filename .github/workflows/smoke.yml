@@ -18,10 +18,30 @@ jobs:
           node-version: "20"
 
       - name: Wait for Vercel deploy
-        run: sleep 30
+        env:
+          SMOKE_BASE_URL: https://voltculture.com.ar
+        run: |
+          set -euo pipefail
+          URL="${SMOKE_BASE_URL%/}/api/webhook"
+          MAX_ATTEMPTS=36
+          DELAY_SEC=5
+          for i in $(seq 1 "$MAX_ATTEMPTS"); do
+            code=$(curl -sS -o /dev/null -w "%{http_code}" -X GET "$URL" || echo "000")
+            if [ "$code" = "405" ]; then
+              echo "Producción lista: GET $URL → $code (intento $i/$MAX_ATTEMPTS)"
+              exit 0
+            fi
+            echo "Esperando deploy: GET $URL → HTTP $code ($i/$MAX_ATTEMPTS)"
+            sleep "$DELAY_SEC"
+          done
+          echo "Timeout: el webhook no respondió 405 en $((MAX_ATTEMPTS * DELAY_SEC))s"
+          exit 1
 
       - name: Run smoke tests (production)
         id: smoke
+        env:
+          SMOKE_RETRY_ATTEMPTS: 3
+          SMOKE_RETRY_DELAY_MS: 3000
         run: |
           set -o pipefail
           npm run test:smoke:prod 2>&1 | tee smoke-output.txt
