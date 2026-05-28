@@ -14,9 +14,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const header = document.getElementById('mainHeader');
 
     if (menuToggle && navMenu) {
+        const closeMenu = () => {
+            menuToggle.classList.remove('active');
+            navMenu.classList.remove('active');
+            header?.classList.remove('menu-open');
+            if (menuOverlay) {
+                menuOverlay.classList.remove('active');
+            }
+            document.body.style.overflow = '';
+            document.documentElement.style.overflow = '';
+        };
+
         menuToggle.addEventListener('click', function() {
             menuToggle.classList.toggle('active');
             navMenu.classList.toggle('active');
+            header?.classList.toggle('menu-open');
             if (menuOverlay) {
                 menuOverlay.classList.toggle('active');
             }
@@ -29,25 +41,21 @@ document.addEventListener('DOMContentLoaded', function() {
         // Cerrar menú al hacer clic en el overlay
         if (menuOverlay) {
             menuOverlay.addEventListener('click', function() {
-                menuToggle.classList.remove('active');
-                navMenu.classList.remove('active');
-                menuOverlay.classList.remove('active');
-                document.body.style.overflow = '';
-                document.documentElement.style.overflow = '';
+                closeMenu();
             });
         }
 
         // Cerrar menú al hacer clic en un enlace
         navMenu.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', function() {
-                menuToggle.classList.remove('active');
-                navMenu.classList.remove('active');
-                if (menuOverlay) {
-                    menuOverlay.classList.remove('active');
-                }
-                document.body.style.overflow = '';
-                document.documentElement.style.overflow = '';
+                closeMenu();
             });
+        });
+
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                closeMenu();
+            }
         });
     }
 

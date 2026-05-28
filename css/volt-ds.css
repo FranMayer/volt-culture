@@ -37,7 +37,6 @@ body {
     font-family: var(--font-ds-body) !important;
     background-color: var(--volt-ds-black) !important;
     color: var(--volt-ds-white) !important;
-    position: relative;
     overflow-x: hidden !important;
     max-width: 100%;
 }
@@ -180,8 +179,8 @@ main > header,
 
 /* ─── Page transitions ─── */
 @keyframes volt-page-in {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 
 body {
@@ -363,6 +362,26 @@ body.page-leaving {
 
     .header.scrolled {
         background: rgba(0, 0, 0, 0.96) !important;
+    }
+
+    /* Drawer mobile: restaurar padding completo para tap targets ≥44px */
+    .header ul a,
+    .header ul a.nav-link {
+        padding: 14px 16px !important;
+        min-height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    /* Fix: -120% no alcanza para ocultar el ul cuando top: 111px.
+       Con ul de ~200px: bottom = 111 - 240 + 200 = 71px → visible.
+       Con -200%: bottom = 111 - 400 + 200 = -89px → completamente oculto. */
+    .header ul:not(.active) {
+        transform: translate3d(0, -200%, 0) !important;
+    }
+
+    .header ul.active {
+        transform: translate3d(0, 0, 0) !important;
     }
 }
 
@@ -629,37 +648,48 @@ body.page-leaving {
 }
 
 .whatsapp-float {
-    border: 1px solid var(--volt-ds-border) !important;
-    background: #000000 !important;
+    border: 1px solid #25D366 !important;
+    background: #25D366 !important;
     border-radius: 0 !important;
     z-index: 1100 !important;
     left: 2rem !important;
     right: auto !important;
+    color: #ffffff !important;
 }
 
 .whatsapp-float:hover {
-    border-color: var(--volt-ds-red) !important;
-    background: rgba(232, 0, 29, 0.12) !important;
+    border-color: #1da851 !important;
+    background: #1da851 !important;
 }
 
 .btn-cart {
-    border: 1px solid var(--volt-ds-border-control) !important;
-    background: rgba(0, 0, 0, 0.85) !important;
-    backdrop-filter: blur(12px) !important;
-    color: var(--volt-ds-white) !important;
+    position: fixed !important;
+    bottom: clamp(16px, 3vw, 28px) !important;
+    right: clamp(16px, 3vw, 28px) !important;
+    left: auto !important;
+    width: 62px !important;
+    height: 62px !important;
+    background: var(--volt-ds-red) !important;
+    color: #ffffff !important;
+    border: 1px solid var(--volt-ds-red) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    z-index: 1001 !important;
+    transition: border-color 0.2s ease, background 0.2s ease !important;
 }
 
 .btn-cart:hover {
-    border-color: var(--volt-ds-red) !important;
-    background: rgba(232, 0, 29, 0.12) !important;
+    background: #b8001a !important;
+    border-color: #b8001a !important;
+    box-shadow: none !important;
 }
 
 .cart-badge {
     font-family: var(--font-ds-mono) !important;
     font-size: 10px !important;
-    background: var(--volt-ds-red) !important;
-    color: var(--volt-ds-white) !important;
-    border: 1px solid var(--volt-ds-red) !important;
+    background: #ffffff !important;
+    color: var(--volt-ds-red) !important;
+    border: 1px solid #ffffff !important;
 }
 
 /* ─── Loader (catálogo) ─── */
@@ -689,6 +719,73 @@ body.page-leaving {
 .cart-offcanvas .offcanvas-body {
     background: var(--volt-ds-black) !important;
     color: var(--volt-ds-white) !important;
+}
+
+#offcanvasRight.cart-offcanvas {
+    --bs-offcanvas-width: 420px !important;
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    width: 420px !important;
+    max-width: 420px !important;
+    height: 100dvh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+#offcanvasRight .offcanvas-body {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+}
+
+.cart-items-list {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    padding: 16px !important;
+}
+
+.cart-total-row {
+    flex: 0 0 auto !important;
+    background: #0a0a0a !important;
+    padding: 16px !important;
+    border-top: 1px solid #2a2a2a !important;
+    position: sticky !important;
+    bottom: 76px !important;
+    z-index: 2 !important;
+}
+
+.cart-checkout-btn {
+    width: calc(100% - 32px) !important;
+    margin: 0 16px 10px !important;
+    background: #c1121f !important;
+    color: #ffffff !important;
+    flex: 0 0 auto !important;
+    position: sticky !important;
+    bottom: 12px !important;
+    z-index: 3 !important;
+}
+
+.btn-clear-cart {
+    width: calc(100% - 32px) !important;
+    margin: 0 16px 16px !important;
+    flex: 0 0 auto !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 2 !important;
+}
+
+@media screen and (max-width: 768px) {
+    #offcanvasRight.cart-offcanvas {
+        --bs-offcanvas-width: 100vw !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
 }
 
 .cart-offcanvas-header {
@@ -1471,6 +1568,11 @@ main.box a.secondary:hover {
 /* ─── Shop page: header compacto (override del padding 100px de main > header) ─── */
 main > .shop-page-header {
     padding: 20px clamp(20px, 3vw, 32px) 4px !important;
+    max-width: 1600px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
 }
 
 /* ─── Index landing (if volt-ds linked): identity grid + ticker ─── */
@@ -1549,10 +1651,10 @@ main > .shop-page-header {
     background: #000000 !important;
 }
 
-[class*="card"]:not(img):not(svg),
+[class*="card"]:not(img):not(svg):not(.product-card),
 [class*="block"]:not(img):not(svg),
 [class*="panel"]:not(img):not(svg),
-[class*="box"]:not(img):not(svg) {
+[class*="box"]:not(img):not(svg):not(.bigbox):not(.catalog-wrap):not(.product-grid) {
     background: #000000 !important;
 }
 
@@ -1613,4 +1715,87 @@ main > .shop-page-header {
     display: flex !important;
     align-items: center !important;
     flex-shrink: 0 !important;
+}
+
+/* ═══════════════════════════════════════════════════════
+   CATÁLOGO — contraste, alineación, mobile
+   ═══════════════════════════════════════════════════════ */
+
+/* Bigbox y grilla: fondo transparente para que se vea el grid overlay del body */
+.bigbox,
+.catalog-wrap,
+.product-grid {
+    background: transparent !important;
+}
+
+/* Product cards: fondo visible (#111111) sobre el negro de página */
+.product-card {
+    background: #111111 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+.product-card .product-image,
+.product-card > .product-image {
+    background: #1a1a1a !important;
+}
+
+.product-card:hover {
+    background: #111111 !important;
+    border-color: var(--volt-ds-red) !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.product-card:hover .product-image {
+    transform: none !important;
+}
+
+/* Sidebar de categorías: borde más visible */
+.category-list {
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Alineación horizontal: bigbox coincide con el shop-page-header */
+.bigbox {
+    padding-left: clamp(20px, 3vw, 32px) !important;
+    padding-right: clamp(20px, 3vw, 32px) !important;
+    padding-top: 1.5rem !important;
+    padding-bottom: 3rem !important;
+}
+
+/* Alineación vertical desktop: primera card alineada con primer item del sidebar
+   = category-list padding-top (1.5rem) + h3 height calculado con font 10px (~3.5rem) */
+@media screen and (min-width: 769px) {
+    .bigbox .product-grid {
+        padding-top: 5rem !important;
+    }
+}
+
+/* Mobile: contraste en cards (full-width sin border lateral) */
+@media screen and (max-width: 768px) {
+    .bigbox .product-card {
+        background: #111111 !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-left: none !important;
+        border-right: none !important;
+    }
+
+    .category-list li.active,
+    .category-list li:hover {
+        background: rgba(232, 0, 29, 0.15) !important;
+        border-color: var(--volt-ds-red) !important;
+    }
+
+    .bigbox {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        padding-top: 1rem !important;
+    }
+
+    .category-list {
+        margin: 0 clamp(12px, 4vw, 20px) !important;
+    }
 }

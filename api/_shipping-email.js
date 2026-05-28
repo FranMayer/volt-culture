@@ -12,7 +12,7 @@ export const SHIPPING_TYPE_DISPLAY = {
 
 /** Pedidos anteriores con shipping.method. */
 const SHIPPING_METHOD_LABELS = {
-    cadete: 'Cadete en moto (Córdoba Capital)',
+    cad.ete: 'Cadete en moto (Córdoba Capital)',
     andreani: 'Andreani',
     correo: 'Correo Argentino',
     coordinar: 'Coordinar entrega'

@@ -104,35 +104,31 @@
 
     .header ul {
         position: fixed;
-        top: 0;
+        top: var(--header-sticky-height);
+        left: 0;
         right: 0;
-        left: auto;
-        width: min(70vw, 300px);
-        max-width: 300px;
-        height: 100vh;
-        height: 100dvh;
-        min-height: unset;
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        min-height: 0;
         margin: 0;
-        /* Fuera de pantalla; pointer-events evita interacción residual */
-        transform: translate3d(100%, 0, 0);
+        transform: translate3d(0, -120%, 0);
         pointer-events: none;
-        background: rgba(11, 11, 11, 0.94);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
+        background: #0a0a0a;
         flex-direction: column;
         align-items: stretch;
-        padding: 5rem 2rem 2rem;
+        padding: 0;
         gap: 0;
-        box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
         transition: transform var(--transition-normal);
-        /* Por encima del overlay (999) y del propio header bar */
         z-index: 1002;
-        border-left: 1px solid var(--border-color);
+        border-top: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
     }
 
     .header ul li {
         display: block;
-        min-height: unset;
+        min-height: 0;
     }
 
     .header ul.active {
@@ -144,11 +140,19 @@
         display: block;
         align-items: unset;
         line-height: normal;
-        min-height: unset;
-        padding: 1rem 0;
+        min-height: 0;
+        padding: 16px;
         border-bottom: 1px solid var(--border-color);
-        font-size: 1rem;
-        color: var(--volt-white);
+        font-family: var(--font-heading);
+        font-size: 1.05rem;
+        letter-spacing: 0.08em;
+        color: #ffffff;
+    }
+
+    .header ul a.active {
+        border-left: 4px solid #c1121f;
+        padding-left: 12px;
+        color: #ffffff;
     }
 
     .header ul a:hover {
@@ -173,6 +177,39 @@
     .menu-overlay.active {
         opacity: 1;
         visibility: visible;
+    }
+
+    .header .auth-nav {
+        display: none;
+    }
+
+    .header.menu-open .auth-nav {
+        position: fixed;
+        top: calc(var(--header-sticky-height) + 232px);
+        left: 0;
+        right: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        background: #0a0a0a;
+        z-index: 1002;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .header.menu-open .auth-nav .auth-btn,
+    .header.menu-open .auth-nav a {
+        display: block;
+        width: 100%;
+        padding: 16px;
+        font-family: var(--font-heading);
+        font-size: 1.05rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border: 0;
+        border-bottom: 1px solid var(--border-color);
+        background: transparent;
+        color: #ffffff;
+        text-align: left;
     }
 
     /* Hero editorial — stack */
@@ -413,10 +450,12 @@
 
     /* Carrito flotante */
     .btn-cart {
-        bottom: 1.5rem;
-        right: 1.5rem;
-        width: 55px;
-        height: 55px;
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
     }
 
     /* About */
@@ -615,9 +654,11 @@
 
     /* Botones flotantes */
     .btn-cart {
-        width: 50px;
-        height: 50px;
+        position: fixed;
+        width: 56px;
+        height: 56px;
         font-size: 1.25rem;
+        border-radius: 0;
     }
 
     .whatsapp-float {

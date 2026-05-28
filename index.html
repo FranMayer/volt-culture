@@ -148,9 +148,10 @@
             max-width: 100%;
             box-sizing: border-box;
             overflow-x: hidden;
-            display: flex;
+            /* Grid 3 cols: logo | links centrados | acciones — evita solapamiento a cualquier ancho */
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
             align-items: center;
-            justify-content: space-between;
             padding: 0 clamp(16px, 4vw, 48px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.12);
             background: rgba(0, 0, 0, 0.85);
@@ -158,10 +159,20 @@
             -webkit-backdrop-filter: blur(12px);
         }
 
+        .site-nav__logo.logo-lockup {
+            grid-column: 1;
+            justify-self: start;
+        }
+
+        .site-nav__actions {
+            grid-column: 3;
+            justify-self: end;
+        }
+
         .site-nav__center {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
+            grid-column: 2;
+            position: static;
+            transform: none;
             display: flex;
             gap: clamp(16px, 3vw, 32px);
         }
@@ -174,7 +185,10 @@
             letter-spacing: 0.14em;
             color: var(--volt-label);
             transition: color 0.2s ease;
-            padding: 8px 4px;
+            padding: 10px 8px;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
             border: none;
             background: transparent;
         }
@@ -274,6 +288,18 @@
             background: var(--volt-red);
             color: var(--volt-white);
             border-color: var(--volt-red);
+        }
+
+        .hero__shop-btn {
+            background: #c1121f;
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.22);
+        }
+
+        .hero__shop-btn:hover {
+            background: #c1121f;
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.22);
         }
 
         /* ——— Sections common ——— */
@@ -724,8 +750,8 @@
             visibility: visible !important;
             opacity: 1 !important;
             pointer-events: auto !important;
-            background: #000000 !important;
-            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            background: #25D366 !important;
+            border: 1px solid #25D366 !important;
             border-radius: 0 !important;
             color: #ffffff !important;
             box-shadow: none !important;
@@ -733,8 +759,8 @@
         }
 
         a.whatsapp-float:hover {
-            border-color: var(--volt-red) !important;
-            background: rgba(232, 0, 29, 0.12) !important;
+            border-color: #1da851 !important;
+            background: #1da851 !important;
             opacity: 1 !important;
         }
 
@@ -900,34 +926,34 @@
             <img src="images-brand/Logo color y blanco.svg" alt="VOLT — Motorsport Culture" width="800" height="800" decoding="async">
         </a>
         <nav class="site-nav__center" aria-label="Principal">
-            <a class="site-nav__link" href="/pages/catalogo.html">Shop</a>
+            <a class="site-nav__link" href="/pages/catalogo.html">Tienda</a>
             <a class="site-nav__link" href="/pages/about.html">Nosotros</a>
             <a class="site-nav__link" href="/pages/envios.html">Envíos</a>
             <a class="site-nav__link" href="/pages/novedades.html">Novedades</a>
         </nav>
         <div class="site-nav__actions">
             <div id="authNav" class="auth-nav"></div>
-            <a class="btn site-nav__notify" href="https://wa.me/5493518588127?text=Hola%21%20Quiero%20que%20me%20avisen%20sobre%20las%20novedades%20de%20VOLT." target="_blank" rel="noopener noreferrer">Notify Me</a>
+            <a class="btn site-nav__notify" href="/pages/novedades.html">NOVEDADES</a>
         </div>
     </header>
 
     <div class="page-shell">
 
     <main>
-        <section class="hero" id="top" aria-label="Hero">
+        <section class="hero" id="top" aria-label="Principal">
             <div class="hero__badge">
                 <span class="hero__pulse" aria-hidden="true"></span>
                 <span>Córdoba, Argentina · Est. 2025</span>
             </div>
-            <h1 class="hero__headline">Built for the <span class="accent">fast</span> lane</h1>
+            <h1 class="hero__headline">BUILT FOR THE FAST LANE</h1>
             <p class="hero__sub">Velocidad es cultura</p>
             <div class="hero__ctas">
-                <a class="btn btn--fill" href="/pages/catalogo.html">Ver Shop</a>
+                <a class="btn btn--fill hero__shop-btn" href="/pages/catalogo.html">VER TIENDA</a>
                 <a class="btn" href="#about">Nuestro Manifiesto →</a>
             </div>
             <div class="hero__scroll" aria-hidden="true">
                 <span class="hero__scroll-line"></span>
-                <span>scroll</span>
+                <span>deslizá</span>
             </div>
         </section>
 
@@ -937,8 +963,8 @@
                     <span class="ticker__item">VOLT Culture</span><span class="ticker__dot"></span>
                     <span class="ticker__item">Córdoba, Argentina</span><span class="ticker__dot"></span>
                     <span class="ticker__item">Diseño Propio · CBA, ARG</span><span class="ticker__dot"></span>
-                    <span class="ticker__item">Motorsport-Inspired Streetwear</span><span class="ticker__dot"></span>
-                    <span class="ticker__item">Built for the Fast Lane</span><span class="ticker__dot"></span>
+                    <span class="ticker__item">STREETWEAR DE CIRCUITO</span><span class="ticker__dot"></span>
+                    <span class="ticker__item">BUILT FOR THE FAST LANE</span><span class="ticker__dot"></span>
                     <span class="ticker__item">Velocidad es Cultura</span><span class="ticker__dot"></span>
                     <span class="ticker__item">voltculture.com.ar</span><span class="ticker__dot"></span>
                 </div>
@@ -946,8 +972,8 @@
                     <span class="ticker__item">VOLT Culture</span><span class="ticker__dot"></span>
                     <span class="ticker__item">Córdoba, Argentina</span><span class="ticker__dot"></span>
                     <span class="ticker__item">Diseño Propio · CBA, ARG</span><span class="ticker__dot"></span>
-                    <span class="ticker__item">Motorsport-Inspired Streetwear</span><span class="ticker__dot"></span>
-                    <span class="ticker__item">Built for the Fast Lane</span><span class="ticker__dot"></span>
+                    <span class="ticker__item">STREETWEAR DE CIRCUITO</span><span class="ticker__dot"></span>
+                    <span class="ticker__item">BUILT FOR THE FAST LANE</span><span class="ticker__dot"></span>
                     <span class="ticker__item">Velocidad es Cultura</span><span class="ticker__dot"></span>
                     <span class="ticker__item">voltculture.com.ar</span><span class="ticker__dot"></span>
                 </div>
@@ -955,7 +981,7 @@
         </div>
 
         <section class="identity" id="identity" aria-labelledby="identity-heading">
-            <p class="section-label reveal" id="identity-heading">/ 001 — Identity</p>
+            <p class="section-label reveal" id="identity-heading">/ 001 — IDENTIDAD</p>
             <div class="identity__grid">
                 <article class="identity__card reveal">
                     <p class="identity__num">01</p>
@@ -964,7 +990,7 @@
                         <circle cx="20" cy="20" r="4" fill="currentColor"/>
                         <path d="M20 6V12M20 28V34M6 20H12M28 20H34" stroke="currentColor" stroke-width="1.5"/>
                     </svg>
-                    <h2 class="identity__title">Precision</h2>
+                    <h2 class="identity__title">Precisión</h2>
                     <p class="identity__desc">Alineación tipo pit lane: cortes, gráfica y construcción medidos al milímetro. Nada sobra en circuito.</p>
                 </article>
                 <article class="identity__card reveal">
@@ -973,7 +999,7 @@
                         <path d="M8 12H32V28H8V12Z" stroke="currentColor" stroke-width="1.5"/>
                         <path d="M8 18H32M8 22H32M14 12V28M20 12V28M26 12V28" stroke="currentColor" stroke-width="1.5"/>
                     </svg>
-                    <h2 class="identity__title">Structure</h2>
+                    <h2 class="identity__title">Estructura</h2>
                     <p class="identity__desc">Jerarquía clara, bloques definidos. La pieza responde a reglas de paddock: orden bajo tensión.</p>
                 </article>
                 <article class="identity__card reveal">
@@ -982,7 +1008,7 @@
                         <path d="M8 28L16 12L24 20L32 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"/>
                         <path d="M10 32H34" stroke="currentColor" stroke-width="1.5"/>
                     </svg>
-                    <h2 class="identity__title">Velocity</h2>
+                    <h2 class="identity__title">Velocidad</h2>
                     <p class="identity__desc">Lectura instantánea en movimiento. Pensado para quienes persiguen la milésima perfecta en el cronómetro.</p>
                 </article>
             </div>
@@ -991,27 +1017,27 @@
         <section class="drop" id="drop" aria-labelledby="drop-heading">
             <div class="drop__split reveal">
                 <div class="drop__visual">
-                    <img src="/images-brand/maxfuk.jpg" alt="VOLT Identity — Colección 01" width="1200" height="1400" loading="lazy" decoding="async">
+                    <img src="/images-brand/maxfuk.jpg" alt="Identidad VOLT — Colección 01" width="1200" height="1400" loading="lazy" decoding="async">
                     <p class="drop__tag">/// VOLT CULTURE ///</p>
                 </div>
                 <div class="drop__content">
                     <p class="drop__meta">COLECCIÓN 01 / DISEÑO PROPIO / CBA, ARG</p>
-                    <h2 class="drop__title" id="drop-heading">VOLT IDENTITY</h2>
+                    <h2 class="drop__title" id="drop-heading">IDENTIDAD VOLT</h2>
                     <p class="drop__copy">
                         Volúmenes de calle con lectura racing. Telas y siluetas pensadas para transición paddock–asfalto. Diseño 100% propio desde Córdoba. Unidades limitadas, sin reposición en caliente. Registrate para ser el primero en enterarte.
                     </p>
-                    <a class="btn btn--fill" href="https://wa.me/5493518588127?text=Hola%21%20Quiero%20que%20me%20avisen%20sobre%20las%20novedades%20de%20VOLT." target="_blank" rel="noopener noreferrer">Avisame cuando salga</a>
+                    <a class="btn btn--fill" href="/pages/novedades.html">VER NOVEDADES →</a>
                 </div>
             </div>
         </section>
 
         <section class="manifesto" id="about" aria-labelledby="manifesto-heading">
-            <p class="section-label reveal">/ 003 — Manifesto</p>
+            <p class="section-label reveal">/ 003 — MANIFIESTO</p>
             <h2 class="manifesto__quote reveal" id="manifesto-heading">
                 No hacemos ropa. Hacemos <span class="accent">equipamiento</span> para quienes viven al <span class="accent">límite del crono.</span>
             </h2>
             <p class="manifesto__sub reveal">Córdoba, Argentina · Est. 2025 · voltculture.com.ar</p>
-            <a class="btn btn--fill reveal" href="/pages/catalogo.html">Ver Shop →</a>
+            <a class="btn btn--fill reveal" href="/pages/catalogo.html">Ver tienda →</a>
         </section>
     </main>
 
@@ -1021,8 +1047,8 @@
         </div>
         <nav class="site-footer__nav" aria-label="Pie de página">
             <a href="https://www.instagram.com/volt.culture/" target="_blank" rel="noopener noreferrer">Instagram</a>
-            <a href="/pages/catalogo.html">Shop</a>
-            <a href="mailto:volt.streetcba@gmail.com">Contact</a>
+            <a href="/pages/catalogo.html">Tienda</a>
+            <a href="https://wa.me/5493518588127?text=Hola!%20Quiero%20consultar%20sobre%20VOLT" target="_blank" rel="noopener noreferrer">Contacto</a>
             <a href="https://voltculture.com.ar/">voltculture.com.ar</a>
         </nav>
         <p class="site-footer__copy">© 2026 VOLT Culture</p>

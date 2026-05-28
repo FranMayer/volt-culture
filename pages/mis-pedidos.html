@@ -452,7 +452,7 @@
         </a>
 
         <ul id="navMenu">
-            <li><a href="/pages/catalogo.html" class="nav-link">Shop</a></li>
+            <li><a href="/pages/catalogo.html" class="nav-link">Tienda</a></li>
             <li><a href="/pages/about.html"    class="nav-link">Nosotros</a></li>
             <li><a href="/pages/envios.html"   class="nav-link">Envíos</a></li>
             <li><a href="/pages/novedades.html" class="nav-link">Novedades</a></li>
@@ -728,7 +728,7 @@
                     <div class="orders-empty__icon">${PACKAGE_ICON_SVG}</div>
                     <h2 class="orders-empty__title">Todavía no hiciste ningún pedido</h2>
                     <p class="orders-empty__desc">Cuando compres algo, lo vas a ver acá.</p>
-                    <a href="/pages/catalogo.html" class="orders-empty__cta">Ir al Shop →</a>
+                    <a href="/pages/catalogo.html" class="orders-empty__cta">Ir a la Tienda →</a>
                 </div>
             `;
         }
@@ -761,7 +761,7 @@
             document.getElementById('ordersSubheading').style.display = 'none';
             document.getElementById('ordersList').innerHTML = `
                 <div class="orders-error">
-                    ⚠️ ${msg || 'No pudimos cargar tus pedidos. Intentá de nuevo más tarde.'}
+                    ${msg || 'No pudimos cargar tus pedidos. Intentá de nuevo más tarde.'}
                 </div>
             `;
         }
@@ -848,7 +848,7 @@
             const orderId = btn.getAttribute('data-order-id');
             reorderItems(orderId);
 
-            btn.textContent = '✓ Agregado al carrito';
+            btn.textContent = 'Agregado al carrito';
             btn.classList.add('btn-reorder--done');
             btn.disabled = true;
 
