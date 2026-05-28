@@ -1,10 +1,10 @@
 /**
- * Smoke tests para voltculture.com.ar
+ * Smoke tests para voltculture.com.ar (host canónico: www — el apex redirige 307).
  * Uso: node tests/smoke.test.js
- *      BASE_URL=https://voltculture.com.ar node tests/smoke.test.js
+ *      BASE_URL=https://www.voltculture.com.ar node tests/smoke.test.js
  */
 
-const BASE = (process.env.BASE_URL || 'https://voltculture.com.ar').replace(/\/$/, '');
+const BASE = (process.env.BASE_URL || 'https://www.voltculture.com.ar').replace(/\/$/, '');
 const ORIGIN = BASE;
 
 /** GET /api/webhook debe responder 405 (solo POST permitido). */

@@ -19,14 +19,15 @@ jobs:
 
       - name: Wait for Vercel deploy
         env:
-          SMOKE_BASE_URL: https://voltculture.com.ar
+          # Apex (voltculture.com.ar) responde 307 → www; curl sin -L nunca ve 405.
+          SMOKE_BASE_URL: https://www.voltculture.com.ar
         run: |
           set -euo pipefail
           URL="${SMOKE_BASE_URL%/}/api/webhook"
           MAX_ATTEMPTS=36
           DELAY_SEC=5
           for i in $(seq 1 "$MAX_ATTEMPTS"); do
-            code=$(curl -sS -o /dev/null -w "%{http_code}" -X GET "$URL" || echo "000")
+            code=$(curl -sS -L -o /dev/null -w "%{http_code}" -X GET "$URL" || echo "000")
             if [ "$code" = "405" ]; then
               echo "Producción lista: GET $URL → $code (intento $i/$MAX_ATTEMPTS)"
               exit 0
@@ -52,7 +53,7 @@ jobs:
           {
             echo "## Smoke tests failed"
             echo ""
-            echo "Los smoke tests contra **https://voltculture.com.ar** fallaron después del deploy en \`main\`."
+            echo "Los smoke tests contra **https://www.voltculture.com.ar** fallaron después del deploy en \`main\`."
             echo ""
             echo "### Salida"
             echo '```'
