@@ -1,7 +1,23 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx firebase-tools:*)"
+      "Bash(npx firebase-tools:*)",
+      "Bash(firebase --version)",
+      "Bash(npm install *)",
+      "Bash(firebase projects:list)",
+      "Bash(firebase use *)",
+      "Bash(firebase deploy *)",
+      "Bash(firebase auth:export auth-users.json --format=json)",
+      "Bash(Remove-Item *)",
+      "Bash(vercel *)",
+      "Bash(npx serve *)",
+      "Bash(Start-Sleep -Seconds 3)",
+      "Bash(Get-Content \"C:\\\\Users\\\\Franc\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-Franc-OneDrive-Documentos-Proyectos-volt-culture\\\\347885e8-002f-4b33-9512-568a634b7524\\\\tasks\\\\bqar8xi9r.output\" -ErrorAction SilentlyContinue)",
+      "Bash(start *)",
+      "Bash(findstr /r \"body.*\\\\{\\\\|html.*\\\\{\" css\\\\volt-ds.css css\\\\style.css css\\\\mediaquery.css)",
+      "WebFetch(domain:localhost)",
+      "Bash(curl -s http://localhost:3001/pages/catalogo)",
+      "Bash(curl -s http://localhost:3001/css/volt-ds.css)"
     ]
   }
 }

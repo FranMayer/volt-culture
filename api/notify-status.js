@@ -1,5 +1,5 @@
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { Resend } from 'resend';
 import { formatShippingBlockClientHtml } from './_shipping-email.js';
 import { verifyAdmin } from './_verify-admin.js';
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
         const orderBefore = snap.data();
         const updatePayload = {
             status,
-            updatedAt: new Date()
+            updatedAt: FieldValue.serverTimestamp()
         };
 
         let trackingNumber = '';

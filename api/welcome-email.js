@@ -110,7 +110,7 @@ export default async function handler(req, res) {
                         font-size:13px;font-weight:700;letter-spacing:0.1em;
                         text-transform:uppercase;text-decoration:none;
                         padding:14px 32px;">
-                Ir al Shop
+                Ir a la Tienda
               </a>
             </td>
           </tr>

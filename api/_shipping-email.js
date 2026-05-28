@@ -12,7 +12,7 @@ export const SHIPPING_TYPE_DISPLAY = {
 
 /** Pedidos anteriores con shipping.method. */
 const SHIPPING_METHOD_LABELS = {
-    cad.ete: 'Cadete en moto (Córdoba Capital)',
+    cadete: 'Cadete en moto (Córdoba Capital)',
     andreani: 'Andreani',
     correo: 'Correo Argentino',
     coordinar: 'Coordinar entrega'
@@ -56,7 +56,16 @@ export function formatShippingBlockClientHtml(orderData) {
     const type = resolveShippingType(s);
     if (type) {
         const label = escapeHtmlAttr(SHIPPING_TYPE_DISPLAY[type]);
-        return `<p style="margin:0 0 12px 0;"><strong>Envío:</strong> ${label}</p>`;
+        const parts = [`<p style="margin:0 0 8px 0;"><strong>Envío:</strong> ${label}</p>`];
+        if (type === 'andreani' && s.address) {
+            const a = s.address;
+            if (a.street)     parts.push(`<p style="margin:0 0 4px 0;"><strong>Dirección:</strong> ${escapeHtmlAttr(a.street)}</p>`);
+            if (a.city)       parts.push(`<p style="margin:0 0 4px 0;"><strong>Ciudad:</strong> ${escapeHtmlAttr(a.city)}</p>`);
+            if (a.province)   parts.push(`<p style="margin:0 0 4px 0;"><strong>Provincia:</strong> ${escapeHtmlAttr(a.province)}</p>`);
+            if (a.postalCode) parts.push(`<p style="margin:0 0 12px 0;"><strong>Código postal:</strong> ${escapeHtmlAttr(a.postalCode)}</p>`);
+            parts.push(`<p style="margin:0 0 12px 0;color:#bdbdbd;font-size:13px;">El costo de envío se coordina por WhatsApp antes del despacho.</p>`);
+        }
+        return parts.join('');
     }
 
     const legacyMethod = resolveLegacyShippingMethod(s);
@@ -94,7 +103,15 @@ export function formatShippingBlockAdminHtml(orderData) {
     const type = resolveShippingType(s);
     if (type) {
         const label = escapeHtmlAttr(SHIPPING_TYPE_DISPLAY[type]);
-        return `<p style="margin:0 0 12px 0;"><strong>Envío:</strong> ${label}</p>`;
+        const parts = [`<p style="margin:0 0 8px 0;"><strong>Envío:</strong> ${label}</p>`];
+        if (type === 'andreani' && s.address) {
+            const a = s.address;
+            if (a.street)     parts.push(`<p style="margin:0 0 4px 0;"><strong>Calle y número:</strong> ${escapeHtmlAttr(a.street)}</p>`);
+            if (a.city)       parts.push(`<p style="margin:0 0 4px 0;"><strong>Ciudad:</strong> ${escapeHtmlAttr(a.city)}</p>`);
+            if (a.province)   parts.push(`<p style="margin:0 0 4px 0;"><strong>Provincia:</strong> ${escapeHtmlAttr(a.province)}</p>`);
+            if (a.postalCode) parts.push(`<p style="margin:0 0 12px 0;"><strong>Código postal:</strong> ${escapeHtmlAttr(a.postalCode)}</p>`);
+        }
+        return parts.join('');
     }
 
     const legacyMethod = resolveLegacyShippingMethod(s);
@@ -132,7 +149,12 @@ export function formatShippingWhatsAppBlock(orderData) {
     const s = orderData.shipping;
     const type = resolveShippingType(s);
     if (type) {
-        return `ENVÍO: ${SHIPPING_TYPE_DISPLAY[type]}`;
+        const lines = [`ENVÍO: ${SHIPPING_TYPE_DISPLAY[type]}`];
+        if (type === 'andreani' && s.address) {
+            const a = s.address;
+            lines.push(`Dirección: ${plainText(a.street) || '—'}, ${plainText(a.city) || '—'}, ${plainText(a.province) || '—'} CP:${plainText(a.postalCode) || '—'}`);
+        }
+        return lines.join('\n');
     }
 
     const legacyMethod = resolveLegacyShippingMethod(s);

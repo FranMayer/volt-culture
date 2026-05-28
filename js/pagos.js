@@ -551,7 +551,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (cart.length === 0) {
-            alert("🛒 El carrito está vacío.");
+            alert("El carrito está vacío.");
             return;
         }
 
@@ -562,7 +562,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         checkoutFlowActive = true;
         const originalText = checkoutBtn.innerHTML;
-        checkoutBtn.innerHTML = "⏳ Generando link de pago...";
+        checkoutBtn.innerHTML = "Generando link de pago...";
         checkoutBtn.disabled = true;
 
         try {
