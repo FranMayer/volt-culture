@@ -847,22 +847,23 @@ body.page-leaving {
     font-size: 11px !important;
     letter-spacing: 0.12em !important;
     text-transform: uppercase !important;
-    padding: 1rem !important;
+    padding: 1.05rem !important;
     width: calc(100% - 3rem) !important;
-    margin: 0.5rem 1.5rem 0.5rem !important;
-    background: var(--volt-ds-white) !important;
-    color: var(--volt-ds-black) !important;
-    border: 1px solid var(--volt-ds-white) !important;
+    margin: 0.5rem 1.5rem 0.6rem !important;
+    background: var(--volt-ds-red) !important;
+    color: #ffffff !important;
+    border: 1px solid var(--volt-ds-red) !important;
     flex: 0 0 auto !important;
     position: sticky !important;
     bottom: 12px !important;
     z-index: 3 !important;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
 }
 
 .cart-checkout-btn:hover:not(:disabled) {
-    background: var(--volt-ds-red) !important;
-    color: var(--volt-ds-white) !important;
-    border-color: var(--volt-ds-red) !important;
+    background: #ffffff !important;
+    color: var(--volt-ds-red) !important;
+    border-color: #ffffff !important;
 }
 
 .cart-transfer-btn {
@@ -872,23 +873,53 @@ body.page-leaving {
     text-transform: uppercase !important;
     padding: 0.85rem !important;
     width: calc(100% - 3rem) !important;
-    margin: 0 1.5rem 0.5rem !important;
+    margin: 0 1.5rem 0.6rem !important;
+    background: transparent !important;
+    color: var(--volt-ds-white) !important;
+    border: 1px solid var(--volt-ds-border-control) !important;
     border-radius: 0 !important;
+    transition: background 0.2s ease, border-color 0.2s ease !important;
+}
+
+.cart-transfer-btn:hover:not(:disabled) {
+    background: #ffffff !important;
+    color: var(--volt-ds-black) !important;
+    border-color: #ffffff !important;
 }
 
 .btn-clear-cart {
     font-family: var(--font-ds-mono) !important;
-    font-size: 11px !important;
-    letter-spacing: 0.12em !important;
+    font-size: 10px !important;
+    letter-spacing: 0.14em !important;
     text-transform: uppercase !important;
-    padding: 0.75rem !important;
+    padding: 0.65rem !important;
     width: calc(100% - 3rem) !important;
-    margin: 0 1.5rem 1.5rem !important;
+    margin: 0 1.5rem 1.25rem !important;
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.45) !important;
+    border: none !important;
     border-radius: 0 !important;
     flex: 0 0 auto !important;
     position: sticky !important;
     bottom: 0 !important;
     z-index: 2 !important;
+    transition: color 0.2s ease !important;
+}
+
+.btn-clear-cart:hover {
+    color: var(--volt-ds-red) !important;
+}
+
+/* El relleno animado de .btn::before tapa el texto suelto de estos botones en hover */
+.cart-checkout-btn::before,
+.cart-transfer-btn::before {
+    display: none !important;
+}
+
+.cart-checkout-btn:hover,
+.cart-transfer-btn:hover {
+    transform: none !important;
+    box-shadow: none !important;
 }
 
 @media screen and (max-width: 768px) {
@@ -945,7 +976,10 @@ body.page-leaving {
 }
 
 #voltAuthModal .modal-dialog {
-    max-width: 560px !important;
+    max-width: 600px !important;
+    width: calc(100% - 2rem) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
 }
 
 #voltAuthModal .modal-content.auth-modal-content,
@@ -956,28 +990,29 @@ body.page-leaving {
 }
 
 .auth-modal-header {
-    padding: 1.75rem 2rem 0 !important;
+    padding: 1.75rem 2.5rem 1.25rem !important;
+    background: var(--volt-ds-black) !important;
     border-bottom: 1px solid var(--volt-ds-border) !important;
 }
 
 .auth-modal-body {
-    padding: 2rem 2.25rem 2.5rem !important;
+    padding: 2.25rem 2.5rem 2.5rem !important;
     background: var(--volt-ds-black) !important;
 }
 
 .auth-modal-subtitle {
     font-family: var(--font-ds-body) !important;
-    font-size: 0.875rem !important;
+    font-size: 0.95rem !important;
     color: rgba(255, 255, 255, 0.45) !important;
     margin-bottom: 1.75rem !important;
 }
 
 .auth-tab-btn {
     font-family: var(--font-ds-mono) !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
     letter-spacing: 0.12em !important;
     text-transform: uppercase !important;
-    padding: 0.9rem 1.5rem !important;
+    padding: 0.95rem 1.6rem !important;
     border: 1px solid var(--volt-ds-border-control) !important;
     background: transparent !important;
     color: var(--volt-ds-label) !important;
@@ -995,22 +1030,25 @@ body.page-leaving {
 
 .auth-label {
     font-family: var(--font-ds-mono) !important;
-    font-size: 11px !important;
-    color: rgba(255, 255, 255, 0.5) !important;
-    margin-bottom: 0.5rem !important;
+    font-size: 12px !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    color: rgba(255, 255, 255, 0.65) !important;
+    margin-bottom: 0.55rem !important;
 }
 
 .auth-input {
     background: var(--volt-ds-black) !important;
     color: var(--volt-ds-white) !important;
     border: 1px solid var(--volt-ds-border-control) !important;
-    padding: 0.9rem 1rem !important;
+    padding: 1rem 1.1rem !important;
     font-family: var(--font-ds-body) !important;
-    font-size: 1rem !important;
+    font-size: 1.05rem !important;
 }
 
 .auth-input::placeholder {
-    color: rgba(255, 255, 255, 0.4) !important;
+    color: rgba(255, 255, 255, 0.55) !important;
+    opacity: 1 !important;
 }
 
 .auth-input:focus {
@@ -1020,12 +1058,12 @@ body.page-leaving {
 }
 
 .auth-google-btn {
-    padding: 0.85rem 1.25rem !important;
+    padding: 0.95rem 1.25rem !important;
     border: 1px solid var(--volt-ds-border-control) !important;
     background: var(--volt-ds-black) !important;
     color: var(--volt-ds-white) !important;
     font-family: var(--font-ds-body) !important;
-    font-size: 0.95rem !important;
+    font-size: 1rem !important;
 }
 
 .auth-divider-o {
@@ -1035,9 +1073,9 @@ body.page-leaving {
 
 .auth-submit-btn {
     font-family: var(--font-ds-mono) !important;
-    font-size: 11px !important;
+    font-size: 12px !important;
     letter-spacing: 0.12em !important;
-    padding: 1rem 1.25rem !important;
+    padding: 1.05rem 1.25rem !important;
     margin-top: 0.75rem !important;
     background: var(--volt-ds-white) !important;
     color: var(--volt-ds-black) !important;
@@ -1050,11 +1088,40 @@ body.page-leaving {
     border-color: var(--volt-ds-red) !important;
 }
 
+.auth-modal-note {
+    font-family: var(--font-ds-mono) !important;
+    font-size: 12px !important;
+    letter-spacing: 0.04em !important;
+    line-height: 1.6 !important;
+    text-align: center !important;
+    color: rgba(255, 255, 255, 0.4) !important;
+    margin: 1.5rem 0 0 !important;
+}
+
 .auth-forgot-link {
     font-family: var(--font-ds-mono) !important;
-    font-size: 11px !important;
-    color: rgba(255, 255, 255, 0.35) !important;
+    font-size: 12px !important;
+    color: rgba(255, 255, 255, 0.5) !important;
     margin-top: 0.6rem !important;
+    transition: color 0.2s ease !important;
+}
+
+.auth-forgot-link:hover {
+    color: var(--volt-ds-white) !important;
+}
+
+@media (max-width: 480px) {
+    .auth-modal-header {
+        padding: 1.5rem 1.25rem 1rem !important;
+    }
+    .auth-modal-body {
+        padding: 1.75rem 1.25rem 2rem !important;
+    }
+    .auth-tab-btn {
+        padding: 0.8rem 0.85rem !important;
+        font-size: 11px !important;
+        letter-spacing: 0.08em !important;
+    }
 }
 
 /* ─── Bootstrap overrides (catálogo / mis-pedidos) ─── */
