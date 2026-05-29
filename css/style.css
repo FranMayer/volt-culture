@@ -1950,7 +1950,7 @@ body.lightbox-open {
 
 .cart-checkout-btn {
     width: calc(100% - 32px) !important;
-    margin: 0 16px 10px !important;
+    margin: 10px 16px 10px !important;
     background: #c1121f !important;
     color: #fff !important;
     border: none !important;
