@@ -783,11 +783,11 @@
             .site-nav {
                 display: grid;
                 grid-template-columns: 1fr auto;
-                grid-template-rows: auto auto;
+                grid-template-rows: auto;
                 height: auto;
                 min-height: 56px;
-                padding-top: 16px;
-                padding-bottom: 16px;
+                padding-top: 12px;
+                padding-bottom: 12px;
                 align-items: center;
             }
 
@@ -801,24 +801,56 @@
                 grid-row: 1;
                 align-self: center;
                 justify-self: end;
-                max-width: 100%;
+                gap: 0;
             }
 
+            .site-nav .auth-nav,
             .site-nav__notify {
-                padding: 10px 14px;
-                font-size: 10px;
+                display: none !important;
+            }
+
+            .site-nav__hamburger {
+                display: flex;
             }
 
             .site-nav__center {
-                grid-column: 1 / -1;
-                grid-row: 2;
-                position: static;
-                transform: none;
-                width: 100%;
-                justify-content: center;
-                padding-top: 16px;
-                margin-top: 16px;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0;
+                background: rgba(0, 0, 0, 0.97);
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                padding: 8px 0 12px;
+                display: none;
+                margin-top: 0;
                 border-top: 1px solid rgba(255, 255, 255, 0.08);
+                z-index: 200;
+            }
+
+            .site-nav__center.is-open {
+                display: flex;
+            }
+
+            .site-nav__link {
+                padding: 14px 24px;
+                font-size: 13px;
+                justify-content: flex-start;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                color: rgba(255,255,255,0.7);
+            }
+
+            .site-nav__link:last-child {
+                border-bottom: none;
+            }
+
+            .site-nav__link:hover {
+                color: #fff;
+                background: rgba(255,255,255,0.04);
             }
 
             .identity__grid {
@@ -876,14 +908,40 @@
                 font-size: 28px;
             }
 
-            .site-nav__center {
-                flex-wrap: wrap;
-                gap: 8px 16px;
-            }
-
             .manifesto__quote {
                 font-size: clamp(26px, 8vw, 44px);
             }
+        }
+
+        /* ——— Hamburger button (mobile only) ——— */
+        .site-nav__hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            cursor: pointer;
+            padding: 9px 11px;
+        }
+        .site-nav__hamburger span {
+            display: block;
+            width: 20px;
+            height: 1.5px;
+            background: rgba(255, 255, 255, 0.85);
+            transition: background 0.2s;
+        }
+        .site-nav__hamburger[aria-expanded="true"] span:nth-child(1) {
+            transform: translateY(6.5px) rotate(45deg);
+        }
+        .site-nav__hamburger[aria-expanded="true"] span:nth-child(2) {
+            opacity: 0;
+        }
+        .site-nav__hamburger[aria-expanded="true"] span:nth-child(3) {
+            transform: translateY(-6.5px) rotate(-45deg);
+        }
+        .site-nav__hamburger span {
+            transition: transform 0.22s ease, opacity 0.22s ease;
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -934,6 +992,9 @@
         <div class="site-nav__actions">
             <div id="authNav" class="auth-nav"></div>
             <a class="btn site-nav__notify" href="/pages/novedades.html">NOVEDADES</a>
+            <button class="site-nav__hamburger" id="siteNavToggle" aria-label="Abrir menú" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
         </div>
     </header>
 
@@ -1119,6 +1180,31 @@
     <script src="/js/cart-sync.js"></script>
     <script src="/js/store-auth.js?v=popup2"></script>
     <script>
+    // Hamburger menu
+    (function () {
+        var toggle = document.getElementById('siteNavToggle');
+        var menu   = document.querySelector('.site-nav__center');
+        if (!toggle || !menu) return;
+        toggle.addEventListener('click', function () {
+            var open = menu.classList.toggle('is-open');
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        // Cerrar al hacer click en un link
+        menu.querySelectorAll('.site-nav__link').forEach(function (a) {
+            a.addEventListener('click', function () {
+                menu.classList.remove('is-open');
+                toggle.setAttribute('aria-expanded', 'false');
+            });
+        });
+        // Cerrar al hacer click fuera
+        document.addEventListener('click', function (e) {
+            if (!toggle.contains(e.target) && !menu.contains(e.target)) {
+                menu.classList.remove('is-open');
+                toggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+    })();
+
     // Transición de salida de página
     document.addEventListener('click', function (e) {
         const link = e.target.closest('a[href]');
