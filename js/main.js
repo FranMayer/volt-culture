@@ -150,15 +150,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
         updateBadge(itemCount);
 
+        // Mostrar/ocultar totales y botones según si hay items
+        const display = hasItems ? '' : 'none';
+
+        const cartTotalRow = document.querySelector('.cart-total-row');
+        const cartTransferRow = document.getElementById('cart-transfer-row');
+        if (cartTotalRow)    cartTotalRow.style.display    = display;
+        if (cartTransferRow) cartTransferRow.style.display = display;
+
         if (clearCartBtn) {
             clearCartBtn.disabled = !hasItems;
+            clearCartBtn.style.display = display;
         }
         if (checkoutBtn) {
             checkoutBtn.disabled = !hasItems;
+            checkoutBtn.style.display = display;
         }
         const transferBtn = document.getElementById('transfer-btn');
         if (transferBtn) {
             transferBtn.disabled = !hasItems;
+            transferBtn.style.display = display;
         }
 
         updateButtons();
