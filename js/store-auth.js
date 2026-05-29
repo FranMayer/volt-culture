@@ -417,59 +417,92 @@
                     <div class="modal-content auth-modal-content">
 
                         <div class="auth-modal-header">
-                            <div class="auth-tabs">
-                                <button class="auth-tab-btn active" data-tab="login">Ingresar</button>
-                                <button class="auth-tab-btn" data-tab="register">Crear cuenta</button>
+                            <div class="auth-brand">
+                                <span class="auth-brand-mark" aria-hidden="true">V</span>
+                                <span class="auth-brand-word">VOLT</span>
                             </div>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                         </div>
 
                         <div class="auth-modal-body">
 
+                            <div class="auth-tabs">
+                                <button class="auth-tab-btn active" data-tab="login">Ingresar</button>
+                                <button class="auth-tab-btn" data-tab="register">Crear cuenta</button>
+                            </div>
+
                             <!-- PANEL: LOGIN -->
                             <div class="auth-tab-panel" id="auth-panel-login">
+                                <h2 class="auth-modal-title">Bienvenido de nuevo</h2>
                                 <p class="auth-modal-subtitle">Ingresá para continuar con tu compra</p>
-                                <div class="auth-modal-error"></div>
+                                <div class="auth-modal-error" role="alert" aria-live="assertive"></div>
                                 <button type="button" id="googleLoginBtn" class="auth-google-btn" aria-label="Continuar con Google"></button>
-                                <p class="auth-divider-o" aria-hidden="true">— o —</p>
+                                <p class="auth-divider-o" aria-hidden="true">o con tu email</p>
                                 <form id="voltLoginForm" novalidate>
                                     <div class="auth-field">
-                                        <label class="auth-label">Email</label>
-                                        <input type="email" id="loginEmail" class="auth-input" placeholder="tu@email.com" required>
+                                        <label class="auth-label" for="loginEmail">Email</label>
+                                        <input type="email" id="loginEmail" class="auth-input" placeholder="tu@email.com" autocomplete="email" inputmode="email" required>
                                     </div>
                                     <div class="auth-field">
-                                        <label class="auth-label">Contraseña</label>
-                                        <input type="password" id="loginPassword" class="auth-input" placeholder="••••••••" required>
-                                        <button type="button" id="forgotPasswordBtn" class="auth-forgot-link">¿Olvidaste tu contraseña?</button>
+                                        <div class="auth-label-row">
+                                            <label class="auth-label" for="loginPassword">Contraseña</label>
+                                            <button type="button" id="forgotPasswordBtn" class="auth-forgot-link">¿Olvidaste tu contraseña?</button>
+                                        </div>
+                                        <div class="auth-input-wrap">
+                                            <input type="password" id="loginPassword" class="auth-input auth-input--pw" placeholder="Tu contraseña" autocomplete="current-password" aria-describedby="loginCapsHint" required>
+                                            <button type="button" class="auth-pw-toggle" data-target="loginPassword" aria-label="Mostrar contraseña" aria-pressed="false">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                            </button>
+                                        </div>
+                                        <p class="auth-caps-hint" id="loginCapsHint">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m12 3 8 8h-5v6H9v-6H4l8-8Z"/></svg>
+                                            <span>Bloq Mayús activado</span>
+                                        </p>
                                     </div>
                                     <div class="auth-modal-success" id="resetSuccessMsg" style="display:none;"></div>
                                     <button type="submit" id="loginSubmitBtn" class="auth-submit-btn">Ingresar</button>
                                 </form>
-                                <p class="auth-modal-note">Si antes ingresaste con Google, usá el botón de arriba.</p>
+                                <div class="auth-trust">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                                    <span>Pago y datos protegidos · Córdoba, AR</span>
+                                </div>
                             </div>
 
                             <!-- PANEL: REGISTRO -->
                             <div class="auth-tab-panel" id="auth-panel-register" style="display:none;">
-                                <p class="auth-modal-subtitle">Creá tu cuenta para comprar en VOLT</p>
-                                <div class="auth-modal-error"></div>
+                                <h2 class="auth-modal-title">Creá tu cuenta VOLT</h2>
+                                <p class="auth-modal-subtitle">Sumate para comprar más rápido y seguir tus pedidos</p>
+                                <div class="auth-modal-error" role="alert" aria-live="assertive"></div>
                                 <button type="button" id="googleRegisterBtn" class="auth-google-btn" aria-label="Continuar con Google"></button>
-                                <p class="auth-divider-o" aria-hidden="true">— o —</p>
+                                <p class="auth-divider-o" aria-hidden="true">o con tu email</p>
                                 <form id="voltRegisterForm" novalidate>
                                     <div class="auth-field">
-                                        <label class="auth-label">Nombre completo</label>
-                                        <input type="text" id="registerName" class="auth-input" placeholder="Juan Pérez" required>
+                                        <label class="auth-label" for="registerName">Nombre completo</label>
+                                        <input type="text" id="registerName" class="auth-input" placeholder="Juan Pérez" autocomplete="name" required>
                                     </div>
                                     <div class="auth-field">
-                                        <label class="auth-label">Email</label>
-                                        <input type="email" id="registerEmail" class="auth-input" placeholder="tu@email.com" required>
+                                        <label class="auth-label" for="registerEmail">Email</label>
+                                        <input type="email" id="registerEmail" class="auth-input" placeholder="tu@email.com" autocomplete="email" inputmode="email" required>
                                     </div>
                                     <div class="auth-field">
-                                        <label class="auth-label">Contraseña</label>
-                                        <input type="password" id="registerPassword" class="auth-input" placeholder="Mínimo 6 caracteres" required>
+                                        <label class="auth-label" for="registerPassword">Contraseña</label>
+                                        <div class="auth-input-wrap">
+                                            <input type="password" id="registerPassword" class="auth-input auth-input--pw" placeholder="Mínimo 6 caracteres" autocomplete="new-password" aria-describedby="registerCapsHint" required>
+                                            <button type="button" class="auth-pw-toggle" data-target="registerPassword" aria-label="Mostrar contraseña" aria-pressed="false">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                            </button>
+                                        </div>
+                                        <p class="auth-caps-hint" id="registerCapsHint">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m12 3 8 8h-5v6H9v-6H4l8-8Z"/></svg>
+                                            <span>Bloq Mayús activado</span>
+                                        </p>
                                     </div>
                                     <button type="submit" id="registerSubmitBtn" class="auth-submit-btn">Crear cuenta</button>
                                 </form>
-                                <p class="auth-modal-note">Con tu cuenta vas a poder seguir tus pedidos y comprar más rápido.</p>
+                                <div class="auth-trust">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                                    <span>Seguí tus pedidos y comprá más rápido</span>
+                                </div>
                             </div>
 
                         </div>
@@ -547,6 +580,33 @@
             });
             document.getElementById('googleRegisterBtn').addEventListener('click', () => {
                 this._handleGoogleSignIn('auth-panel-register');
+            });
+
+            // Mostrar / ocultar contraseña
+            this._modalEl.querySelectorAll('.auth-pw-toggle').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const input = document.getElementById(btn.dataset.target);
+                    if (!input) return;
+                    const show = input.type === 'password';
+                    input.type = show ? 'text' : 'password';
+                    btn.setAttribute('aria-pressed', String(show));
+                    btn.setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña');
+                    btn.classList.toggle('is-visible', show);
+                });
+            });
+
+            // Aviso de Bloqueo de mayúsculas
+            [['loginPassword', 'loginCapsHint'], ['registerPassword', 'registerCapsHint']].forEach(([inputId, hintId]) => {
+                const input = document.getElementById(inputId);
+                const hint = document.getElementById(hintId);
+                if (!input || !hint) return;
+                const update = (e) => {
+                    const on = typeof e.getModifierState === 'function' && e.getModifierState('CapsLock');
+                    hint.style.display = on ? 'flex' : 'none';
+                };
+                input.addEventListener('keyup', update);
+                input.addEventListener('keydown', update);
+                input.addEventListener('blur', () => { hint.style.display = 'none'; });
             });
         },
 

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VOLT · Test de integración del login real</title>
+
+  <!-- Fuentes de marca -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Teko:wght@700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- CSS REAL del proyecto -->
+  <link rel="stylesheet" href="../css/auth-modal.css" />
+
+  <style>
+    /* Variables de marca (normalmente vienen de volt-ds.css) */
+    :root {
+      --font-ds-display: "Teko", sans-serif;
+      --font-ds-mono: "DM Mono", monospace;
+      --font-ds-body: "Glacial Indifference", "DM Sans", sans-serif;
+      --volt-ds-red: #c1121f;
+    }
+    body {
+      margin: 0; min-height: 100vh; background: #0a0a0a; color: #fff;
+      font-family: var(--font-ds-body);
+      display: flex; align-items: center; justify-content: center;
+      background-image:
+        linear-gradient(#ffffff08 1px, transparent 1px),
+        linear-gradient(90deg, #ffffff08 1px, transparent 1px);
+      background-size: 80px 80px;
+    }
+    .open-btn {
+      background: var(--volt-ds-red); color: #fff; border: none;
+      padding: 14px 28px; font-family: var(--font-ds-mono); letter-spacing: .08em;
+      cursor: pointer; border-radius: 8px;
+    }
+    .note { position: fixed; top: 16px; left: 16px; font-size: 12px; color: #888; max-width: 320px; }
+  </style>
+</head>
+<body>
+  <p class="note">Test de integración: usa <code>css/auth-modal.css</code> y <code>js/store-auth.js</code> reales, con un stub de Firebase (login simulado). El submit devolverá un error de demo para que veas el estado de error.</p>
+
+  <button class="open-btn" id="open">Abrir login</button>
+
+  <!-- ===== AUTH MODAL (markup REAL, copiado de index.html) ===== -->
+  <div class="auth-modal-wrap" id="auth-modal-wrap">
+    <div class="auth-modal-overlay">
+      <div class="auth-modal-backdrop" id="auth-modal-backdrop"></div>
+      <div class="auth-modal" id="auth-modal">
+        <div class="auth-modal__header">
+          <button class="auth-tab active" id="auth-tab-login" type="button">INGRESAR</button>
+          <button class="auth-tab" id="auth-tab-signup" type="button">CREAR CUENTA</button>
+          <button class="auth-close" id="auth-close" type="button" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="auth-modal__body">
+          <p class="auth-modal__subtitle" id="auth-subtitle">Ingresá para continuar con tu compra</p>
+          <button class="auth-google" id="auth-google" type="button">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" />
+            Continuar con Google
+          </button>
+          <div class="auth-divider"><span>o</span></div>
+          <form class="auth-form" id="auth-form-login">
+            <label class="auth-label">EMAIL
+              <input type="email" name="email" autocomplete="email" required />
+            </label>
+            <label class="auth-label">CONTRASEÑA
+              <input type="password" name="password" autocomplete="current-password" required />
+            </label>
+            <a href="#" class="auth-forgot" id="auth-forgot">¿Olvidaste tu contraseña?</a>
+            <button type="submit" class="auth-submit">INGRESAR</button>
+            <p class="auth-hint">Si antes ingresaste con Google, usá el botón de arriba.</p>
+          </form>
+          <form class="auth-form hidden" id="auth-form-signup">
+            <label class="auth-label">EMAIL
+              <input type="email" name="email" autocomplete="email" required />
+            </label>
+            <label class="auth-label">CONTRASEÑA
+              <input type="password" name="password" autocomplete="new-password" required />
+            </label>
+            <button type="submit" class="auth-submit">CREAR CUENTA</button>
+            <p class="auth-error" id="auth-error"></p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stub de Firebase para probar la UI real sin backend -->
+  <script>
+    window.firebase = {
+      auth: function () {
+        return {
+          onAuthStateChanged: function (cb) { cb(null); },
+          signInWithEmailAndPassword: function () {
+            return new Promise((_, reject) =>
+              setTimeout(() => reject({ code: "auth/invalid-credential" }), 1100));
+          },
+          createUserWithEmailAndPassword: function () {
+            return new Promise((_, reject) =>
+              setTimeout(() => reject({ code: "auth/email-already-in-use" }), 1100));
+          },
+          signInWithPopup: function () {
+            return new Promise((_, reject) =>
+              setTimeout(() => reject({ code: "auth/popup-closed-by-user" }), 600));
+          },
+          signOut: function () { return Promise.resolve(); },
+        };
+      },
+      firestore: function () { return null; },
+    };
+    window.firebase.auth.GoogleAuthProvider = function () {};
+  </script>
+
+  <!-- JS REAL del proyecto -->
+  <script src="../js/store-auth.js"></script>
+  <script>
+    document.getElementById("open").addEventListener("click", function () {
+      document.getElementById("auth-modal").classList.add("is-open");
+      document.body.style.overflow = "hidden";
+    });
+  </script>
+</body>
+</html>
