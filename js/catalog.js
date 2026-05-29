@@ -429,28 +429,19 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // =====================================================
-    // CARGAR CATEGORÍAS DINÁMICAMENTE
+    // CATEGORÍAS FIJAS (misma lista que el panel de admin)
     // =====================================================
-    
-    async function loadCategories() {
-        try {
-            const categories = await window.ProductsService.getCategories();
-            const filtered = categories.filter((cat) => cat !== 'Autos a escala');
-            
-            if (categoryList) {
-                // Mantener "Ver todos" y agregar las categorías
-                categoryList.innerHTML = `
-                    <li class="active" data-category="all">Ver todos</li>
-                    ${filtered.map(cat => `<li data-category="${cat}">${cat}</li>`).join('')}
-                    <li class="category-sidebar-soon" aria-disabled="true">Autos a escala <span class="category-soon-badge">PRÓXIMAMENTE</span></li>
-                `;
 
-                // Agregar event listeners a las categorías
-                initCategoryFilters();
-            }
-        } catch (error) {
-            console.error('Error al cargar categorías:', error);
-        }
+    const ALL_CATEGORIES = ['Remeras', 'Buzos', 'Gorras'];
+
+    function loadCategories() {
+        if (!categoryList) return;
+        categoryList.innerHTML = `
+            <li class="active" data-category="all">Ver todos</li>
+            ${ALL_CATEGORIES.map(cat => `<li data-category="${cat}">${cat}</li>`).join('')}
+            <li class="category-sidebar-soon" aria-disabled="true">Autos a escala <span class="category-soon-badge">PRÓXIMAMENTE</span></li>
+        `;
+        initCategoryFilters();
     }
 
     // =====================================================
@@ -872,7 +863,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // =====================================================
     
     // Cargar categorías y productos al iniciar
-    await loadCategories();
+    loadCategories();
     await loadProducts();
     applyCategoryFromQuery();
     updateCartBadge();
