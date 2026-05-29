@@ -54,7 +54,13 @@
                     this._updateNavbar(user);
 
                     if (user) {
-                        window.VoltCartSync?.loadAndMerge(user.uid);
+                        // Guard: solo mergear una vez por sesión de navegador para evitar
+                        // que cada refresh sume cantidades al carrito.
+                        const mergeKey = `volt_cart_merged_${user.uid}`;
+                        if (!sessionStorage.getItem(mergeKey)) {
+                            sessionStorage.setItem(mergeKey, '1');
+                            window.VoltCartSync?.loadAndMerge(user.uid);
+                        }
 
                         if (this._resolveAuth) {
                             const resolve = this._resolveAuth;
@@ -69,6 +75,12 @@
                             inst.hide();
                         }
                     } else {
+                        // Limpiar el guard de merge al cerrar sesión
+                        try {
+                            Object.keys(sessionStorage)
+                                .filter(k => k.startsWith('volt_cart_merged_'))
+                                .forEach(k => sessionStorage.removeItem(k));
+                        } catch (_) { /* ignore */ }
                         window.VoltCartSync?.clearLocal();
                     }
                 });

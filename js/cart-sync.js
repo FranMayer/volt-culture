@@ -40,15 +40,17 @@
     }
 
     /**
-     * Mergea dos arrays de items. Misma línea = mismo id + color + talle;
-     * suma cantidades. Si solo aparece en uno, lo agrega tal cual.
+     * Mergea dos arrays de items. Misma línea = mismo id + color + talle.
+     * Usa Math.max en vez de sumar para evitar duplicación cuando local y
+     * Firestore ya están sincronizados (ej: refresh de página).
+     * Solo agrega items que existan únicamente en local (sesión anónima previa).
      */
     function merge(firestoreItems, localItems) {
         const result = firestoreItems.map(item => ({ ...item }));
         for (const local of localItems) {
             const existing = result.find(m => lineKey(m) === lineKey(local));
             if (existing) {
-                existing.quantity = (existing.quantity || 0) + (local.quantity || 0);
+                existing.quantity = Math.max(existing.quantity || 0, local.quantity || 0);
             } else {
                 result.push({ ...local });
             }
