@@ -17,7 +17,8 @@
       "Bash(findstr /r \"body.*\\\\{\\\\|html.*\\\\{\" css\\\\volt-ds.css css\\\\style.css css\\\\mediaquery.css)",
       "WebFetch(domain:localhost)",
       "Bash(curl -s http://localhost:3001/pages/catalogo)",
-      "Bash(curl -s http://localhost:3001/css/volt-ds.css)"
+      "Bash(curl -s http://localhost:3001/css/volt-ds.css)",
+      "Bash(git add *)"
     ]
   }
 }

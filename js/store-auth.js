@@ -445,7 +445,7 @@
                                     <div class="auth-modal-success" id="resetSuccessMsg" style="display:none;"></div>
                                     <button type="submit" id="loginSubmitBtn" class="auth-submit-btn">Ingresar</button>
                                 </form>
-                                <p style="font-size:11px; color:#555; text-align:center; margin-top:10px; line-height:1.4;">Si antes ingresaste con Google, usá el botón de arriba.</p>
+                                <p style="font-size:11px; color:rgba(255,255,255,0.3); text-align:center; margin-top:16px; line-height:1.5;">Si antes ingresaste con Google, usá el botón de arriba.</p>
                             </div>
 
                             <!-- PANEL: REGISTRO -->

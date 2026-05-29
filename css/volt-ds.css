@@ -747,33 +747,128 @@ body.page-leaving {
     flex: 1 1 auto !important;
     min-height: 0 !important;
     overflow-y: auto !important;
-    padding: 16px !important;
+    padding: 0 1.5rem !important;
+}
+
+.cart-item {
+    gap: 16px !important;
+    padding: 1.1rem 0 !important;
+    border-bottom: 1px solid var(--volt-ds-border) !important;
+}
+
+.cart-item__thumb {
+    border-radius: 0 !important;
+    border: 1px solid var(--volt-ds-border-control) !important;
+    width: 72px !important;
+    height: 72px !important;
+}
+
+.cart-item__title {
+    font-family: var(--font-ds-body) !important;
+    font-size: 0.9rem !important;
+    color: var(--volt-ds-white) !important;
+}
+
+.cart-item__meta {
+    font-family: var(--font-ds-mono) !important;
+    font-size: 11px !important;
+    letter-spacing: 0.04em !important;
+    color: rgba(255, 255, 255, 0.4) !important;
+    margin-top: 0.35rem !important;
+}
+
+.cart-item__remove {
+    border-radius: 0 !important;
+    border: 1px solid var(--volt-ds-border-control) !important;
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 0.8rem !important;
 }
 
 .cart-total-row {
     flex: 0 0 auto !important;
-    background: #0a0a0a !important;
-    padding: 16px !important;
-    border-top: 1px solid #2a2a2a !important;
+    background: var(--volt-ds-black) !important;
+    padding: 1.25rem 1.5rem !important;
+    border-top: 1px solid var(--volt-ds-border) !important;
     position: sticky !important;
     bottom: 76px !important;
     z-index: 2 !important;
 }
 
+.cart-total-label {
+    font-family: var(--font-ds-mono) !important;
+    font-size: 11px !important;
+    letter-spacing: 0.1em !important;
+    text-transform: uppercase !important;
+    color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.cart-total-amount {
+    font-family: var(--font-ds-mono) !important;
+    font-size: 1.2rem !important;
+    color: var(--volt-ds-white) !important;
+}
+
+.cart-transfer-row {
+    padding: 0 1.5rem 0.9rem !important;
+    background: var(--volt-ds-black) !important;
+}
+
+.cart-transfer-label {
+    font-family: var(--font-ds-mono) !important;
+    font-size: 11px !important;
+    color: rgba(109, 170, 109, 0.85) !important;
+}
+
+.cart-transfer-amount {
+    font-family: var(--font-ds-mono) !important;
+    font-size: 13px !important;
+    color: rgba(109, 170, 109, 0.85) !important;
+}
+
 .cart-checkout-btn {
-    width: calc(100% - 32px) !important;
-    margin: 0 16px 10px !important;
-    background: #c1121f !important;
-    color: #ffffff !important;
+    font-family: var(--font-ds-mono) !important;
+    font-size: 11px !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+    padding: 1rem !important;
+    width: calc(100% - 3rem) !important;
+    margin: 0.5rem 1.5rem 0.5rem !important;
+    background: var(--volt-ds-white) !important;
+    color: var(--volt-ds-black) !important;
+    border: 1px solid var(--volt-ds-white) !important;
     flex: 0 0 auto !important;
     position: sticky !important;
     bottom: 12px !important;
     z-index: 3 !important;
 }
 
+.cart-checkout-btn:hover:not(:disabled) {
+    background: var(--volt-ds-red) !important;
+    color: var(--volt-ds-white) !important;
+    border-color: var(--volt-ds-red) !important;
+}
+
+.cart-transfer-btn {
+    font-family: var(--font-ds-mono) !important;
+    font-size: 11px !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+    padding: 0.85rem !important;
+    width: calc(100% - 3rem) !important;
+    margin: 0 1.5rem 0.5rem !important;
+    border-radius: 0 !important;
+}
+
 .btn-clear-cart {
-    width: calc(100% - 32px) !important;
-    margin: 0 16px 16px !important;
+    font-family: var(--font-ds-mono) !important;
+    font-size: 11px !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+    padding: 0.75rem !important;
+    width: calc(100% - 3rem) !important;
+    margin: 0 1.5rem 1.5rem !important;
+    border-radius: 0 !important;
     flex: 0 0 auto !important;
     position: sticky !important;
     bottom: 0 !important;
@@ -789,13 +884,15 @@ body.page-leaving {
 }
 
 .cart-offcanvas-header {
+    padding: 1.75rem 1.75rem 1.5rem !important;
     border-bottom: 1px solid var(--volt-ds-border) !important;
 }
 
 .cart-offcanvas-title {
     font-family: var(--font-ds-mono) !important;
-    font-size: 12px !important;
+    font-size: 13px !important;
     letter-spacing: 0.14em !important;
+    text-transform: uppercase !important;
 }
 
 .cart-empty__text {
@@ -831,6 +928,10 @@ body.page-leaving {
     min-height: calc(100dvh - 2rem) !important;
 }
 
+#voltAuthModal .modal-dialog {
+    max-width: 560px !important;
+}
+
 #voltAuthModal .modal-content.auth-modal-content,
 .auth-modal-content {
     background: var(--volt-ds-black) !important;
@@ -839,14 +940,28 @@ body.page-leaving {
 }
 
 .auth-modal-header {
+    padding: 1.75rem 2rem 0 !important;
     border-bottom: 1px solid var(--volt-ds-border) !important;
+}
+
+.auth-modal-body {
+    padding: 2rem 2.25rem 2.5rem !important;
+    background: var(--volt-ds-black) !important;
+}
+
+.auth-modal-subtitle {
+    font-family: var(--font-ds-body) !important;
+    font-size: 0.875rem !important;
+    color: rgba(255, 255, 255, 0.45) !important;
+    margin-bottom: 1.75rem !important;
 }
 
 .auth-tab-btn {
     font-family: var(--font-ds-mono) !important;
-    font-size: 10px !important;
+    font-size: 11px !important;
     letter-spacing: 0.12em !important;
     text-transform: uppercase !important;
+    padding: 0.9rem 1.5rem !important;
     border: 1px solid var(--volt-ds-border-control) !important;
     background: transparent !important;
     color: var(--volt-ds-label) !important;
@@ -858,16 +973,28 @@ body.page-leaving {
     color: var(--volt-ds-white) !important;
 }
 
+.auth-field {
+    margin-bottom: 1.5rem !important;
+}
+
 .auth-label {
     font-family: var(--font-ds-mono) !important;
-    font-size: 10px !important;
-    color: var(--volt-ds-label) !important;
+    font-size: 11px !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+    margin-bottom: 0.5rem !important;
 }
 
 .auth-input {
     background: var(--volt-ds-black) !important;
     color: var(--volt-ds-white) !important;
-    border: 1px solid var(--volt-ds-border) !important;
+    border: 1px solid var(--volt-ds-border-control) !important;
+    padding: 0.9rem 1rem !important;
+    font-family: var(--font-ds-body) !important;
+    font-size: 1rem !important;
+}
+
+.auth-input::placeholder {
+    color: rgba(255, 255, 255, 0.4) !important;
 }
 
 .auth-input:focus {
@@ -876,8 +1003,26 @@ body.page-leaving {
     outline: none !important;
 }
 
+.auth-google-btn {
+    padding: 0.85rem 1.25rem !important;
+    border: 1px solid var(--volt-ds-border-control) !important;
+    background: var(--volt-ds-black) !important;
+    color: var(--volt-ds-white) !important;
+    font-family: var(--font-ds-body) !important;
+    font-size: 0.95rem !important;
+}
+
+.auth-divider-o {
+    color: rgba(255, 255, 255, 0.3) !important;
+    margin: 1.5rem 0 !important;
+}
+
 .auth-submit-btn {
     font-family: var(--font-ds-mono) !important;
+    font-size: 11px !important;
+    letter-spacing: 0.12em !important;
+    padding: 1rem 1.25rem !important;
+    margin-top: 0.75rem !important;
     background: var(--volt-ds-white) !important;
     color: var(--volt-ds-black) !important;
     border: 1px solid var(--volt-ds-white) !important;
@@ -889,10 +1034,11 @@ body.page-leaving {
     border-color: var(--volt-ds-red) !important;
 }
 
-.auth-google-btn {
-    border: 1px solid var(--volt-ds-border-control) !important;
-    background: var(--volt-ds-black) !important;
-    color: var(--volt-ds-white) !important;
+.auth-forgot-link {
+    font-family: var(--font-ds-mono) !important;
+    font-size: 11px !important;
+    color: rgba(255, 255, 255, 0.35) !important;
+    margin-top: 0.6rem !important;
 }
 
 /* ─── Bootstrap overrides (catálogo / mis-pedidos) ─── */
