@@ -407,7 +407,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 shipText += `\nDirección:\n${addr.street}\n${addr.city}, ${addr.province}\nCP ${addr.postalCode}\n`;
             }
         }
-        shipText += `\n\nContacto: ${customer.name} · DNI ${customer.dni} · ${customer.email} · ${customer.phone}`;
+        shipText += `\n\nContacto: ${customer.name} · DNI ${customer.dni} · ${customer.phone} · ${customer.email}`;
         shipEl.textContent = shipText;
     }
 
