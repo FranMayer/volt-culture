@@ -1,8 +1,24 @@
 /* =====================================================
    VOLT - MOTORSPORT CULTURE
    E-Commerce Streetwear & Racing
-   Editorial Split — Teko + cuerpo Barlow (Glacial Indifference no en Google Fonts)
+   Editorial Split — Teko (display) + Glacial Indifference (body, self-hosted)
    ===================================================== */
+
+/* ─── Self-hosted body font ─── */
+@font-face {
+    font-family: 'Glacial Indifference';
+    src: url('/glacial-indifference/GlacialIndifference-Regular.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Glacial Indifference';
+    src: url('/glacial-indifference/GlacialIndifference-Bold.otf') format('opentype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
 
 /* CSS Reset & Variables */
 * {
@@ -13,7 +29,7 @@
 
 :root {
     /* Identidad VOLT — paleta y tipografía oficial */
-    --color-red: #E8192C;
+    --color-red: #c1121f;
     --color-dark: #0b0b0b;
     --color-black: #000000;
     --color-gray: #44464c;
@@ -344,7 +360,7 @@ input[type="submit"],
     left: 0;
     width: 0;
     height: 2px;
-    background: #E8192C;
+    background: #c1121f;
     transition: width 0.25s ease;
 }
 
@@ -358,7 +374,7 @@ input[type="submit"],
 }
 
 .header ul a.nav-link:active {
-    color: #E8192C;
+    color: #c1121f;
     transition: color 0.1s ease;
 }
 
@@ -778,8 +794,8 @@ input[type="submit"],
     padding: 2px 5px;
     font-size: 9px;
     letter-spacing: 1px;
-    color: #E8192C;
-    border: 1px solid #E8192C;
+    color: #c1121f;
+    border: 1px solid #c1121f;
     border-radius: 2px;
     background: transparent;
     vertical-align: middle;
@@ -1106,8 +1122,8 @@ input[type="submit"],
 
 .social-icons a:hover {
     background: transparent;
-    border-color: #E8192C;
-    color: #E8192C;
+    border-color: #c1121f;
+    color: #c1121f;
     transform: none;
     box-shadow: none;
 }
@@ -1843,7 +1859,7 @@ body.lightbox-open {
 
 .cart-empty__link {
     display: inline-block;
-    color: #E8192C;
+    color: #c1121f;
     font-size: 14px;
     text-decoration: none;
 }
@@ -1918,8 +1934,8 @@ body.lightbox-open {
 }
 
 .cart-item__remove:hover {
-    background: #E8192C;
-    border-color: #E8192C;
+    background: #c1121f;
+    border-color: #c1121f;
     color: #fff;
 }
 
@@ -1943,7 +1959,7 @@ body.lightbox-open {
 }
 
 .cart-total-amount {
-    color: #E8192C;
+    color: #c1121f;
     font-size: 20px;
     font-weight: 700;
 }
@@ -1972,7 +1988,7 @@ body.lightbox-open {
     width: calc(100% - 32px);
     margin: 0 16px 16px;
     background: transparent;
-    border: 1px solid #E8192C;
+    border: 1px solid #c1121f;
     color: #ffffff;
     opacity: 1;
     font-size: 1rem;
@@ -1987,7 +2003,7 @@ body.lightbox-open {
 }
 
 .btn-clear-cart:hover:not(:disabled) {
-    background: #E8192C;
+    background: #c1121f;
     color: #fff;
 }
 
@@ -2838,7 +2854,7 @@ body.lightbox-open {
     position: absolute;
     width: 18px;
     height: 18px;
-    border-color: rgba(232, 25, 44, 0.45);
+    border-color: rgba(193, 18, 31, 0.45);
     border-style: solid;
     border-width: 0;
 }
@@ -3066,7 +3082,7 @@ body.lightbox-open {
 }
 
 .home-featured-card__link:hover {
-    border-color: rgba(232, 25, 44, 0.5);
+    border-color: rgba(193, 18, 31, 0.5);
     transform: translateY(-3px);
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
 }
@@ -3164,8 +3180,8 @@ body.lightbox-open {
     position: absolute;
     inset: 0;
     background-image:
-        linear-gradient(rgba(232, 25, 44, 0.06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(232, 25, 44, 0.06) 1px, transparent 1px);
+        linear-gradient(rgba(193, 18, 31, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(193, 18, 31, 0.06) 1px, transparent 1px);
     background-size: 56px 56px;
     pointer-events: none;
     opacity: 0.5;
@@ -3265,7 +3281,7 @@ body.lightbox-open {
     top: 0.25rem;
     bottom: 0.25rem;
     width: 3px;
-    background: linear-gradient(180deg, var(--color-red), rgba(232, 25, 44, 0.2));
+    background: linear-gradient(180deg, var(--color-red), rgba(193, 18, 31, 0.2));
 }
 
 .nueva-era.section-panel .nueva-era__title {
@@ -3354,8 +3370,8 @@ body.lightbox-open {
         90deg,
         transparent,
         transparent 6px,
-        rgba(232, 25, 44, 0.35) 6px,
-        rgba(232, 25, 44, 0.35) 8px
+        rgba(193, 18, 31, 0.35) 6px,
+        rgba(193, 18, 31, 0.35) 8px
     );
     opacity: 0.6;
     pointer-events: none;
@@ -3383,7 +3399,7 @@ body.lightbox-open {
 .footer__rule-line {
     flex: 1;
     height: 1px;
-    background: linear-gradient(90deg, rgba(232, 25, 44, 0.5), transparent);
+    background: linear-gradient(90deg, rgba(193, 18, 31, 0.5), transparent);
 }
 
 .footer-container--dense {
@@ -3456,7 +3472,7 @@ body.lightbox-open {
 }
 
 .footer-newsletter__input:focus {
-    outline: 2px solid rgba(232, 25, 44, 0.45);
+    outline: 2px solid rgba(193, 18, 31, 0.45);
     outline-offset: 1px;
     border-color: #444;
 }
@@ -3656,7 +3672,7 @@ body.lightbox-open {
 }
 
 .about-pillar:hover {
-    border-color: rgba(232, 25, 44, 0.35);
+    border-color: rgba(193, 18, 31, 0.35);
     transform: translateY(-2px);
 }
 
@@ -3821,7 +3837,7 @@ body.lightbox-open {
 }
 
 .news-card:hover {
-    border-color: rgba(232, 25, 44, 0.35);
+    border-color: rgba(193, 18, 31, 0.35);
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
 }
 

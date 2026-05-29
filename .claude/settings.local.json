@@ -18,7 +18,13 @@
       "WebFetch(domain:localhost)",
       "Bash(curl -s http://localhost:3001/pages/catalogo)",
       "Bash(curl -s http://localhost:3001/css/volt-ds.css)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(Select-String -NotMatch \"node_modules\")",
+      "Bash(Select-Object -First 200)",
+      "Bash(python -c \"import fontTools, brotli; print\\('fonttools+brotli OK'\\)\")",
+      "Bash(git check-ignore *)"
     ]
   }
 }

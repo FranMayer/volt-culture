@@ -6,7 +6,7 @@ Motorsport-inspired streetwear e-commerce. Static HTML/CSS/JS site deployed on V
 ## Stack
 - **Frontend**: Vanilla HTML + CSS + JS (no framework/bundler)
 - **CSS**: `css/style.css` (legacy, large), `css/volt-ds.css` (design system overrides, loads last), `css/mediaquery.css` (responsive)
-- **Fonts**: Teko 700 (display/headings), DM Mono 400/500 (UI labels, mono), DM Sans 300/400 (body) — loaded via Google Fonts
+- **Fonts**: Teko 700 (display/headings, Google Fonts), DM Mono 400/500 (UI labels, mono, Google Fonts), Glacial Indifference 400/700 (body/sub, self-hosted from `/glacial-indifference/*.otf`). DM Sans kept only as a body fallback.
 - **UI library**: Bootstrap 5.3.3 (grid + offcanvas cart + modals only)
 - **Auth + DB**: Firebase (compat SDK 9.22) — Firestore + Auth (Google popup)
 - **Payments**: MercadoPago SDK
@@ -15,7 +15,7 @@ Motorsport-inspired streetwear e-commerce. Static HTML/CSS/JS site deployed on V
 - **Admin panel**: `/admin/panel.html` — protected by Firebase claim check
 
 ## Design system (volt-ds)
-Palette: `#000000` / `#FFFFFF` / `#E8001D` (red) only + label grays `#444–#888`.
+Palette: `#000000` / `#FFFFFF` / `#c1121f` (red, canonical) only + label grays `#444–#888`.
 Grid overlay: 80×80px subtle lines.
 All corners are sharp (border-radius: 0 !important in volt-ds.css).
 `volt-ds.css` loads last and overrides legacy styles.
@@ -36,11 +36,11 @@ All corners are sharp (border-radius: 0 !important in volt-ds.css).
 
 ## CSS variable sources
 - `index.html` inline `<style>`: uses `--volt-black`, `--volt-white`, `--volt-red`, `--font-display/mono/body`, `--nav-h`
-- `css/style.css`: uses `--color-red: #E8192C` (slightly different shade), lots of legacy vars
-- `css/volt-ds.css`: canonical DS, uses `--volt-ds-*` prefix, `--font-ds-*`
+- `css/style.css`: `--color-red` now `#c1121f`, lots of legacy vars
+- `css/volt-ds.css`: canonical DS, uses `--volt-ds-*` prefix, `--font-ds-*`; defines the Glacial Indifference `@font-face`
 
 ## Known issues / tech debt
-- Two conflicting red shades: `#E8001D` (DS) vs `#E8192C` (style.css) vs `#C1121F` (some components)
+- Red is unified to `#c1121f` everywhere (was previously `#E8001D` / `#E8192C` / `#C1121F` mixed). Keep new red work on `#c1121f`.
 - `style.css` is very large (~4400 lines) and mixes legacy + current styles
 - Bootstrap loads globally but only used for cart offcanvas + modals
 

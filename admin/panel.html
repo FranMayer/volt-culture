@@ -10,7 +10,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Teko:wght@700&display=swap" rel="stylesheet">
     
     <!-- Bootstrap 5.3 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -23,6 +23,20 @@
     <title>VOLT Store - Panel Admin</title>
     
     <style>
+        @font-face {
+            font-family: 'Glacial Indifference';
+            src: url('/glacial-indifference/GlacialIndifference-Regular.otf') format('opentype');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Glacial Indifference';
+            src: url('/glacial-indifference/GlacialIndifference-Bold.otf') format('opentype');
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
+        }
         :root {
             --volt-black: #0a0a0a;
             --volt-gray: #1a1a1a;
@@ -32,7 +46,7 @@
         }
         
         body {
-            font-family: 'Barlow', sans-serif;
+            font-family: 'Glacial Indifference', sans-serif;
             background: var(--volt-black);
             min-height: 100vh;
             color: var(--volt-white);
@@ -87,7 +101,7 @@
             padding: 1rem;
             width: 100%;
             margin-bottom: 1rem;
-            font-family: 'Barlow', sans-serif;
+            font-family: 'Glacial Indifference', sans-serif;
         }
         
         .login-input:focus {
@@ -106,7 +120,7 @@
             color: white;
             border: none;
             padding: 1rem;
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: 'Teko', sans-serif;
             font-size: 1.2rem;
             letter-spacing: 0.1em;
             cursor: pointer;
@@ -186,7 +200,7 @@
         }
         
         .admin-header h1 {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: 'Teko', sans-serif;
             font-size: 1.5rem;
             margin: 0;
             letter-spacing: 0.1em;
@@ -212,7 +226,7 @@
         .card-header {
             background: var(--volt-black);
             color: white;
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: 'Teko', sans-serif;
             letter-spacing: 0.1em;
             border-radius: 0 !important;
             border-bottom: 2px solid var(--volt-red);
@@ -222,7 +236,7 @@
             background: var(--volt-red);
             border: none;
             color: white;
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: 'Teko', sans-serif;
             letter-spacing: 0.05em;
             padding: 0.5rem 1.5rem;
             clip-path: polygon(0 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
@@ -298,7 +312,7 @@
         }
         
         .stats-card h3 {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: 'Teko', sans-serif;
             font-size: 2.5rem;
             color: var(--volt-red);
             margin: 0;
@@ -345,7 +359,7 @@
         }
         
         .modal-title {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: 'Teko', sans-serif;
             letter-spacing: 0.1em;
         }
         
@@ -406,7 +420,7 @@
         }
         
         h2 {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: 'Teko', sans-serif;
             letter-spacing: 0.1em;
         }
         
@@ -435,7 +449,7 @@
             border: 1px solid rgba(255,255,255,0.1);
             border-bottom: none;
             color: rgba(255,255,255,0.6);
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: 'Teko', sans-serif;
             font-size: 1.1rem;
             letter-spacing: 0.1em;
             cursor: pointer;
@@ -512,7 +526,7 @@
         }
         
         .order-amount {
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: 'Teko', sans-serif;
             font-size: 1.3rem;
             color: #22c55e;
         }
@@ -554,7 +568,7 @@
 
         .admin-subsection__title {
             margin: 0 0 0.75rem;
-            font-family: 'Bebas Neue', sans-serif;
+            font-family: 'Teko', sans-serif;
             letter-spacing: 0.08em;
             color: #f2f2f2;
         }
@@ -933,7 +947,7 @@
 
                 <!-- Zona de peligro -->
                 <div style="border:1px solid rgba(193,18,31,0.4); padding:1.5rem; background:rgba(193,18,31,0.05);">
-                    <h4 style="color:#c1121f; font-family:'Bebas Neue',sans-serif; letter-spacing:0.1em; margin-bottom:0.5rem;">⚠️ ZONA DE PELIGRO</h4>
+                    <h4 style="color:#c1121f; font-family:'Teko', sans-serif; letter-spacing:0.1em; margin-bottom:0.5rem;">⚠️ ZONA DE PELIGRO</h4>
                     <p style="color:rgba(255,255,255,0.6); font-size:0.9rem; margin-bottom:1.5rem;">
                         Estas acciones son <strong>irreversibles</strong>. Usá esto para limpiar datos de prueba antes de lanzar la tienda.
                     </p>

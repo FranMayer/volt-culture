@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         } catch (error) {
             console.error('Error al cargar productos:', error);
             if (noProductsMessage) {
-                noProductsMessage.innerHTML = '<p>❌ Error al cargar productos. Intenta de nuevo.</p>';
+                noProductsMessage.innerHTML = '<p>No pudimos cargar los productos. Intentá de nuevo en unos minutos.</p>';
                 noProductsMessage.style.display = 'block';
             }
         } finally {

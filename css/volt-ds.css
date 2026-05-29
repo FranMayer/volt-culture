@@ -1,13 +1,29 @@
 /**
  * VOLT design system — overrides for legacy pages (loads after style.css + mediaquery.css)
- * Palette: #000000 / #FFFFFF / #E8001D only (+ label grays #444–#888)
- * Load fonts via page <link>: DM Mono400/500, DM Sans 300/400, Teko 700
+ * Palette: #000000 / #FFFFFF / #c1121f only (+ label grays #444–#888)
+ * Fonts: Teko 700 (display, via Google) + Glacial Indifference (body, self-hosted below) + DM Mono (labels, via Google)
  */
+
+/* ─── Self-hosted body font ─── */
+@font-face {
+    font-family: "Glacial Indifference";
+    src: url("/glacial-indifference/GlacialIndifference-Regular.otf") format("opentype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Glacial Indifference";
+    src: url("/glacial-indifference/GlacialIndifference-Bold.otf") format("opentype");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
 
 :root {
     --volt-ds-black: #000000;
     --volt-ds-white: #ffffff;
-    --volt-ds-red: #e8001d;
+    --volt-ds-red: #c1121f;
     --volt-ds-border: rgba(255, 255, 255, 0.07);
     /* Bordes de controles (mejor contraste no-texto que --volt-ds-border) */
     --volt-ds-border-control: rgba(255, 255, 255, 0.22);
@@ -17,7 +33,7 @@
     --volt-ds-header-h: 112px;
     --font-ds-display: "Teko", sans-serif;
     --font-ds-mono: "DM Mono", monospace;
-    --font-ds-body: "DM Sans", sans-serif;
+    --font-ds-body: "Glacial Indifference", "DM Sans", sans-serif;
 }
 
 /* ─── Global reset: sharp corners, base colors ─── */
@@ -437,7 +453,7 @@ body.page-leaving {
 
 .auth-btn:hover {
     border-color: var(--volt-ds-red) !important;
-    background: rgba(232, 0, 29, 0.12) !important;
+    background: rgba(193, 18, 31, 0.12) !important;
     color: var(--volt-ds-white) !important;
 }
 
@@ -530,7 +546,7 @@ body.page-leaving {
 .footer-nav .footer-links a:hover {
     color: var(--volt-ds-white) !important;
     border-color: var(--volt-ds-red) !important;
-    background: rgba(232, 0, 29, 0.12) !important;
+    background: rgba(193, 18, 31, 0.12) !important;
 }
 
 .footer-newsletter__input {
@@ -631,7 +647,7 @@ body.page-leaving {
 .section-panel__link:hover,
 .hero-cta--ghost:hover {
     border-color: var(--volt-ds-red) !important;
-    background: rgba(232, 0, 29, 0.12) !important;
+    background: rgba(193, 18, 31, 0.12) !important;
     color: var(--volt-ds-white) !important;
 }
 
@@ -911,7 +927,7 @@ body.page-leaving {
     text-transform: uppercase !important;
     color: var(--volt-ds-white) !important;
     border: 1px solid var(--volt-ds-red) !important;
-    background: rgba(232, 0, 29, 0.12) !important;
+    background: rgba(193, 18, 31, 0.12) !important;
     padding: 10px 16px !important;
     display: inline-block !important;
     margin-top: 12px !important;
@@ -969,7 +985,7 @@ body.page-leaving {
 
 .auth-tab-btn.active {
     border-color: var(--volt-ds-red) !important;
-    background: rgba(232, 0, 29, 0.12) !important;
+    background: rgba(193, 18, 31, 0.12) !important;
     color: var(--volt-ds-white) !important;
 }
 
@@ -1076,7 +1092,7 @@ body.page-leaving {
 .btn-secondary:hover,
 .btn-outline-light:hover {
     border-color: var(--volt-ds-red) !important;
-    background: rgba(232, 0, 29, 0.12) !important;
+    background: rgba(193, 18, 31, 0.12) !important;
     color: var(--volt-ds-white) !important;
 }
 
@@ -1350,7 +1366,7 @@ body.page-leaving {
 .news-card__read:hover {
     color: var(--volt-ds-white) !important;
     border-color: var(--volt-ds-red) !important;
-    background: rgba(232, 0, 29, 0.12) !important;
+    background: rgba(193, 18, 31, 0.12) !important;
 }
 
 .news-cta-bar .btn,
@@ -1385,9 +1401,9 @@ body.page-leaving {
 
 .order-badge--failed,
 .order-badge--mp_error {
-    border-color: rgba(232, 25, 44, 0.5) !important;
-    color: #E8192C !important;
-    background: rgba(232, 25, 44, 0.12) !important;
+    border-color: rgba(193, 18, 31, 0.5) !important;
+    color: #c1121f !important;
+    background: rgba(193, 18, 31, 0.12) !important;
 }
 
 .btn-reorder {
@@ -1403,7 +1419,7 @@ body.page-leaving {
 
 .btn-reorder:hover {
     border-color: var(--volt-ds-red) !important;
-    background: rgba(232, 0, 29, 0.12) !important;
+    background: rgba(193, 18, 31, 0.12) !important;
     color: var(--volt-ds-white) !important;
 }
 
@@ -1414,13 +1430,13 @@ body.page-leaving {
 
 .btn-reorder--done:hover {
     border-color: var(--volt-ds-red) !important;
-    background: rgba(232, 0, 29, 0.12) !important;
+    background: rgba(193, 18, 31, 0.12) !important;
     color: var(--volt-ds-white) !important;
 }
 
 .orders-error {
     border: 1px solid var(--volt-ds-border) !important;
-    background: rgba(232, 0, 29, 0.12) !important;
+    background: rgba(193, 18, 31, 0.12) !important;
     color: var(--volt-ds-white) !important;
     font-family: var(--font-ds-body) !important;
 }
@@ -1561,7 +1577,7 @@ main.box a.secondary {
 
 main.box a.secondary:hover {
     border-color: var(--volt-ds-red) !important;
-    background: rgba(232, 0, 29, 0.12) !important;
+    background: rgba(193, 18, 31, 0.12) !important;
     color: var(--volt-ds-white) !important;
 }
 
@@ -1663,7 +1679,7 @@ main.box a.secondary:hover {
 
 .product-expand-toggle:hover {
     border-color: var(--volt-ds-red) !important;
-    background: rgba(232, 0, 29, 0.12) !important;
+    background: rgba(193, 18, 31, 0.12) !important;
 }
 
 .variant-label {
@@ -1931,7 +1947,7 @@ main > .shop-page-header {
 
     .category-list li.active,
     .category-list li:hover {
-        background: rgba(232, 0, 29, 0.15) !important;
+        background: rgba(193, 18, 31, 0.15) !important;
         border-color: var(--volt-ds-red) !important;
     }
 
