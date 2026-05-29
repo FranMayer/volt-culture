@@ -140,9 +140,14 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         cartTotal.innerText = `$${total.toLocaleString('es-AR')}`;
-        
+
+        const transferTotalEl = document.getElementById('cart-transfer-total');
+        if (transferTotalEl) {
+            transferTotalEl.innerText = `$${Math.round(total * 0.9).toLocaleString('es-AR')}`;
+        }
+
         localStorage.setItem("cart", JSON.stringify(cart));
-        
+
         updateBadge(itemCount);
 
         if (clearCartBtn) {
@@ -150,6 +155,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         if (checkoutBtn) {
             checkoutBtn.disabled = !hasItems;
+        }
+        const transferBtn = document.getElementById('transfer-btn');
+        if (transferBtn) {
+            transferBtn.disabled = !hasItems;
         }
 
         updateButtons();

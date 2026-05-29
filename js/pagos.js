@@ -22,6 +22,17 @@ const SHIPPING_LABELS = {
 
 const SHIPPING_OPTIONS = Object.keys(SHIPPING_CONFIG);
 
+const TRANSFER_DISCOUNT = 0.10;
+const WHATSAPP_NUMBER = '5493518588127';
+const TRANSFER_BANK = {
+    banco:   'Banco Santander',
+    cuenta:  'Caja de Ahorro en Pesos 064-371679/1',
+    cbu:     '0720064988000037167918',
+    alias:   'franmayer96',
+    titular: 'FRANCO EZEQUIEL MAYER',
+    cuit:    'CUIT 20-39693593-8',
+};
+
 document.addEventListener("DOMContentLoaded", () => {
     const checkoutBtn = document.getElementById("checkout-btn");
     const CUSTOMER_STORAGE_KEY = "volt_checkout_customer";
@@ -67,7 +78,11 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
 
     const CHECKOUT_INPUT_STYLE =
-        'background:#1a1a1a;border-color:#44464c;color:#f2f2f2;';
+        'background:#111;border-color:#44464c;color:#f2f2f2;';
+
+    function validateDni(dni) {
+        return /^\d{7,8}$/.test(dni);
+    }
 
     function injectCheckoutStyles() {
         if (document.getElementById("voltCheckoutModalStyles")) return;
@@ -83,14 +98,14 @@ document.addEventListener("DOMContentLoaded", () => {
             #customerDataModal .volt-stepper__bar { height:3px; background:#333; border-radius:2px; margin-bottom:0.85rem; overflow:hidden; }
             #customerDataModal .volt-stepper__fill { height:100%; background:#c1121f; width:0%; transition:width 0.25s ease; }
             #customerDataModal .volt-step-panel { display:none; }
-            #customerDataModal .volt-step-panel.is-visible { display:block; }
+            #customerDataModal .volt-step-panel.is-visible { display:block; background:#1a1a1a; border:1px solid #2c2c2c; padding:0.875rem; }
             #customerDataModal .volt-ship-grid { display:grid; grid-template-columns:1fr; gap:0.6rem; }
             @media (min-width:576px) {
                 #customerDataModal .volt-ship-grid { grid-template-columns:1fr 1fr; }
             }
             #customerDataModal .volt-ship-card {
                 border:1px solid #44464c; border-radius:4px; padding:0.65rem 0.75rem; cursor:pointer;
-                background:#161616; text-align:left; transition:border-color 0.15s, background 0.15s;
+                background:#222; text-align:left; transition:border-color 0.15s, background 0.15s;
                 font-family:Barlow,sans-serif; font-size:0.875rem; color:#e8e8e8;
             }
             #customerDataModal .volt-ship-card:hover { border-color:#666; }
@@ -101,6 +116,30 @@ document.addEventListener("DOMContentLoaded", () => {
             #customerDataModal .volt-summary-list li { padding:0.45rem 0; border-bottom:1px solid #333; display:flex; justify-content:space-between; gap:0.5rem; flex-wrap:wrap; }
             #customerDataModal .volt-summary-ship { font-size:0.85rem; color:#ccc; line-height:1.5; white-space:pre-wrap; }
             #customerDataModal #andreaniAddressForm { border-top:1px solid #333; padding-top:0.85rem; margin-top:0.25rem; }
+            #customerDataModal .form-label { font-size:0.82rem; color:#ccc; margin-bottom:0.25rem; }
+            #customerDataModal .volt-field-hint { font-size:0.72rem; color:#888; margin-top:0.2rem; }
+            #customerDataModal .volt-bank-panel { background:#111; border:1px solid #2c4a2c; padding:0.75rem; margin-top:0.75rem; }
+            #customerDataModal .volt-bank-panel__title { font-family:Teko,sans-serif; font-size:1.05rem; letter-spacing:0.08em; color:#6daa6d; margin-bottom:0.5rem; }
+            #customerDataModal .volt-bank-panel__row { display:flex; justify-content:space-between; align-items:baseline; gap:0.5rem; padding:0.2rem 0; border-bottom:1px solid #222; font-size:0.8rem; flex-wrap:wrap; }
+            #customerDataModal .volt-bank-panel__row:last-of-type { border-bottom:none; }
+            #customerDataModal .volt-bank-panel__key { color:#888; flex-shrink:0; }
+            #customerDataModal .volt-bank-panel__val { color:#f2f2f2; font-family:var(--font-ds-mono,monospace); word-break:break-all; text-align:right; }
+            #customerDataModal .volt-bank-panel__alias { color:#6daa6d; font-size:1.1rem; font-family:Teko,sans-serif; letter-spacing:0.06em; }
+            #customerDataModal .volt-bank-panel__note { font-size:0.75rem; color:#888; line-height:1.4; margin-top:0.6rem; margin-bottom:0; }
+            #customerDataModal .volt-summary-discount { color:#6daa6d; }
+            #customerDataModal .volt-summary-total-transfer { color:#6daa6d; font-weight:700; }
+            @media (max-width:575px) {
+                #customerDataModal .modal-body { padding:0.75rem; }
+                #customerDataModal .modal-footer { padding:0.5rem 0.75rem; flex-wrap:wrap; gap:0.4rem; }
+                #customerDataModal .modal-footer .ms-auto { width:100%; justify-content:flex-end; gap:0.4rem !important; }
+                #customerDataModal .volt-stepper { margin-bottom:0.75rem; }
+                #customerDataModal .volt-stepper__item { font-size:0.58rem; }
+                #customerDataModal .volt-stepper__item strong { font-size:1rem; }
+                #customerDataModal .volt-step-panel.is-visible { padding:0.625rem; }
+                #customerDataModal #customerDataConfirm { font-size:0.75rem; letter-spacing:0.03em; padding:0.375rem 0.7rem; }
+                #customerDataModal .volt-ship-card { padding:0.5rem 0.65rem; }
+                #customerDataModal .volt-ship-card__title { font-size:1.1rem; }
+            }
         `;
         document.head.appendChild(s);
     }
@@ -138,16 +177,20 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div id="checkoutStep1" class="volt-step-panel is-visible">
                             <form id="customerDataForm" novalidate>
                                 <div class="mb-2">
-                                    <label class="form-label" for="customerName">Nombre completo</label>
-                                    <input type="text" class="form-control" id="customerName" required autocomplete="name" style="background:#1a1a1a;border-color:#44464c;color:#f2f2f2;">
+                                    <label class="form-label" for="customerName">Nombre y apellido</label>
+                                    <input type="text" class="form-control" id="customerName" required autocomplete="name" style="background:#111;border-color:#44464c;color:#f2f2f2;">
                                 </div>
                                 <div class="mb-2">
-                                    <label class="form-label" for="customerEmail">Email</label>
-                                    <input type="email" class="form-control" id="customerEmail" required autocomplete="email" style="background:#1a1a1a;border-color:#44464c;color:#f2f2f2;">
+                                    <label class="form-label" for="customerDni">DNI</label>
+                                    <input type="text" class="form-control" id="customerDni" required autocomplete="off" inputmode="numeric" maxlength="8" style="background:#111;border-color:#44464c;color:#f2f2f2;" placeholder="Sin puntos ni espacios">
                                 </div>
                                 <div class="mb-2">
                                     <label class="form-label" for="customerPhone">Teléfono</label>
-                                    <input type="tel" class="form-control" id="customerPhone" required autocomplete="tel" style="background:#1a1a1a;border-color:#44464c;color:#f2f2f2;">
+                                    <input type="tel" class="form-control" id="customerPhone" required autocomplete="tel" style="background:#111;border-color:#44464c;color:#f2f2f2;" placeholder="Ej: 3512345678">
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label" for="customerEmail">Email</label>
+                                    <input type="email" class="form-control" id="customerEmail" required autocomplete="email" style="background:#111;border-color:#44464c;color:#f2f2f2;">
                                 </div>
                             </form>
                         </div>
@@ -194,6 +237,16 @@ document.addEventListener("DOMContentLoaded", () => {
                             <ul class="volt-summary-list" id="checkoutSummaryItems"></ul>
                             <h6 class="text-uppercase small mb-2" style="font-family:Teko,sans-serif;letter-spacing:0.1em;color:#c1121f;">Envío</h6>
                             <div class="volt-summary-ship" id="checkoutSummaryShipping"></div>
+                            <div id="checkoutBankPanel" class="volt-bank-panel d-none">
+                                <div class="volt-bank-panel__title">Datos para la transferencia</div>
+                                <div class="volt-bank-panel__row"><span class="volt-bank-panel__key">Banco</span><span class="volt-bank-panel__val">${TRANSFER_BANK.banco}</span></div>
+                                <div class="volt-bank-panel__row"><span class="volt-bank-panel__key">Cuenta</span><span class="volt-bank-panel__val">${TRANSFER_BANK.cuenta}</span></div>
+                                <div class="volt-bank-panel__row"><span class="volt-bank-panel__key">CBU</span><span class="volt-bank-panel__val">${TRANSFER_BANK.cbu}</span></div>
+                                <div class="volt-bank-panel__row"><span class="volt-bank-panel__key">Alias</span><span class="volt-bank-panel__val volt-bank-panel__alias">${TRANSFER_BANK.alias}</span></div>
+                                <div class="volt-bank-panel__row"><span class="volt-bank-panel__key">Titular</span><span class="volt-bank-panel__val">${TRANSFER_BANK.titular}</span></div>
+                                <div class="volt-bank-panel__row"><span class="volt-bank-panel__key">Documento</span><span class="volt-bank-panel__val">${TRANSFER_BANK.cuit}</span></div>
+                                <p class="volt-bank-panel__note">Realizá la transferencia y envianos el comprobante por WhatsApp. Te confirmamos el pedido por email a la brevedad.</p>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer flex-wrap gap-2" style="border-top:1px solid #44464c;">
@@ -224,6 +277,7 @@ document.addEventListener("DOMContentLoaded", () => {
             CUSTOMER_STORAGE_KEY,
             JSON.stringify({
                 name: data.name || "",
+                dni: data.dni || "",
                 phone: data.phone || "",
                 email: data.email || "",
             })
@@ -292,15 +346,16 @@ document.addEventListener("DOMContentLoaded", () => {
         return `$${Number(n || 0).toLocaleString("es-AR")}`;
     }
 
-    function renderSummary(modalEl, cart, customer, shippingState) {
+    function renderSummary(modalEl, cart, customer, shippingState, mode = 'mp') {
         const itemsEl = modalEl.querySelector("#checkoutSummaryItems");
         const shipEl = modalEl.querySelector("#checkoutSummaryShipping");
+        const bankEl = modalEl.querySelector("#checkoutBankPanel");
         if (!itemsEl || !shipEl) return;
 
         const option = shippingState.shippingOption;
         const productsTotal = cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0);
-        const shippingCost =
-            option === "cordoba" ? SHIPPING_CONFIG.cordoba.cost : SHIPPING_CONFIG.andreani.cost;
+        const shippingCost = option === "cordoba" ? SHIPPING_CONFIG.cordoba.cost : SHIPPING_CONFIG.andreani.cost;
+        const subtotal = productsTotal + shippingCost;
 
         const productLines = cart
             .map((item) => {
@@ -319,28 +374,86 @@ document.addEventListener("DOMContentLoaded", () => {
             option === "cordoba"
                 ? `<li><span>Envío ${SHIPPING_CONFIG.cordoba.label}</span><span>${formatMoney(SHIPPING_CONFIG.cordoba.cost)}</span></li>`
                 : "";
-        const totalLine = `<li><span><strong>Total</strong></span><span><strong>${formatMoney(productsTotal + shippingCost)}</strong></span></li>`;
-        const andreaniNoteLine =
-            option === "andreani"
-                ? `<li style="font-size:0.78rem;color:#888;font-weight:normal;padding-top:0.35rem;border-bottom:none;"><span>Envío interior — A coordinar (no incluido en este pago)</span></li>`
-                : "";
 
-        itemsEl.innerHTML = productLines + shippingLine + totalLine + andreaniNoteLine;
+        let extraLines = "";
+        if (option === "andreani") {
+            extraLines += `<li style="font-size:0.78rem;color:#888;font-weight:normal;padding-top:0.35rem;border-bottom:none;"><span>Envío interior — A coordinar</span></li>`;
+        }
+
+        let totalLine;
+        if (mode === 'transfer') {
+            const discountAmount = Math.round(subtotal * TRANSFER_DISCOUNT);
+            const finalTotal = subtotal - discountAmount;
+            totalLine =
+                `<li><span>Subtotal</span><span>${formatMoney(subtotal)}</span></li>` +
+                `<li class="volt-summary-discount"><span>Descuento transferencia (−10%)</span><span>−${formatMoney(discountAmount)}</span></li>` +
+                `<li class="volt-summary-total-transfer"><span><strong>Total a transferir</strong></span><span><strong>${formatMoney(finalTotal)}</strong></span></li>`;
+        } else {
+            totalLine = `<li><span><strong>Total</strong></span><span><strong>${formatMoney(subtotal)}</strong></span></li>`;
+        }
+
+        itemsEl.innerHTML = productLines + shippingLine + totalLine + extraLines;
+
+        if (bankEl) bankEl.classList.toggle('d-none', mode !== 'transfer');
 
         const methodLabel = SHIPPING_LABELS[option] || option;
         let shipText = `${methodLabel}\n`;
         if (option === "cordoba") {
-            shipText += `Costo fijo de envío: ${formatMoney(SHIPPING_CONFIG.cordoba.cost)} (incluido en el total de Mercado Pago).\n`;
+            shipText += `Costo fijo de envío: ${formatMoney(SHIPPING_CONFIG.cordoba.cost)}${mode === 'mp' ? ' (incluido en el total de Mercado Pago)' : ''}.\n`;
         } else if (option === "andreani") {
-            shipText +=
-                "El costo de envío se coordina por WhatsApp según tu destino (no incluido en este pago).\n";
+            shipText += "El costo de envío se coordina por WhatsApp según tu destino.\n";
             const addr = shippingState.address;
             if (addr) {
                 shipText += `\nDirección:\n${addr.street}\n${addr.city}, ${addr.province}\nCP ${addr.postalCode}\n`;
             }
         }
-        shipText += `\n\nContacto: ${customer.name} · ${customer.email} · ${customer.phone}`;
+        shipText += `\n\nContacto: ${customer.name} · DNI ${customer.dni} · ${customer.email} · ${customer.phone}`;
         shipEl.textContent = shipText;
+    }
+
+    function buildTransferWaUrl(cart, customer, shippingState) {
+        const option = shippingState.shippingOption;
+        const productsTotal = cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0);
+        const shippingCost = option === "cordoba" ? SHIPPING_CONFIG.cordoba.cost : 0;
+        const subtotal = productsTotal + shippingCost;
+        const discountAmount = Math.round(subtotal * TRANSFER_DISCOUNT);
+        const finalTotal = subtotal - discountAmount;
+
+        const itemLines = cart.map((item) => {
+            const bits = [];
+            if (item.variantSize) bits.push(`Talle ${item.variantSize}`);
+            if (item.variantColor) bits.push(item.variantColor);
+            const sub = bits.length ? ` (${bits.join(', ')})` : '';
+            return `• ${item.title || 'Producto'}${sub} ×${item.quantity || 1} — ${formatMoney((item.price || 0) * (item.quantity || 1))}`;
+        }).join('\n');
+
+        let shipInfo;
+        if (option === "cordoba") {
+            shipInfo = `${SHIPPING_CONFIG.cordoba.label} — ${formatMoney(SHIPPING_CONFIG.cordoba.cost)}`;
+        } else {
+            const addr = shippingState.address || {};
+            shipInfo = `Andreani/OCA — ${addr.street || ''}, ${addr.city || ''}, ${addr.province || ''} CP ${addr.postalCode || ''}`;
+        }
+
+        const msg = [
+            '¡Hola VOLT! Quiero confirmar mi pedido por transferencia.',
+            '',
+            '*PRODUCTOS:*',
+            itemLines,
+            '',
+            `*Envío:* ${shipInfo}`,
+            '',
+            `*Subtotal:* ${formatMoney(subtotal)}`,
+            `*Descuento 10% transferencia:* −${formatMoney(discountAmount)}`,
+            `*TOTAL A TRANSFERIR: ${formatMoney(finalTotal)}*`,
+            '',
+            '*MIS DATOS:*',
+            `${customer.name} · DNI ${customer.dni} · ${customer.phone} · ${customer.email}`,
+            '',
+            'Adjunto el comprobante de transferencia.',
+        ].join('\n');
+
+        return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
     }
 
     /**
@@ -368,9 +481,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /**
      * @param {Array} cart — ítems del carrito local
+     * @param {{ mode: 'mp' | 'transfer' }} [options]
      * @returns {Promise<{customer: object, shippingOption: string} | null>}
      */
-    function askCheckoutData(cart) {
+    function askCheckoutData(cart, options = {}) {
+        const mode = options.mode || 'mp';
         createCustomerModal();
         const modalEl = document.getElementById("customerDataModal");
 
@@ -379,6 +494,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const saved = getSavedCustomerData();
         const authUser = window.VoltStoreAuth?.getCurrentUser();
         modalEl.querySelector("#customerName").value = saved.name || authUser?.displayName || "";
+        modalEl.querySelector("#customerDni").value = saved.dni || "";
         modalEl.querySelector("#customerEmail").value = saved.email || authUser?.email || "";
         modalEl.querySelector("#customerPhone").value = saved.phone || "";
 
@@ -421,6 +537,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         currentStep = 1;
         setStepperUI();
+        btnPay.textContent = mode === 'transfer' ? 'ABRIR WHATSAPP' : 'IR A PAGAR CON MERCADO PAGO';
 
         return new Promise((resolve) => {
             const modal = new bootstrap.Modal(modalEl);
@@ -460,13 +577,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (currentStep === 1) {
                     const customer = {
                         name: modalEl.querySelector("#customerName").value.trim(),
+                        dni: modalEl.querySelector("#customerDni").value.trim(),
                         phone: modalEl.querySelector("#customerPhone").value.trim(),
                         email: modalEl.querySelector("#customerEmail").value.trim(),
                     };
-                    if (!customer.name || !customer.email || !customer.phone) {
-                        alert("Completá nombre completo, email y teléfono.");
-                        return;
-                    }
+                    if (!customer.name) { alert("Completá tu nombre y apellido."); return; }
+                    if (!validateDni(customer.dni)) { alert("El DNI debe tener 7 u 8 dígitos numéricos, sin puntos ni espacios."); return; }
+                    if (!customer.phone) { alert("Completá tu teléfono."); return; }
+                    if (!customer.email || !customer.email.includes("@")) { alert("Completá un email válido."); return; }
                     setSavedCustomerData(customer);
                     currentStep = 2;
                     setStepperUI();
@@ -478,10 +596,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     _shippingConfirmado = shipping;
                     const customer = {
                         name: modalEl.querySelector("#customerName").value.trim(),
+                        dni: modalEl.querySelector("#customerDni").value.trim(),
                         phone: modalEl.querySelector("#customerPhone").value.trim(),
                         email: modalEl.querySelector("#customerEmail").value.trim(),
                     };
-                    renderSummary(modalEl, cart, customer, _shippingConfirmado);
+                    renderSummary(modalEl, cart, customer, _shippingConfirmado, mode);
                     currentStep = 3;
                     setStepperUI();
                 }
@@ -509,10 +628,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const customer = {
                     name: modalEl.querySelector("#customerName").value.trim(),
+                    dni: modalEl.querySelector("#customerDni").value.trim(),
                     phone: modalEl.querySelector("#customerPhone").value.trim(),
                     email: modalEl.querySelector("#customerEmail").value.trim(),
                 };
-                if (!customer.name || !customer.email || !customer.phone) {
+                if (!customer.name || !customer.email || !customer.phone || !validateDni(customer.dni)) {
                     alert("Completá tus datos personales.");
                     currentStep = 1;
                     setStepperUI();
@@ -520,6 +640,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 setSavedCustomerData(customer);
+
+                if (mode === 'transfer') {
+                    const waUrl = buildTransferWaUrl(cart, customer, _shippingConfirmado);
+                    window.open(waUrl, '_blank');
+                    _shippingConfirmado = null;
+                    finish({ mode: 'transfer' });
+                    return;
+                }
+
                 const payload = { customer, shippingOption };
                 if (shippingOption === "andreani" && _shippingConfirmado?.address) {
                     payload.shipping = {
@@ -566,7 +695,7 @@ document.addEventListener("DOMContentLoaded", () => {
         checkoutBtn.disabled = true;
 
         try {
-            const result = await askCheckoutData(cart);
+            const result = await askCheckoutData(cart, { mode: 'mp' });
             if (!result) {
                 checkoutFlowActive = false;
                 checkoutBtn.innerHTML = originalText;
@@ -642,4 +771,44 @@ document.addEventListener("DOMContentLoaded", () => {
             checkoutBtn.disabled = false;
         }
     });
+
+    // ── Transferencia bancaria ─────────────────────────────
+    const transferBtn = document.getElementById("transfer-btn");
+    if (transferBtn) {
+        transferBtn.addEventListener("click", async function () {
+            if (checkoutFlowActive) return;
+
+            let cart;
+            try {
+                cart = JSON.parse(localStorage.getItem("cart")) || [];
+            } catch {
+                alert("Tu carrito tiene un error, por favor recargá la página");
+                return;
+            }
+
+            if (cart.length === 0) {
+                alert("El carrito está vacío.");
+                return;
+            }
+
+            if (window.VoltStoreAuth) {
+                const user = await window.VoltStoreAuth.requireAuth();
+                if (!user) return;
+            }
+
+            checkoutFlowActive = true;
+            transferBtn.disabled = true;
+
+            try {
+                const result = await askCheckoutData(cart, { mode: 'transfer' });
+                // WA was opened inside the modal; nothing more to do here.
+            } catch (error) {
+                console.error("❌ Error en flujo transferencia:", error);
+                alert("Ocurrió un error. Por favor intentá de nuevo.");
+            } finally {
+                checkoutFlowActive = false;
+                transferBtn.disabled = false;
+            }
+        });
+    }
 });
