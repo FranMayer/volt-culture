@@ -129,6 +129,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             <img src="${initialImage}" alt="${escapeHtml(product.name)}" class="product-image" loading="lazy" role="button" tabindex="0" aria-label="Ampliar imagen de ${escapeHtml(product.name)}" ${productImgOnerror()}>
             <div class="product-compact">
                 <h3 class="product-title">${product.name}</h3>
+                <p class="product-description">${product.description ? escapeHtml(product.description) : ''}</p>
                 <p class="product-price">$${formattedPrice}</p>
                 <button type="button" class="product-expand-toggle" aria-expanded="false">
                     <span class="product-expand-label">Elegir opciones</span>

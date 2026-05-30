@@ -1702,18 +1702,67 @@ main.box a.secondary:hover {
     transform: none !important;
 }
 
+.product-grid {
+    align-items: stretch !important;
+}
+
+.product-card {
+    align-self: stretch !important;
+    height: 100% !important;
+}
+
+.product-card .product-image,
+.product-card > .product-image {
+    flex: 0 0 auto !important;
+}
+
+.product-compact {
+    display: flex !important;
+    flex: 1 1 auto !important;
+    flex-direction: column !important;
+    min-height: 164px !important;
+    padding: 0.85rem 1rem 0.8rem !important;
+}
+
 .product-title {
     font-family: var(--font-ds-display) !important;
     font-weight: 700 !important;
     text-transform: uppercase !important;
     line-height: 0.95 !important;
     color: var(--volt-ds-white) !important;
+    min-height: 1.9em !important;
+    margin: 0 0 0.28rem !important;
+    padding: 0 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+}
+
+.product-description {
+    min-height: 2.7em !important;
+    margin: 0 0 0.6rem !important;
+    padding: 0 !important;
+    color: var(--volt-ds-label) !important;
+    font-family: var(--font-ds-body) !important;
+    font-size: 0.82rem !important;
+    font-weight: 400 !important;
+    line-height: 1.35 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
 }
 
 .product-price {
     font-family: var(--font-ds-body) !important;
-    font-weight: 400 !important;
-    color: var(--volt-ds-body) !important;
+    font-weight: 700 !important;
+    color: var(--volt-ds-white) !important;
+    letter-spacing: 0.02em !important;
+    margin: 0 0 0.7rem !important;
+    padding: 0 !important;
 }
 
 .product-stock {
@@ -1734,6 +1783,7 @@ main.box a.secondary:hover {
 }
 
 .product-expand-toggle {
+    align-self: flex-start !important;
     font-family: var(--font-ds-mono) !important;
     font-size: 10px !important;
     letter-spacing: 0.12em !important;
@@ -1742,11 +1792,109 @@ main.box a.secondary:hover {
     background: transparent !important;
     color: var(--volt-ds-white) !important;
     border-radius: 0 !important;
+    min-height: 30px !important;
+    margin-top: auto !important;
+    padding: 0.4rem 0.65rem !important;
 }
 
 .product-expand-toggle:hover {
     border-color: var(--volt-ds-red) !important;
     background: rgba(193, 18, 31, 0.12) !important;
+}
+
+.product-lightbox__close {
+    top: -22px !important;
+    right: -22px !important;
+    width: 52px !important;
+    height: 52px !important;
+    border: 1px solid var(--volt-ds-border-control) !important;
+    background: rgba(0, 0, 0, 0.94) !important;
+    color: var(--volt-ds-white) !important;
+    font-size: 2rem !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    box-shadow: 0 0 0 1px rgba(193, 18, 31, 0.22) !important;
+}
+
+.product-lightbox__nav {
+    width: 56px !important;
+    height: 64px !important;
+    border: 1px solid var(--volt-ds-border-control) !important;
+    background: rgba(0, 0, 0, 0.86) !important;
+    color: var(--volt-ds-white) !important;
+    font-size: 2.5rem !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    box-shadow: 0 0 0 1px rgba(193, 18, 31, 0.18) !important;
+}
+
+.product-lightbox__close:hover,
+.product-lightbox__close:focus-visible,
+.product-lightbox__nav:hover,
+.product-lightbox__nav:focus-visible {
+    border-color: var(--volt-ds-red) !important;
+    background: rgba(193, 18, 31, 0.95) !important;
+    outline: none !important;
+}
+
+.product-lightbox__nav.prev {
+    left: 14px !important;
+}
+
+.product-lightbox__nav.next {
+    right: 14px !important;
+}
+
+@media (max-width: 768px) {
+    .product-grid {
+        gap: 1rem !important;
+    }
+
+    .bigbox .product-card {
+        border-left: 1px solid var(--volt-ds-border) !important;
+        border-right: 1px solid var(--volt-ds-border) !important;
+    }
+
+    .product-compact {
+        min-height: 152px !important;
+        padding: 0.8rem 0.9rem 0.85rem !important;
+    }
+
+    .product-title {
+        font-size: 1.42rem !important;
+        margin: 0 0 0.28rem !important;
+    }
+
+    .product-description {
+        font-size: 0.78rem !important;
+        margin-bottom: 0.55rem !important;
+    }
+
+    .product-price {
+        margin-bottom: 0.65rem !important;
+    }
+
+    .product-lightbox__close {
+        top: 10px !important;
+        right: 10px !important;
+        width: 48px !important;
+        height: 48px !important;
+        font-size: 1.85rem !important;
+    }
+
+    .product-lightbox__nav {
+        width: 48px !important;
+        height: 58px !important;
+        font-size: 2.2rem !important;
+    }
+
+    .product-lightbox__nav.prev {
+        left: 8px !important;
+    }
+
+    .product-lightbox__nav.next {
+        right: 8px !important;
+    }
 }
 
 .variant-label {
