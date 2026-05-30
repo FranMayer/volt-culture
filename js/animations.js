@@ -151,17 +151,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1000);
     }
 
-    // Newsletter en footer → abre cliente de correo
-    document.querySelectorAll('.footer-newsletter').forEach((form) => {
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const input = form.querySelector('input[type="email"]');
-            const email = input && input.value.trim() ? input.value.trim() : '(sin email)';
-            const body = encodeURIComponent(`Quiero recibir novedades de VOLT.\nEmail: ${email}`);
-            window.location.href = `mailto:volt.streetcba@gmail.com?subject=${encodeURIComponent('Newsletter VOLT')}&body=${body}`;
-        });
-    });
-
 });
 
 // =====================================================

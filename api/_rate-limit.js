@@ -5,7 +5,6 @@ export const RATE_LIMIT_BODY = { error: 'Demasiadas solicitudes, intentá más t
 
 const LIMIT_CONFIG = {
     'create-preference': { limit: 5, window: '10 m' },
-    newsletter: { limit: 3, window: '1 h' },
     'welcome-email': { limit: 3, window: '1 h' },
     'public-default': { limit: 20, window: '1 m' }
 };
@@ -67,7 +66,7 @@ export function getClientIp(req) {
  *
  * @param {import('@vercel/node').VercelRequest} req
  * @param {import('@vercel/node').VercelResponse} res
- * @param {'create-preference'|'newsletter'|'welcome-email'|'public-default'} routeKey
+ * @param {'create-preference'|'welcome-email'|'public-default'} routeKey
  */
 export async function applyRateLimit(req, res, routeKey = 'public-default') {
     const limiter = getLimiter(routeKey);

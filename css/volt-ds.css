@@ -136,7 +136,6 @@ h6,
 .section-panel__eyebrow,
 .drop-banner__eyebrow,
 .categories-section__label,
-.footer-newsletter-hint,
 .order-card__total-label {
     font-family: var(--font-ds-mono) !important;
     font-size: 10px !important;
@@ -547,40 +546,6 @@ body.page-leaving {
     color: var(--volt-ds-white) !important;
     border-color: var(--volt-ds-red) !important;
     background: rgba(193, 18, 31, 0.12) !important;
-}
-
-.footer-newsletter__input {
-    background: var(--volt-ds-black) !important;
-    color: var(--volt-ds-white) !important;
-    border: 1px solid var(--volt-ds-border) !important;
-    border-radius: 0 !important;
-}
-
-.footer-newsletter__input:focus {
-    outline: none !important;
-    border-color: var(--volt-ds-red) !important;
-    box-shadow: 0 0 0 1px var(--volt-ds-red) !important;
-}
-
-.footer-newsletter__input::placeholder {
-    color: #555 !important;
-}
-
-.footer-newsletter__btn {
-    font-family: var(--font-ds-mono) !important;
-    font-size: 10px !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.12em !important;
-    background: var(--volt-ds-white) !important;
-    color: var(--volt-ds-black) !important;
-    border: 1px solid var(--volt-ds-white) !important;
-    border-radius: 0 !important;
-}
-
-.footer-newsletter__btn:hover {
-    background: var(--volt-ds-red) !important;
-    color: var(--volt-ds-white) !important;
-    border-color: var(--volt-ds-red) !important;
 }
 
 .footer-bottom {

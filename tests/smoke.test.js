@@ -88,17 +88,6 @@ const tests = [
     },
   },
   {
-    name: 'API NEWSLETTER',
-    run: async () => {
-      const res = await fetch(`${BASE}/api/newsletter`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'smoke@test.com' }),
-      });
-      return res.status === 200 || res.status === 400;
-    },
-  },
-  {
     name: 'API CREATE-PREFERENCE',
     run: async () => {
       const res = await fetch(`${BASE}/api/create-preference`, {
