@@ -403,6 +403,101 @@
             margin-bottom: clamp(48px, 10vh, 100px);
         }
 
+        .hero-featured {
+            position: absolute;
+            right: clamp(16px, 4vw, 48px);
+            top: 50%;
+            width: min(700px, 48vw);
+            transform: translateY(-42%);
+            z-index: 2;
+        }
+
+        .hero-featured__head {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 18px;
+        }
+
+        .hero-featured__eyebrow {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--volt-red);
+            margin-bottom: 6px;
+        }
+
+        .hero-featured__title {
+            font-family: var(--font-display);
+            font-size: clamp(34px, 4vw, 56px);
+            font-weight: 700;
+            line-height: 0.95;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        .hero-featured__link {
+            flex-shrink: 0;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.55);
+            border-bottom: 1px solid transparent;
+            padding-bottom: 3px;
+        }
+
+        .hero-featured__link:hover {
+            color: var(--volt-white);
+            border-bottom-color: var(--volt-red);
+        }
+
+        .hero-featured .home-featured__grid--carousel {
+            display: grid;
+            grid-auto-flow: column;
+            grid-auto-columns: minmax(260px, 1fr);
+            grid-template-columns: none;
+            gap: 20px;
+            max-width: none;
+            margin: 0;
+            overflow-x: auto;
+            overscroll-behavior-x: contain;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: thin;
+            padding-bottom: 8px;
+        }
+
+        .hero-featured .home-featured-card {
+            scroll-snap-align: start;
+            min-width: 0;
+        }
+
+        .hero-featured .home-featured-card__link {
+            background: rgba(10, 10, 10, 0.82);
+            border-color: rgba(255, 255, 255, 0.14);
+        }
+
+        .hero-featured .home-featured-card__body {
+            padding: 16px;
+        }
+
+        .hero-featured .home-featured-card__title {
+            font-size: 1.05rem;
+        }
+
+        .hero-featured .home-featured-card__price {
+            font-size: 0.98rem;
+        }
+
+        .hero-featured .home-featured__status {
+            text-align: left;
+            margin: 0;
+        }
+
         .hero__scroll {
             position: absolute;
             bottom: clamp(24px, 4vh, 48px);
@@ -925,6 +1020,28 @@
                 min-height: 360px;
             }
 
+            .hero-featured {
+                position: relative;
+                right: auto;
+                top: auto;
+                width: min(100%, 560px);
+                transform: none;
+                margin: 8px 0 clamp(56px, 10vh, 88px);
+            }
+
+            .hero-featured .home-featured__grid--carousel {
+                grid-auto-columns: minmax(160px, 48%);
+                gap: 14px;
+            }
+
+            .hero-featured .home-featured-card__body {
+                padding: 12px;
+            }
+
+            .hero-featured .home-featured-card__title {
+                font-size: 0.98rem;
+            }
+
             .site-footer {
                 grid-template-columns: 1fr;
                 text-align: center;
@@ -1015,6 +1132,47 @@
         </div>
     </header>
 
+    <button class="btn-cart" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight" aria-label="Abrir carrito">
+        <svg class="btn-cart__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M6 6h15l-1.5 9h-12z"/>
+            <path d="M6 6L5 3H2"/>
+            <circle cx="9" cy="20" r="1"/>
+            <circle cx="18" cy="20" r="1"/>
+        </svg>
+        <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
+    </button>
+
+    <div class="offcanvas offcanvas-end cart-offcanvas" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+        <div class="offcanvas-header cart-offcanvas-header">
+            <h5 class="offcanvas-title cart-offcanvas-title" id="offcanvasRightLabel">Carrito</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+        </div>
+        <div class="offcanvas-body cart-offcanvas-body">
+            <div id="cart-empty" class="cart-empty" hidden>
+                <p class="cart-empty__text">Tu carrito está vacío</p>
+                <a href="/pages/catalogo.html" class="cart-empty__link">Explorá el catálogo →</a>
+            </div>
+            <ul id="cart-items" class="cart-items-list"></ul>
+            <div class="cart-total-row">
+                <span class="cart-total-label">Total:</span>
+                <span id="cart-total" class="cart-total-amount">$0</span>
+            </div>
+            <div class="cart-transfer-row" id="cart-transfer-row">
+                <span class="cart-transfer-label">Con transferencia (−10%):</span>
+                <span id="cart-transfer-total" class="cart-transfer-amount">$0</span>
+            </div>
+            <button id="checkout-btn" type="button" class="btn cart-checkout-btn w-100 mt-3">
+                Pagar con Mercado Pago
+            </button>
+            <button id="transfer-btn" type="button" class="btn cart-transfer-btn w-100" disabled>
+                Transferencia — 10% OFF
+            </button>
+            <button id="clear-cart" type="button" class="btn-clear-cart w-100 mt-2">
+                Vaciar Carrito
+            </button>
+        </div>
+    </div>
+
     <div class="page-shell">
 
     <main>
@@ -1029,6 +1187,17 @@
                 <a class="btn btn--fill hero__shop-btn" href="/pages/catalogo.html">VER TIENDA</a>
                 <a class="btn" href="#about">Nuestro Manifiesto →</a>
             </div>
+            <aside class="hero-featured" aria-labelledby="home-featured-heading">
+                <div class="hero-featured__head">
+                    <div>
+                        <p class="hero-featured__eyebrow">SHOP / 002</p>
+                        <h2 class="hero-featured__title" id="home-featured-heading">Destacados</h2>
+                    </div>
+                    <a class="hero-featured__link" href="/pages/catalogo.html">Tienda →</a>
+                </div>
+                <p class="home-featured__status" id="homeFeaturedStatus" hidden></p>
+                <div class="home-featured__grid home-featured__grid--carousel" id="homeFeaturedGrid" data-limit="3"></div>
+            </aside>
             <div class="hero__scroll" aria-hidden="true">
                 <span class="hero__scroll-line"></span>
                 <span>deslizá</span>
@@ -1104,7 +1273,7 @@
                     <p class="drop__copy">
                         Volúmenes de calle con lectura racing. Telas y siluetas pensadas para transición paddock–asfalto. Diseño 100% propio desde Córdoba. Unidades limitadas, sin reposición en caliente. Registrate para ser el primero en enterarte.
                     </p>
-                    <a class="btn btn--fill" href="/pages/novedades.html">VER NOVEDADES →</a>
+                    <a class="btn btn--fill" href="/pages/catalogo.html">VER COLECCIÓN →</a>
                 </div>
             </div>
         </section>
@@ -1195,6 +1364,10 @@
     <script src="/js/firebase-config.js"></script>
     <script src="/js/firebase-google-auth.js?v=popup2"></script>
     <script src="/js/cart-sync.js"></script>
+    <script src="/js/products-service.js"></script>
+    <script src="/js/home-featured.js"></script>
+    <script src="/js/main.js"></script>
+    <script type="module" src="/js/pagos.js"></script>
     <script src="/js/store-auth.js?v=popup2"></script>
     <script>
     // Hamburger menu

@@ -46,7 +46,8 @@
 
         try {
             const products = await window.ProductsService.getAll();
-            const featured = products.slice(0, 6);
+            const limit = Math.max(1, Number(grid.dataset.limit) || 6);
+            const featured = products.slice(0, limit);
 
             if (!featured.length) {
                 grid.innerHTML = '';

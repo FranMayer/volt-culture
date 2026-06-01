@@ -24,7 +24,13 @@
       "Bash(Select-String -NotMatch \"node_modules\")",
       "Bash(Select-Object -First 200)",
       "Bash(python -c \"import fontTools, brotli; print\\('fonttools+brotli OK'\\)\")",
-      "Bash(git check-ignore *)"
+      "Bash(git check-ignore *)",
+      "Bash(python \".claude/skills/ui-ux-pro-max/scripts/search.py\" \"form input focus error accessibility\" --domain ux -n 8)",
+      "Bash(python \".claude/skills/ui-ux-pro-max/scripts/search.py\" \"form input button accessibility responsive\" --stack html-tailwind)",
+      "Bash(python \".claude/skills/ui-ux-pro-max/scripts/search.py\" \"dark premium minimal\" --domain style -n 5)",
+      "Bash(python \".claude/skills/ui-ux-pro-max/scripts/search.py\" \"animation reduced-motion z-index focus\" --domain ux -n 6)",
+      "PowerShell(python --version; Write-Output \"----\"; python \".claude/skills/ui-ux-pro-max/scripts/search.py\" \"dark premium e-commerce streetwear login auth modal\" --design-system -p \"VOLT Culture Auth\")",
+      "PowerShell(Test-Path \"js/home-nav.js\"; Test-Path \"css/mediaquery.css\"; \\(Get-Content \"js/home-nav.js\" | Measure-Object -Line\\).Lines)"
     ]
   }
 }
