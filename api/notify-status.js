@@ -3,6 +3,7 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { Resend } from 'resend';
 import { formatShippingBlockClientHtml } from './_shipping-email.js';
 import { verifyAdmin } from './_verify-admin.js';
+import { applyStockDecrement } from './_stock.js';
 
 function initAdmin() {
     const projectId   = (process.env.FIREBASE_PROJECT_ID   || '').replace(/^"|"$/g, '').trim();
@@ -24,13 +25,103 @@ const STATUS_SUBJECTS = {
     pending_payment: 'Tu pedido VOLT está pendiente de pago',
 };
 
-const STATUS_MESSAGES = {
-    paid:            (name) => `Hola ${name}, tu pago fue confirmado y tu pedido está siendo preparado.`,
-    shipped:         (name) => `Hola ${name}, tu pedido está en camino. Pronto lo vas a recibir.`,
-    delivered:       (name) => `Hola ${name}, tu pedido fue entregado. ¡Gracias por comprar en VOLT!`,
-    cancelled:       (name) => `Hola ${name}, tu pedido fue cancelado. Si tenés dudas, respondé este mail.`,
-    pending_payment: (name) => `Hola ${name}, tu pedido está pendiente de pago. Una vez confirmado, te avisamos.`,
-};
+function buildStatusMessage(status, name, order) {
+    const safeName = name || 'Cliente VOLT';
+    switch (status) {
+        case 'paid':
+            if (order?.paymentMethod === 'transfer') {
+                return `Hola ${safeName}, recibimos tu transferencia y tu pedido está siendo preparado.`;
+            }
+            return `Hola ${safeName}, tu pago fue confirmado y tu pedido está siendo preparado.`;
+        case 'shipped':
+            return `Hola ${safeName}, tu pedido está en camino. Pronto lo vas a recibir.`;
+        case 'delivered':
+            return `Hola ${safeName}, tu pedido fue entregado. ¡Gracias por comprar en VOLT!`;
+        case 'cancelled':
+            return `Hola ${safeName}, tu pedido fue cancelado. Si tenés dudas, respondé este mail.`;
+        case 'pending_payment':
+            return `Hola ${safeName}, tu pedido está pendiente de pago. Una vez confirmado, te avisamos.`;
+        default:
+            return `Hola ${safeName}, hay novedades en tu pedido.`;
+    }
+}
+
+/**
+ * Transición a `paid` desde el admin. Idempotente: si `inventoryAdjusted` ya
+ * es true (p.ej. orden MP que el webhook ya cerró), solo actualiza status y
+ * timestamps. Caso típico: transferencia confirmada manualmente por el admin.
+ *
+ * @returns {Promise<{decremented: boolean}>}
+ */
+async function applyAdminPaidTransition(db, orderRef) {
+    let decremented = false;
+    await db.runTransaction(async (tx) => {
+        const snap = await tx.get(orderRef);
+        if (!snap.exists) {
+            const err = new Error('Orden no encontrada');
+            err.code = 'ORDER_NOT_FOUND';
+            throw err;
+        }
+        const o = snap.data();
+
+        if (o.inventoryAdjusted === true) {
+            tx.set(
+                orderRef,
+                {
+                    status: 'paid',
+                    paidAt: o.paidAt || FieldValue.serverTimestamp(),
+                    updatedAt: FieldValue.serverTimestamp()
+                },
+                { merge: true }
+            );
+            return;
+        }
+
+        const items = Array.isArray(o.items) ? o.items : [];
+        const productSnaps = [];
+        for (const item of items) {
+            const pid = item.id || item.productId;
+            if (!pid) {
+                console.warn('[notify-status] Ítem sin id de producto, sin decremento:', item.title || '?');
+                productSnaps.push(null);
+                continue;
+            }
+            const pref = db.collection('products').doc(pid);
+            const psnap = await tx.get(pref);
+            productSnaps.push({ pref, psnap });
+        }
+
+        items.forEach((item, idx) => {
+            const entry = productSnaps[idx];
+            if (!entry || !entry.psnap.exists) return;
+            const { variants, sizes, stock } = applyStockDecrement(
+                entry.psnap.data(),
+                item.quantity,
+                item.variantColor,
+                item.variantSize
+            );
+            tx.update(entry.pref, {
+                variants,
+                sizes,
+                stock,
+                updatedAt: FieldValue.serverTimestamp()
+            });
+        });
+
+        tx.set(
+            orderRef,
+            {
+                status: 'paid',
+                inventoryAdjusted: true,
+                paidAt: FieldValue.serverTimestamp(),
+                updatedAt: FieldValue.serverTimestamp()
+            },
+            { merge: true }
+        );
+        decremented = true;
+    });
+    return { decremented };
+}
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
@@ -52,46 +143,63 @@ export default async function handler(req, res) {
         if (!snap.exists) return res.status(404).json({ error: 'Orden no encontrada' });
 
         const orderBefore = snap.data();
-        const updatePayload = {
-            status,
-            updatedAt: FieldValue.serverTimestamp()
-        };
+
+        // Caso especial: pasar a `paid` puede requerir descontar stock (transferencia).
+        // La transacción es idempotente vía `inventoryAdjusted`.
+        let stockDecremented = false;
+        if (status === 'paid') {
+            try {
+                const result = await applyAdminPaidTransition(db, orderRef);
+                stockDecremented = result.decremented;
+            } catch (e) {
+                if (e.code === 'ORDER_NOT_FOUND') {
+                    return res.status(404).json({ error: 'Orden no encontrada' });
+                }
+                throw e;
+            }
+        } else {
+            const updatePayload = {
+                status,
+                updatedAt: FieldValue.serverTimestamp()
+            };
+
+            let trackingNumber = '';
+            if (status === 'shipped') {
+                trackingNumber = String(trackingNumberRaw || '').trim();
+                const existingShipping =
+                    orderBefore.shipping && typeof orderBefore.shipping === 'object'
+                        ? orderBefore.shipping
+                        : {};
+                updatePayload.shipping = {
+                    ...existingShipping,
+                    carrier: 'Andreani'
+                };
+                if (trackingNumber) {
+                    updatePayload.shipping.trackingNumber = trackingNumber;
+                }
+            }
+
+            await orderRef.update(updatePayload);
+        }
+
+        // Releer la orden post-update para tener timestamps y campos finales coherentes.
+        const finalSnap = await orderRef.get();
+        const order = finalSnap.exists ? finalSnap.data() : orderBefore;
 
         let trackingNumber = '';
         if (status === 'shipped') {
             trackingNumber = String(trackingNumberRaw || '').trim();
-            const existingShipping =
-                orderBefore.shipping && typeof orderBefore.shipping === 'object'
-                    ? orderBefore.shipping
-                    : {};
-            updatePayload.shipping = {
-                ...existingShipping,
-                carrier: 'Andreani'
-            };
-            if (trackingNumber) {
-                updatePayload.shipping.trackingNumber = trackingNumber;
+            if (!trackingNumber && order.shipping?.trackingNumber) {
+                trackingNumber = String(order.shipping.trackingNumber).trim();
             }
-        }
-
-        // Actualizar estado en Firestore vía Admin SDK (bypasea reglas de seguridad)
-        await orderRef.update(updatePayload);
-
-        const order = {
-            ...orderBefore,
-            status,
-            shipping: updatePayload.shipping || orderBefore.shipping
-        };
-        if (status === 'shipped' && !trackingNumber && order.shipping?.trackingNumber) {
-            trackingNumber = String(order.shipping.trackingNumber).trim();
         }
         const customer = order.customer || {};
         const customerEmail = customer.email;
         const customerName = customer.name || 'Cliente VOLT';
 
-        // Email es opcional — si no hay RESEND_API_KEY o no hay email del cliente, igual reportamos éxito
         if (!process.env.RESEND_API_KEY || !customerEmail) {
             console.warn('[notify-status] Email omitido:', !process.env.RESEND_API_KEY ? 'sin RESEND_API_KEY' : 'sin email de cliente');
-            return res.status(200).json({ ok: true, emailSent: false });
+            return res.status(200).json({ ok: true, emailSent: false, stockDecremented });
         }
 
         const items = Array.isArray(order.items) ? order.items : [];
@@ -106,7 +214,7 @@ export default async function handler(req, res) {
             : '<li>Sin detalle de productos</li>';
 
         const subject = STATUS_SUBJECTS[status];
-        const mainMsg = STATUS_MESSAGES[status](customerName);
+        const mainMsg = buildStatusMessage(status, customerName, order);
         const shippingHtml = formatShippingBlockClientHtml(order);
 
         let trackingHtml = '';
@@ -144,7 +252,7 @@ export default async function handler(req, res) {
             `
         });
 
-        return res.status(200).json({ ok: true, emailSent: true });
+        return res.status(200).json({ ok: true, emailSent: true, stockDecremented });
     } catch (err) {
         console.error('[notify-status] Error:', err.message);
         return res.status(500).json({ error: err.message });

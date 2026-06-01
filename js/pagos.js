@@ -50,6 +50,8 @@ document.addEventListener("DOMContentLoaded", () => {
         ? "/api/create-preference"
         : "http://localhost:8080/create_preference.php";
 
+    const TRANSFER_API_URL = "/api/create-transfer-order";
+
     const ARGENTINE_PROVINCES = [
         "Buenos Aires",
         "Ciudad Autónoma de Buenos Aires",
@@ -411,13 +413,25 @@ document.addEventListener("DOMContentLoaded", () => {
         shipEl.textContent = shipText;
     }
 
-    function buildTransferWaUrl(cart, customer, shippingState) {
+    /**
+     * @param {Array} cart
+     * @param {object} customer
+     * @param {object} shippingState
+     * @param {{orderId?: string, total?: number, subtotal?: number, discountAmount?: number}} [serverTotals]
+     *   Si vienen totales del backend, se usan en el mensaje (preferido). Si no, se recalculan localmente.
+     */
+    function buildTransferWaUrl(cart, customer, shippingState, serverTotals = {}) {
         const option = shippingState.shippingOption;
         const productsTotal = cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0);
         const shippingCost = option === "cordoba" ? SHIPPING_CONFIG.cordoba.cost : 0;
-        const subtotal = productsTotal + shippingCost;
-        const discountAmount = Math.round(subtotal * TRANSFER_DISCOUNT);
-        const finalTotal = subtotal - discountAmount;
+        const localSubtotal = productsTotal + shippingCost;
+        const localDiscount = Math.round(localSubtotal * TRANSFER_DISCOUNT);
+        const localFinal = localSubtotal - localDiscount;
+
+        const subtotal = Number.isFinite(serverTotals.subtotal) ? serverTotals.subtotal : localSubtotal;
+        const discountAmount = Number.isFinite(serverTotals.discountAmount) ? serverTotals.discountAmount : localDiscount;
+        const finalTotal = Number.isFinite(serverTotals.total) ? serverTotals.total : localFinal;
+        const orderId = serverTotals.orderId ? String(serverTotals.orderId).trim() : '';
 
         const itemLines = cart.map((item) => {
             const bits = [];
@@ -435,8 +449,12 @@ document.addEventListener("DOMContentLoaded", () => {
             shipInfo = `Andreani/OCA — ${addr.street || ''}, ${addr.city || ''}, ${addr.province || ''} CP ${addr.postalCode || ''}`;
         }
 
+        const header = orderId
+            ? `¡Hola VOLT! Confirmo mi pedido por transferencia. *Orden #${orderId}*.`
+            : '¡Hola VOLT! Quiero confirmar mi pedido por transferencia.';
+
         const msg = [
-            '¡Hola VOLT! Quiero confirmar mi pedido por transferencia.',
+            header,
             '',
             '*PRODUCTOS:*',
             itemLines,
@@ -537,7 +555,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         currentStep = 1;
         setStepperUI();
-        btnPay.textContent = mode === 'transfer' ? 'ABRIR WHATSAPP' : 'IR A PAGAR CON MERCADO PAGO';
+        btnPay.textContent = mode === 'transfer' ? 'CONFIRMAR Y ENVIAR COMPROBANTE' : 'IR A PAGAR CON MERCADO PAGO';
 
         return new Promise((resolve) => {
             const modal = new bootstrap.Modal(modalEl);
@@ -640,14 +658,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 setSavedCustomerData(customer);
-
-                if (mode === 'transfer') {
-                    const waUrl = buildTransferWaUrl(cart, customer, _shippingConfirmado);
-                    window.open(waUrl, '_blank');
-                    _shippingConfirmado = null;
-                    finish({ mode: 'transfer' });
-                    return;
-                }
 
                 const payload = { customer, shippingOption };
                 if (shippingOption === "andreani" && _shippingConfirmado?.address) {
@@ -775,6 +785,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // ── Transferencia bancaria ─────────────────────────────
     const transferBtn = document.getElementById("transfer-btn");
     if (transferBtn) {
+        const originalTransferText = transferBtn.innerHTML;
+
         transferBtn.addEventListener("click", async function () {
             if (checkoutFlowActive) return;
 
@@ -801,13 +813,75 @@ document.addEventListener("DOMContentLoaded", () => {
 
             try {
                 const result = await askCheckoutData(cart, { mode: 'transfer' });
-                // WA was opened inside the modal; nothing more to do here.
+                if (!result) return;
+
+                const { customer, shippingOption, shipping } = result;
+
+                const missingId = cart.find((item) => !item.id);
+                if (missingId) {
+                    throw new Error(
+                        "Un producto del carrito no tiene id. Volvé al shop, vaciá el carrito y agregá los productos de nuevo."
+                    );
+                }
+
+                const items = cart.map((item) => ({
+                    id: item.id,
+                    title: item.title,
+                    quantity: item.quantity,
+                    price: item.price,
+                    variantColor: item.variantColor || "",
+                    variantSize: item.variantSize || "",
+                }));
+
+                transferBtn.innerHTML = "Generando orden...";
+
+                const postBody = { items, customer, shippingOption };
+                if (shipping?.address) postBody.shipping = shipping;
+
+                const response = await fetch(TRANSFER_API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(postBody),
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok || data.error) {
+                    throw new Error((data.error || `HTTP ${response.status}`) + (data.details ? " — " + data.details : ""));
+                }
+
+                if (!data.orderId) {
+                    throw new Error("El servidor no devolvió orderId para seguimiento de la orden.");
+                }
+
+                localStorage.setItem("volt_current_order", data.orderId);
+
+                const shippingState = {
+                    shippingOption,
+                    address: shipping?.address,
+                };
+
+                const waUrl = buildTransferWaUrl(cart, customer, shippingState, {
+                    orderId: data.orderId,
+                    subtotal: data.subtotal,
+                    discountAmount: data.discountAmount,
+                    total: data.total,
+                });
+
+                const uid = firebase.auth().currentUser?.uid;
+                if (window.VoltCartSync) {
+                    await window.VoltCartSync.clearFirestore(uid);
+                    window.VoltCartSync.clearLocal();
+                }
+
+                window.open(waUrl, '_blank');
             } catch (error) {
                 console.error("❌ Error en flujo transferencia:", error);
-                alert("Ocurrió un error. Por favor intentá de nuevo.");
+                alert("Error al generar la orden: " + error.message);
             } finally {
                 checkoutFlowActive = false;
                 transferBtn.disabled = false;
+                transferBtn.innerHTML = originalTransferText;
             }
         });
     }

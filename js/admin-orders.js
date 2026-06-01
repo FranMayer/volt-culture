@@ -10,6 +10,7 @@ let selectedOrder = null;
 const STATUS_CLASSES = {
     pending: 'status-pending',
     pending_payment: 'status-pending-payment',
+    pending_transfer: 'status-pending-transfer',
     paid: 'status-paid',
     shipped: 'status-shipped',
     delivered: 'status-delivered',
@@ -21,6 +22,7 @@ const STATUS_CLASSES = {
 const STATUS_LABELS = {
     pending: 'Pendiente',
     pending_payment: 'Pendiente pago',
+    pending_transfer: 'Pendiente transferencia',
     paid: 'Pagado',
     shipped: 'Enviado',
     delivered: 'Entregado',
@@ -157,7 +159,9 @@ function adminShippingPlain(o) {
 
 function updateOrderStats(orders) {
     const paid = orders.filter((o) => o.status === 'paid');
-    const pending = orders.filter((o) => o.status === 'pending' || o.status === 'pending_payment');
+    const pending = orders.filter(
+        (o) => o.status === 'pending' || o.status === 'pending_payment' || o.status === 'pending_transfer'
+    );
     const totalRevenue = paid.reduce((sum, o) => sum + (o.total || 0), 0);
     document.getElementById('totalOrders').textContent = orders.length;
     document.getElementById('approvedOrders').textContent = paid.length;
@@ -300,15 +304,38 @@ async function openOrderDetail(orderId) {
             ${i.title || i.name} ${i.variantColor ? `| ${i.variantColor}` : ''} ${i.variantSize ? `| ${i.variantSize}` : ''} x${i.quantity} - $${Number(i.price || 0).toLocaleString('es-AR')}
         </li>
     `).join('');
+    const isTransfer = o.paymentMethod === 'transfer';
+    const paymentLine = isTransfer
+        ? `<p><strong>Pago:</strong> Transferencia bancaria${o.discountPercent ? ` <span style="color:#f5a623;">(−${o.discountPercent}% aplicado)</span>` : ''}</p>`
+        : (o.paymentMethod === 'mercadopago' || o.paymentId)
+            ? `<p><strong>Pago:</strong> Mercado Pago${o.paymentId ? ` <small style="color:rgba(255,255,255,0.5)">#${escapeHtml(String(o.paymentId))}</small>` : ''}</p>`
+            : '';
+
+    const totalsBlock = isTransfer && Number.isFinite(Number(o.subtotal))
+        ? `
+            <p style="margin-bottom:4px;"><strong>Subtotal:</strong> $${Number(o.subtotal || 0).toLocaleString('es-AR')}</p>
+            <p style="margin-bottom:4px;color:#f5a623;"><strong>Descuento transferencia:</strong> −$${Number(o.discountAmount || 0).toLocaleString('es-AR')}</p>
+            <p><strong>Total a transferir:</strong> $${Number(o.total || 0).toLocaleString('es-AR')}</p>
+        `
+        : `<p><strong>Total:</strong> $${Number(o.total || 0).toLocaleString('es-AR')}</p>`;
+
+    const transferHint = o.status === 'pending_transfer'
+        ? `<div style="margin:8px 0 12px 0;padding:10px 12px;background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.35);font-size:0.85rem;color:#f5a623;">
+                ⚠️ Esperando comprobante de transferencia. Al marcar <strong>Pagado</strong> se descuenta el stock y se notifica al cliente.
+           </div>`
+        : '';
+
     document.getElementById('orderDetailBody').innerHTML = `
         <p><strong>Order:</strong> ${o.orderId || o.id}</p>
         <p><strong>Cliente:</strong> ${o.customer?.name || '-'}<br>
         <strong>Email:</strong> ${o.customer?.email || '-'}<br>
         <strong>Tel:</strong> ${o.customer?.phone || '-'}<br>
         ${adminShippingHtml(o)}</p>
+        ${paymentLine}
         <ul style="padding-left:18px;">${items}</ul>
-        <p><strong>Total:</strong> $${Number(o.total || 0).toLocaleString('es-AR')}</p>
+        ${totalsBlock}
         <p><strong>Estado:</strong> <span class="order-status ${getStatusClass(o.status)}">${getStatusLabel(o.status)}</span></p>
+        ${transferHint}
         <div class="d-flex gap-2 align-items-center">
             <select class="form-select form-select-sm" id="manualOrderStatus" style="width:auto;">
                 <option value="paid">Pagado</option>

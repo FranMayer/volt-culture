@@ -1425,7 +1425,8 @@ body.page-leaving {
 }
 
 .order-badge--pending,
-.order-badge--pending_payment {
+.order-badge--pending_payment,
+.order-badge--pending_transfer {
     border-color: rgba(240, 165, 0, 0.5) !important;
     color: #f0a500 !important;
     background: rgba(240, 165, 0, 0.1) !important;
