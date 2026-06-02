@@ -260,5 +260,20 @@
     <script src="/js/store-auth.js?v=popup2"></script>
     <script src="/js/animations.js"></script>
     <script src="/js/admin-access.js"></script>
+
+    <script type="module">
+        import {
+            initCartBadge,
+            initCartOffcanvas,
+            initCartEmptyShake,
+            initProductGrid,
+            initPageTransitions,
+        } from '/js/volt-motion.js';
+        initCartBadge();
+        initCartOffcanvas();
+        initCartEmptyShake();
+        initProductGrid();
+        initPageTransitions();
+    </script>
 </body>
 </html>

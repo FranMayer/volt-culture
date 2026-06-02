@@ -125,6 +125,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const li = document.createElement("li");
             li.classList.add("cart-item");
+            // Identidad estable de la línea (id + color + talle) para que volt-motion.js
+            // pueda hacer FLIP cuando un item del medio se elimina y los otros bajan.
+            li.dataset.lineKey = `${item.id || ''}-${item.variantColor || ''}-${item.variantSize || ''}`;
             li.style.animation = 'slideIn 0.3s ease forwards';
             li.innerHTML = `
                 <img class="cart-item__thumb" src="${imgSrcSafe}" alt="" width="64" height="64" loading="lazy" ${cartImgOnerrorAttr()}>

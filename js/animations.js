@@ -187,36 +187,7 @@ if ('loading' in HTMLImageElement.prototype) {
 // =====================================================
 // TRANSICIONES ENTRE PÁGINAS
 // =====================================================
-(function () {
-    // Fade-out al salir — solo en links internos del sitio, no en anchors ni externos
-    document.addEventListener('click', function (e) {
-        const link = e.target.closest('a[href]');
-        if (!link) return;
-
-        const href = link.getAttribute('href');
-        if (!href) return;
-
-        // Ignorar: anclas (#), externos, mailto/tel, nueva pestaña
-        if (
-            href.startsWith('#') ||
-            href.startsWith('mailto:') ||
-            href.startsWith('tel:') ||
-            link.target === '_blank' ||
-            link.hasAttribute('data-bs-toggle') ||
-            link.hasAttribute('data-bs-dismiss')
-        ) return;
-
-        // Ignorar links a la misma URL
-        try {
-            const dest = new URL(href, location.href);
-            if (dest.pathname === location.pathname && dest.search === location.search) return;
-        } catch (_) { return; }
-
-        e.preventDefault();
-        document.body.classList.add('page-leaving');
-
-        setTimeout(function () {
-            window.location.href = href;
-        }, 230);
-    });
-})();
+// Movido a `js/volt-motion.js` → `initPageTransitions()`. Cada página la
+// importa explícitamente en su <script type="module">. El CSS de
+// `body.page-leaving` / `.page-shell.page-leaving` queda como fallback
+// cuando Motion no logra cargar desde el CDN.

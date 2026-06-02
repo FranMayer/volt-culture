@@ -1395,22 +1395,30 @@
         });
     })();
 
-    // Transición de salida de página
-    document.addEventListener('click', function (e) {
-        const link = e.target.closest('a[href]');
-        if (!link) return;
-        const href = link.getAttribute('href');
-        if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || link.target === '_blank') return;
-        if (/^https?:\/\/(wa\.me|api\.whatsapp\.com)\//i.test(href)) return;
-        try {
-            const dest = new URL(href, location.href);
-            if (dest.pathname === location.pathname && dest.search === location.search) return;
-        } catch (_) { return; }
-        e.preventDefault();
-        var shell = document.querySelector('.page-shell');
-        if (shell) shell.classList.add('page-leaving');
-        setTimeout(function () { window.location.href = href; }, 230);
-    });
+    // Transición de salida de página: ahora la maneja `initPageTransitions()`
+    // (ver el <script type="module"> de abajo). Mantenemos `body.page-leaving`
+    // y `.page-shell.page-leaving` en CSS como fallback si Motion no carga.
+    </script>
+
+    <script type="module">
+        import {
+            initHeroEntrance,
+            initCartBadge,
+            initCartOffcanvas,
+            initCartEmptyShake,
+            initIdentityCards,
+            initDropParallax,
+            initManifestoReveal,
+            initPageTransitions,
+        } from '/js/volt-motion.js';
+        initHeroEntrance();
+        initCartBadge();
+        initCartOffcanvas();
+        initCartEmptyShake();
+        initIdentityCards();
+        initDropParallax();
+        initManifestoReveal();
+        initPageTransitions();
     </script>
 </body>
 </html>
