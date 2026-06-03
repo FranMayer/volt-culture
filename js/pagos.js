@@ -6,7 +6,7 @@
  * Variables de entorno (Vercel / hosting):
  *   MP_ACCESS_TOKEN, SITE_URL
  *
- * Desarrollo local: create_preference.php o `vercel dev` para /api/create-preference.
+ * Desarrollo local: `vercel dev` o `npm run dev:api` para /api/create-preference.
  */
 
 import { SHIPPING_CONFIG } from './shipping-config.js';
@@ -44,11 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let checkoutFlowActive = false;
 
-    const isProduction = !window.location.hostname.includes("localhost");
-
-    const API_URL = isProduction
-        ? "/api/create-preference"
-        : "http://localhost:8080/create_preference.php";
+    const API_URL = "/api/create-preference";
 
     const TRANSFER_API_URL = "/api/create-transfer-order";
 

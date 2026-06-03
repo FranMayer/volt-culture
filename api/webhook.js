@@ -33,15 +33,30 @@ function initAdmin() {
     return getFirestore();
 }
 
+function isProductionEnv() {
+    return process.env.VERCEL_ENV === 'production';
+}
+
 function verifyMpSignature(xSignature, xRequestId, dataId) {
-    const secret = process.env.MP_WEBHOOK_SECRET;
+    const secret = (process.env.MP_WEBHOOK_SECRET || '').trim();
     if (!secret) {
+        if (isProductionEnv()) {
+            console.error('[Webhook] MP_WEBHOOK_SECRET no configurado en producción — rechazando solicitud');
+            return false;
+        }
         console.warn('[Webhook] MP_WEBHOOK_SECRET no configurado — saltando verificación de firma');
         return true;
     }
 
+    const sig = String(xSignature || '').trim();
+    const reqId = String(xRequestId || '').trim();
+    if (!sig || !reqId) {
+        console.error('[Webhook] Faltan headers x-signature o x-request-id');
+        return false;
+    }
+
     const parts = {};
-    for (const part of xSignature.split(',')) {
+    for (const part of sig.split(',')) {
         const [key, val] = part.split('=');
         if (key && val) parts[key.trim()] = val.trim();
     }
@@ -49,7 +64,7 @@ function verifyMpSignature(xSignature, xRequestId, dataId) {
     const { ts, v1 } = parts;
     if (!ts || !v1) return false;
 
-    const template = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
+    const template = `id:${dataId};request-id:${reqId};ts:${ts};`;
     const computed = createHmac('sha256', secret).update(template).digest('hex');
 
     return computed === v1;
@@ -274,7 +289,7 @@ export default async function handler(req, res) {
 
             if (!verifyMpSignature(xSignature, xRequestId, data.id)) {
                 console.error('[Webhook] Firma inválida — solicitud rechazada');
-                return res.status(200).json({ received: true });
+                return res.status(401).json({ error: 'Firma inválida' });
             }
         }
 

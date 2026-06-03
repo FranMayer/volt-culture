@@ -2,6 +2,9 @@ import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
 export const RATE_LIMIT_BODY = { error: 'Demasiadas solicitudes, intentá más tarde' };
+export const RATE_LIMIT_UNAVAILABLE_BODY = { error: 'Servicio temporalmente no disponible' };
+
+const FAIL_CLOSED_ROUTES = new Set(['create-preference', 'welcome-email']);
 
 const LIMIT_CONFIG = {
     'create-preference': { limit: 5, window: '10 m' },
@@ -68,11 +71,23 @@ export function getClientIp(req) {
  * @param {import('@vercel/node').VercelResponse} res
  * @param {'create-preference'|'welcome-email'|'public-default'} routeKey
  */
+function isProductionEnv() {
+    return process.env.VERCEL_ENV === 'production';
+}
+
 export async function applyRateLimit(req, res, routeKey = 'public-default') {
     const limiter = getLimiter(routeKey);
 
     if (!limiter) {
-        console.warn('[rate-limit] UPSTASH_REDIS_REST_URL o UPSTASH_REDIS_REST_TOKEN no configurados');
+        if (FAIL_CLOSED_ROUTES.has(routeKey) && isProductionEnv()) {
+            console.error(
+                `[rate-limit] UPSTASH no configurado en producción para ruta sensible "${routeKey}" — rechazando solicitud`
+            );
+            res.status(503).json(RATE_LIMIT_UNAVAILABLE_BODY);
+            return false;
+        }
+        const logFn = routeKey === 'public-default' && isProductionEnv() ? console.error : console.warn;
+        logFn('[rate-limit] UPSTASH_REDIS_REST_URL o UPSTASH_REDIS_REST_TOKEN no configurados');
         return true;
     }
 
