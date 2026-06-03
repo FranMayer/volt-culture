@@ -87,6 +87,17 @@ document.addEventListener('DOMContentLoaded', async function() {
     // =====================================================
     // CREAR TARJETA DE PRODUCTO
     // =====================================================
+
+    function isHoodieProduct(product) {
+        const cat = String(product.category || '').toLowerCase();
+        const name = String(product.name || '').toLowerCase();
+        return cat === 'buzos' || name.includes('hoodie') || name.includes('buzo');
+    }
+
+    function renderProductTypeTag(product) {
+        if (!isHoodieProduct(product)) return '';
+        return '<span class="product-type-tag">HOODIE</span>';
+    }
     
     function createProductCard(product, index) {
         const card = document.createElement('div');
@@ -126,14 +137,19 @@ document.addEventListener('DOMContentLoaded', async function() {
         );
 
         card.innerHTML = `
-            <img src="${initialImage}" alt="${escapeHtml(product.name)}" class="product-image" loading="lazy" role="button" tabindex="0" aria-label="Ampliar imagen de ${escapeHtml(product.name)}" ${productImgOnerror()}>
+            <div class="product-image-wrap">
+                <span class="product-badge-limited" aria-hidden="true">EDICIÓN LIMITADA</span>
+                <img src="${initialImage}" alt="${escapeHtml(product.name)}" class="product-image" loading="lazy" role="button" tabindex="0" aria-label="Ampliar imagen de ${escapeHtml(product.name)}" ${productImgOnerror()}>
+            </div>
             <div class="product-compact">
-                <h3 class="product-title">${product.name}</h3>
+                <h3 class="product-title">${escapeHtml(product.name)}</h3>
                 <p class="product-description">${product.description ? escapeHtml(product.description) : ''}</p>
-                <p class="product-price">$${formattedPrice}</p>
-                <button type="button" class="product-expand-toggle" aria-expanded="false">
-                    <span class="product-expand-label">Elegir opciones</span>
-                    <span class="product-expand-icon">+</span>
+                <div class="product-price-row">
+                    <p class="product-price">$${formattedPrice}</p>
+                    ${renderProductTypeTag(product)}
+                </div>
+                <button type="button" class="product-expand-toggle" aria-expanded="false" aria-label="Ver producto ${escapeHtml(product.name)}">
+                    <span class="product-expand-label">Ver producto →</span>
                 </button>
             </div>
             <div class="product-expanded">

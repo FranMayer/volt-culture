@@ -124,6 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
             #customerDataModal .volt-bank-panel__val { color:#f2f2f2; font-family:var(--font-ds-mono,monospace); word-break:break-all; text-align:right; }
             #customerDataModal .volt-bank-panel__alias { color:#6daa6d; font-size:1.1rem; font-family:Teko,sans-serif; letter-spacing:0.06em; }
             #customerDataModal .volt-bank-panel__note { font-size:0.75rem; color:#888; line-height:1.4; margin-top:0.6rem; margin-bottom:0; }
+            #customerDataModal .volt-mp-trust { font-size:0.72rem; color:#888; line-height:1.45; margin:0.75rem 0 0; text-align:center; }
             #customerDataModal .volt-summary-discount { color:#6daa6d; }
             #customerDataModal .volt-summary-total-transfer { color:#6daa6d; font-weight:700; }
             @media (max-width:575px) {
@@ -245,6 +246,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 <div class="volt-bank-panel__row"><span class="volt-bank-panel__key">Documento</span><span class="volt-bank-panel__val">${TRANSFER_BANK.cuit}</span></div>
                                 <p class="volt-bank-panel__note">Realizá la transferencia y envianos el comprobante por WhatsApp. Te confirmamos el pedido por email a la brevedad.</p>
                             </div>
+                            <p class="volt-mp-trust" id="checkoutMpTrust">Pagos seguros. Mercado Pago procesa el cobro y la seguridad de tu transacción.</p>
                         </div>
                     </div>
                     <div class="modal-footer flex-wrap gap-2" style="border-top:1px solid #44464c;">
@@ -393,6 +395,9 @@ document.addEventListener("DOMContentLoaded", () => {
         itemsEl.innerHTML = productLines + shippingLine + totalLine + extraLines;
 
         if (bankEl) bankEl.classList.toggle('d-none', mode !== 'transfer');
+
+        const trustEl = modalEl.querySelector("#checkoutMpTrust");
+        if (trustEl) trustEl.classList.toggle('d-none', mode !== 'mp');
 
         const methodLabel = SHIPPING_LABELS[option] || option;
         let shipText = `${methodLabel}\n`;
