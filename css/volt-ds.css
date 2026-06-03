@@ -1737,8 +1737,8 @@ main.box a.secondary:hover {
     white-space: normal !important;
     word-break: break-word !important;
     display: -webkit-box !important;
-    -webkit-line-clamp: 2 !important;
-    line-clamp: 2 !important;
+    -webkit-line-clamp: 3 !important;
+    line-clamp: 3 !important;
     -webkit-box-orient: vertical !important;
     overflow: hidden !important;
     text-overflow: unset !important;
