@@ -44,7 +44,35 @@
             --volt-red: #C1121F;
             --volt-red-dark: #780000;
         }
-        
+
+        /* Inline icons (Iconify/Lucide set via icons0.dev) — monochrome, inherit color */
+        .ico {
+            width: 1.1em;
+            height: 1.1em;
+            display: inline-block;
+            vertical-align: -0.18em;
+            flex: none;
+            stroke-width: 1.75;
+        }
+        .admin-tab .ico,
+        .card-header .ico,
+        .btn .ico,
+        .refresh-btn .ico { margin-right: 0.45em; }
+        .admin-header h1 .ico { color: var(--volt-red); vertical-align: -0.14em; }
+        .status-dot {
+            display: inline-block;
+            width: 0.55em;
+            height: 0.55em;
+            border-radius: 50%;
+            margin-right: 0.5em;
+            vertical-align: 0.05em;
+            background: #888;
+        }
+        .status-dot--ok { background: #2ecc71; }
+        .status-dot--warn { background: #e0a800; }
+        .status-dot--wait { background: #888; animation: dotPulse 1.2s ease-in-out infinite; }
+        @keyframes dotPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
         body {
             font-family: 'Glacial Indifference', sans-serif;
             background: var(--volt-black);
@@ -735,9 +763,9 @@
     <div class="admin-panel" id="adminPanel">
         <!-- Header -->
         <header class="admin-header">
-            <h1>⚡ <span>VOLT</span> ADMIN</h1>
+            <h1><svg class="ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4.5 13.5H11l-1 8.5L19.5 10H13z"/></svg> <span>VOLT</span> ADMIN</h1>
             <div class="d-flex align-items-center gap-3">
-                <span class="firebase-status" id="firebaseStatus">⏳ Conectando...</span>
+                <span class="firebase-status" id="firebaseStatus"><span class="status-dot status-dot--wait"></span>Conectando...</span>
                 <a href="/index.html" class="btn btn-outline-volt btn-sm">Ver tienda</a>
                 <button class="logout-btn" id="logoutBtn">Cerrar sesión</button>
             </div>
@@ -747,16 +775,16 @@
         <div class="admin-container">
             <!-- Alerta de configuración -->
             <div class="alert alert-warning" id="configAlert" style="display: none;">
-                <strong>⚠️ Firebase no está configurado.</strong> 
+                <strong><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Firebase no está configurado.</strong>
                 Los productos se cargan desde datos de ejemplo. 
                 <a href="#" data-bs-toggle="modal" data-bs-target="#configModal">Ver instrucciones de configuración</a>
             </div>
 
             <!-- Tabs Navigation -->
             <div class="admin-tabs">
-                <button class="admin-tab active" data-tab="productos">📦 Productos</button>
-                <button class="admin-tab" data-tab="pedidos">🛒 Pedidos</button>
-                <button class="admin-tab" data-tab="configuracion">⚙️ Configuración</button>
+                <button class="admin-tab active" data-tab="productos"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M3.3 7 12 12l8.7-5"/><path d="M12 22V12"/></svg>Productos</button>
+                <button class="admin-tab" data-tab="pedidos"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>Pedidos</button>
+                <button class="admin-tab" data-tab="configuracion"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configuración</button>
             </div>
 
             <!-- ============================================
@@ -796,10 +824,10 @@
                     <h2>Productos</h2>
                     <div>
                         <button class="btn btn-outline-volt me-2" id="importBtn">
-                            📥 Importar ejemplos
+                            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>Importar ejemplos
                         </button>
                         <button class="btn btn-volt" data-bs-toggle="modal" data-bs-target="#productModal">
-                            ➕ Nuevo Producto
+                            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Nuevo Producto
                         </button>
                     </div>
                 </div>
@@ -807,7 +835,7 @@
                 <!-- Products Table -->
                 <div class="card">
                     <div class="card-header">
-                        📦 LISTA DE PRODUCTOS
+                        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M3.3 7 12 12l8.7-5"/><path d="M12 22V12"/></svg>LISTA DE PRODUCTOS
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -876,15 +904,15 @@
                     <div class="d-flex gap-2 align-items-center">
                         <select class="form-select form-select-sm" id="orderStatusFilter" style="width: auto;">
                             <option value="all">Todos los estados</option>
-                            <option value="pending">⏳ Pending</option>
-                            <option value="pending_payment">🟨 Pending payment</option>
-                            <option value="pending_transfer">🏦 Pending transferencia</option>
-                            <option value="paid">✅ Paid</option>
-                            <option value="shipped">🚚 Shipped</option>
-                            <option value="delivered">📦 Delivered</option>
-                            <option value="failed">❌ Failed</option>
-                            <option value="mp_error">❌ MP error</option>
-                            <option value="cancelled">🚫 Cancelled</option>
+                            <option value="pending">Pending</option>
+                            <option value="pending_payment">Pending payment</option>
+                            <option value="pending_transfer">Pending transferencia</option>
+                            <option value="paid">Paid</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="failed">Failed</option>
+                            <option value="mp_error">MP error</option>
+                            <option value="cancelled">Cancelled</option>
                         </select>
                         <select class="form-select form-select-sm" id="orderDateFilter" style="width: auto;">
                             <option value="all">Todo el tiempo</option>
@@ -894,7 +922,7 @@
                         </select>
                         <input class="form-control form-control-sm" id="orderSearch" placeholder="Buscar orderId o email" style="width: 220px;">
                         <button class="refresh-btn" id="refreshOrders">
-                            🔄 Actualizar
+                            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>Actualizar
                         </button>
                     </div>
                 </div>
@@ -902,7 +930,7 @@
                 <!-- Orders Table -->
                 <div class="card">
                     <div class="card-header">
-                        🛒 HISTORIAL DE PEDIDOS
+                        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>HISTORIAL DE PEDIDOS
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -940,7 +968,7 @@
                 <h2 class="mb-4">Configuración</h2>
 
                 <div class="card mb-4">
-                    <div class="card-header">🔧 Firebase y tienda</div>
+                    <div class="card-header"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Firebase y tienda</div>
                     <div class="card-body">
                         <p class="text-secondary mb-2">Si necesitás revisar las credenciales o crear la base, abrí la guía de configuración.</p>
                         <button type="button" class="btn btn-outline-volt btn-sm" data-bs-toggle="modal" data-bs-target="#configModal">Ver instrucciones Firebase</button>
@@ -949,7 +977,7 @@
 
                 <!-- Zona de peligro -->
                 <div style="border:1px solid rgba(193,18,31,0.4); padding:1.5rem; background:rgba(193,18,31,0.05);">
-                    <h4 style="color:#c1121f; font-family:'Teko', sans-serif; letter-spacing:0.1em; margin-bottom:0.5rem;">⚠️ ZONA DE PELIGRO</h4>
+                    <h4 style="color:#c1121f; font-family:'Teko', sans-serif; letter-spacing:0.1em; margin-bottom:0.5rem;"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-0.15em;margin-right:0.3em;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>ZONA DE PELIGRO</h4>
                     <p style="color:rgba(255,255,255,0.6); font-size:0.9rem; margin-bottom:1.5rem;">
                         Estas acciones son <strong>irreversibles</strong>. Usá esto para limpiar datos de prueba antes de lanzar la tienda.
                     </p>
@@ -1125,7 +1153,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">🔧 CONFIGURACIÓN FIREBASE</h5>
+                    <h5 class="modal-title"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:0.35em;"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>CONFIGURACIÓN FIREBASE</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">

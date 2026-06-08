@@ -100,10 +100,10 @@ async function initAdminPanel() {
     const configAlert = document.getElementById('configAlert');
 
     if (firebaseOk) {
-        statusEl.textContent = '✅ Conectado';
+        statusEl.innerHTML = '<span class="status-dot status-dot--ok"></span>Conectado';
         statusEl.className = 'firebase-status firebase-connected';
     } else {
-        statusEl.textContent = '⚠️ No configurado';
+        statusEl.innerHTML = '<span class="status-dot status-dot--warn"></span>No configurado';
         statusEl.className = 'firebase-status firebase-disconnected';
         configAlert.style.display = 'block';
     }

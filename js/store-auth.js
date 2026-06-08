@@ -148,7 +148,7 @@
                         const link = document.createElement('a');
                         link.href = '/admin/panel.html';
                         link.className = 'auth-btn auth-btn--admin';
-                        link.textContent = '⚡ Panel';
+                        link.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="vertical-align:-0.12em;margin-right:0.3em;"><path d="M13 2 4.5 13.5H11l-1 8.5L19.5 10H13z"/></svg>Panel';
                         nav.prepend(link);
                     }
                 }).catch((e) => console.warn(LOG, 'admin claim check:', e.message));

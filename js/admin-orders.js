@@ -192,7 +192,7 @@ function renderOrderCard(order) {
 function renderOrders(orders) {
     const tbody = document.getElementById('ordersTable');
     if (orders.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="orders-empty"><div class="orders-empty-icon">🔍</div><p>No hay pedidos para ese filtro</p></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="orders-empty"><div class="orders-empty-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></div><p>No hay pedidos para ese filtro</p></td></tr>`;
         return;
     }
     tbody.innerHTML = orders.map((order) => renderOrderCard(order)).join('');
@@ -206,7 +206,7 @@ async function loadOrders() {
 
     try {
         if (!window.FirebaseConfig.isInitialized()) {
-            tbody.innerHTML = `<tr><td colspan="7" class="orders-empty"><div class="orders-empty-icon">⚠️</div><p>Firebase no está configurado</p></td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="orders-empty"><div class="orders-empty-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></div><p>Firebase no está configurado</p></td></tr>`;
             return;
         }
 
@@ -244,7 +244,7 @@ async function loadOrders() {
         updateOrderStats(allOrders);
     } catch (error) {
         console.error('Error al cargar pedidos:', error);
-        tbody.innerHTML = `<tr><td colspan="7" class="orders-empty"><div class="orders-empty-icon">❌</div><p>Error al cargar pedidos</p><small style="color: rgba(255,255,255,0.3)">${(error.code === 'permission-denied' || /permission/i.test(error.message)) ? 'Sin permiso admin en Firestore. Cerrá sesión, ejecutá set-admin.mjs y volvé a ingresar.' : error.message}</small></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="orders-empty"><div class="orders-empty-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg></div><p>Error al cargar pedidos</p><small style="color: rgba(255,255,255,0.3)">${(error.code === 'permission-denied' || /permission/i.test(error.message)) ? 'Sin permiso admin en Firestore. Cerrá sesión, ejecutá set-admin.mjs y volvé a ingresar.' : error.message}</small></td></tr>`;
     }
 }
 
@@ -321,7 +321,7 @@ async function openOrderDetail(orderId) {
 
     const transferHint = o.status === 'pending_transfer'
         ? `<div style="margin:8px 0 12px 0;padding:10px 12px;background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.35);font-size:0.85rem;color:#f5a623;">
-                ⚠️ Esperando comprobante de transferencia. Al marcar <strong>Pagado</strong> se descuenta el stock y se notifica al cliente.
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-0.15em;margin-right:0.3em;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>Esperando comprobante de transferencia. Al marcar <strong>Pagado</strong> se descuenta el stock y se notifica al cliente.
            </div>`
         : '';
 
