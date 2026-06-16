@@ -1135,7 +1135,8 @@
         </div>
     </header>
 
-    <button class="btn-cart" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight" aria-label="Abrir carrito">
+    <!-- Botón flotante: fuera del catálogo sólo se muestra como recordatorio cuando hay productos en el carrito (lo controla main.js). -->
+    <button class="btn-cart" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight" aria-label="Abrir carrito" style="display: none;">
         <svg class="btn-cart__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
             <path d="M6 6h15l-1.5 9h-12z"/>
             <path d="M6 6L5 3H2"/>

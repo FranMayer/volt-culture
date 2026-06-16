@@ -14,6 +14,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const cartEmptyEl = document.getElementById("cart-empty");
     const addToCartButtons = document.querySelectorAll(".add-to-cart");
     const cartBadge = document.getElementById("cartBadge");
+    const cartFloatBtn = document.querySelector(".btn-cart");
+    // El catálogo es la "tienda": ahí el botón flotante está siempre visible.
+    // En el resto de las páginas (index, etc.) sólo aparece como recordatorio
+    // cuando hay productos en el carrito.
+    const isCatalogPage = /catalogo/i.test(window.location.pathname);
 
     function cartImgFallback() {
         return window.ProductsService?.getProductImageFallback?.()
@@ -185,8 +190,14 @@ document.addEventListener("DOMContentLoaded", function () {
     // BADGE DEL CARRITO
     // =====================================================
     function updateBadge(count) {
+        // Fuera del catálogo, el botón flotante sólo aparece cuando hay
+        // productos en el carrito (recordatorio para finalizar la compra).
+        if (cartFloatBtn && !isCatalogPage) {
+            cartFloatBtn.style.display = count > 0 ? 'flex' : 'none';
+        }
+
         if (!cartBadge) return;
-        
+
         if (count > 0) {
             cartBadge.textContent = count > 99 ? '99+' : count;
             cartBadge.style.display = 'flex';

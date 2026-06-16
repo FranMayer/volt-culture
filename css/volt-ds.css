@@ -1655,10 +1655,22 @@ main.box a.secondary:hover {
     background: #000000 !important;
 }
 
+/* "Próximamente": label mono apagado en vez del recuadro rojo apretado. */
+.category-soon-badge {
+    border: none !important;
+    background: transparent !important;
+    color: var(--volt-ds-label) !important;
+    font-family: var(--font-ds-mono) !important;
+    font-size: 9px !important;
+    letter-spacing: 0.14em !important;
+    padding: 0 !important;
+    margin-left: 8px !important;
+}
+
 .product-card {
-    background: #000000 !important;
+    background: #0a0a0a !important;
     background-image: none !important;
-    border: 1px solid rgba(255, 255, 255, 0.07) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
     box-shadow: none !important;
     border-radius: 0 !important;
 }
@@ -1672,11 +1684,35 @@ main.box a.secondary:hover {
     transform: none !important;
     box-shadow: none !important;
     border-color: var(--volt-ds-red) !important;
-    background: #000000 !important;
+    background: #0d0d0d !important;
 }
 
+/* Energía sutil motorsport: zoom leve de la imagen al pasar el cursor. */
 .product-card:hover .product-image {
-    transform: none !important;
+    transform: scale(1.03) !important;
+}
+
+/* Tick rojo que entra desde la izquierda al hacer hover sobre la imagen. */
+.product-image-wrap::after {
+    content: '' !important;
+    position: absolute !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 2px !important;
+    background: var(--volt-ds-red) !important;
+    transform: scaleX(0) !important;
+    transform-origin: left center !important;
+    transition: transform 0.25s ease !important;
+    z-index: 2 !important;
+}
+
+.product-card:hover .product-image-wrap::after {
+    transform: scaleX(1) !important;
+}
+
+.product-image-wrap {
+    overflow: hidden !important;
 }
 
 .product-grid {
@@ -1684,8 +1720,13 @@ main.box a.secondary:hover {
 }
 
 .product-card {
+    /* En CSS Grid, align-self: stretch iguala la altura de las cards por fila
+       solo si height es auto. Forzar height: 100% desactiva ese estiramiento y
+       en Safari iOS viejo (iPhone 13 / iPad mini) resuelve el 100% contra una
+       fila de altura indefinida → colapsa la card y, con overflow: hidden,
+       recorta imagen y texto. Dejar height: auto lo arregla cross-browser. */
     align-self: stretch !important;
-    height: 100% !important;
+    height: auto !important;
 }
 
 .product-card .product-image,
@@ -1792,6 +1833,35 @@ main.box a.secondary:hover {
     line-height: 1.2 !important;
 }
 
+/* Variante delineada para categorías no-hoodie: mantiene el ritmo sin competir. */
+.product-type-tag--alt {
+    background: transparent !important;
+    color: var(--volt-ds-label) !important;
+    border: 1px solid var(--volt-ds-border) !important;
+    padding: 2px 7px !important;
+}
+
+/* Número de serie tipo dorsal de carrera en la esquina de la imagen. */
+.product-index {
+    position: absolute !important;
+    top: 8px !important;
+    right: 10px !important;
+    z-index: 2 !important;
+    font-family: var(--font-ds-display) !important;
+    font-weight: 700 !important;
+    font-size: 28px !important;
+    line-height: 1 !important;
+    color: #ffffff !important;
+    opacity: 0.55 !important;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6) !important;
+    pointer-events: none !important;
+    transition: opacity 0.2s ease !important;
+}
+
+.product-card:hover .product-index {
+    opacity: 0.85 !important;
+}
+
 .product-stock {
     font-family: var(--font-ds-mono) !important;
     font-size: 10px !important;
@@ -1810,7 +1880,9 @@ main.box a.secondary:hover {
 }
 
 .product-expand-toggle {
-    align-self: flex-start !important;
+    align-self: stretch !important;
+    width: 100% !important;
+    text-align: center !important;
     font-family: var(--font-ds-mono) !important;
     font-size: 10px !important;
     letter-spacing: 0.12em !important;
@@ -1819,9 +1891,9 @@ main.box a.secondary:hover {
     background: transparent !important;
     color: var(--volt-ds-white) !important;
     border-radius: 0 !important;
-    min-height: 30px !important;
+    min-height: 34px !important;
     margin-top: auto !important;
-    padding: 0.4rem 0.65rem !important;
+    padding: 0.5rem 0.65rem !important;
 }
 
 .product-expand-toggle:hover {

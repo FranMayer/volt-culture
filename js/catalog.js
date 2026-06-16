@@ -94,9 +94,30 @@ document.addEventListener('DOMContentLoaded', async function() {
         return cat === 'buzos' || name.includes('hoodie') || name.includes('buzo');
     }
 
+    // El sello "Edición limitada" solo se muestra en los drops marcados
+    // explícitamente (product.limited === true). Si todo lo lleva, pierde fuerza.
+    function renderLimitedBadge(product) {
+        if (product.limited !== true) return '';
+        return '<span class="product-badge-limited" aria-hidden="true">Edición limitada</span>';
+    }
+
+    // Etiqueta de tipo para todas las categorías (no solo hoodies), para que la
+    // fila de precio tenga el mismo ritmo en toda la grilla.
+    function getProductTypeLabel(product) {
+        if (isHoodieProduct(product)) return 'HOODIE';
+        const cat = String(product.category || '').toLowerCase();
+        if (cat.includes('remera')) return 'REMERA';
+        if (cat.includes('gorra')) return 'GORRA';
+        if (cat.includes('auto') || cat.includes('escala')) return 'ESCALA';
+        return cat ? cat.replace(/s$/, '').toUpperCase() : '';
+    }
+
     function renderProductTypeTag(product) {
-        if (!isHoodieProduct(product)) return '';
-        return '<span class="product-type-tag">HOODIE</span>';
+        const label = getProductTypeLabel(product);
+        if (!label) return '';
+        // Hoodie mantiene el chip relleno; el resto usa la variante delineada.
+        const variantClass = isHoodieProduct(product) ? '' : ' product-type-tag--alt';
+        return `<span class="product-type-tag${variantClass}">${label}</span>`;
     }
     
     function createProductCard(product, index) {
@@ -138,7 +159,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         card.innerHTML = `
             <div class="product-image-wrap">
-                <span class="product-badge-limited" aria-hidden="true">EDICIÓN LIMITADA</span>
+                ${renderLimitedBadge(product)}
+                <span class="product-index" aria-hidden="true">${String(index + 1).padStart(2, '0')}</span>
                 <img src="${initialImage}" alt="${escapeHtml(product.name)}" class="product-image" loading="lazy" role="button" tabindex="0" aria-label="Ampliar imagen de ${escapeHtml(product.name)}" ${productImgOnerror()}>
             </div>
             <div class="product-compact">

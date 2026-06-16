@@ -233,9 +233,31 @@
             margin: 0;
             letter-spacing: 0.1em;
         }
-        
+
         .admin-header h1 span {
             color: var(--volt-red);
+        }
+
+        .admin-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .admin-logo {
+            height: 34px;
+            width: auto;
+            display: block;
+        }
+
+        .admin-brand__tag {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.22em;
+            color: var(--volt-red);
+            padding-left: 0.75rem;
+            border-left: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         .admin-container {
@@ -763,7 +785,10 @@
     <div class="admin-panel" id="adminPanel">
         <!-- Header -->
         <header class="admin-header">
-            <h1><svg class="ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4.5 13.5H11l-1 8.5L19.5 10H13z"/></svg> <span>VOLT</span> ADMIN</h1>
+            <h1 class="admin-brand">
+                <img class="admin-logo" src="/images-brand/Logo color y blanco.svg" width="800" height="240" alt="VOLT — Motorsport Culture">
+                <span class="admin-brand__tag">ADMIN</span>
+            </h1>
             <div class="d-flex align-items-center gap-3">
                 <span class="firebase-status" id="firebaseStatus"><span class="status-dot status-dot--wait"></span>Conectando...</span>
                 <a href="/index.html" class="btn btn-outline-volt btn-sm">Ver tienda</a>
@@ -1101,7 +1126,15 @@
                                 </select>
                             </div>
                         </div>
-                        
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="productLimited">
+                                <label class="form-check-label" for="productLimited">Edición limitada</label>
+                                <small class="d-block text-secondary">Muestra el sello “Edición limitada” en la card del catálogo. Usalo solo en drops reales.</small>
+                            </div>
+                        </div>
+
                         <div class="admin-subsection">
                             <h6 class="admin-subsection__title">Variantes de color *</h6>
                             <div id="variantsList"></div>

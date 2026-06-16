@@ -457,6 +457,7 @@ async function saveProduct() {
         variants,
         sizes,
         active: document.getElementById('productActive').value === 'true',
+        limited: document.getElementById('productLimited').checked,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
@@ -513,6 +514,7 @@ async function editProduct(id) {
             document.getElementById('productPrice').value = product.price;
             document.getElementById('productStock').value = product.stock || 0;
             document.getElementById('productActive').value = product.active !== false ? 'true' : 'false';
+            document.getElementById('productLimited').checked = product.limited === true;
             adminFormState.editOriginal = {
                 name: product.name || '',
                 category: product.category || '',
@@ -524,7 +526,8 @@ async function editProduct(id) {
                 images: (product.images || []).map((i) => (typeof i === 'string' ? i : '')),
                 variants: normalizeVariants(product.variants, product.stock),
                 sizes: normalizeSizes(product.sizes, product.stock),
-                active: product.active !== false
+                active: product.active !== false,
+                limited: product.limited === true
             };
             adminFormState.variants = normalizeVariants(product.variants, product.stock).map((v) => ({ id: crypto.randomUUID(), ...v }));
             adminFormState.sizes = normalizeSizes(product.sizes, product.stock).map((s) => ({ id: crypto.randomUUID(), ...s }));
