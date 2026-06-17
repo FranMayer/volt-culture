@@ -21,25 +21,6 @@
         font-size: 15px;
     }
 
-    /* Hero editorial */
-    .hero-split__col--left {
-        padding: 48px 32px;
-    }
-
-    .hero-headline {
-        font-size: clamp(3rem, 10vw, 80px);
-    }
-
-    /* Categories */
-    .categories-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .category-strip {
-        padding: 12px 24px;
-        justify-content: center;
-    }
-
     /* Catálogo */
     .bigbox {
         gap: 1.5rem;
@@ -58,15 +39,6 @@
         height: 240px;
     }
 
-    /* About */
-    .container__about2 {
-        gap: 2rem;
-    }
-
-    .mecanic,
-    .mecanic1 {
-        max-width: 300px;
-    }
 }
 
 /* =====================================================
@@ -199,95 +171,15 @@
     }
 
     /* Hero editorial — stack */
-    .hero-split {
-        grid-template-columns: 1fr;
-        min-height: auto;
-    }
-
-    .hero-split__col--left {
-        padding: 36px 22px;
-        min-height: auto;
-    }
-
-    .hero-split__col--right {
-        min-height: 42vh;
-    }
-
-    .hero-split.hero-split--compact .hero-split__col--right {
-        min-height: 38vh;
-    }
-
-    .benefit-item__sep {
-        display: none !important;
-    }
-
-    .benefits-strip__inner {
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .hero-headline {
-        font-size: clamp(2.75rem, 12vw, 4.5rem);
-    }
 
     .btn {
         padding: 0.875rem 2rem;
         font-size: 0.875rem;
     }
 
-    /* Categories */
-    .categories-section {
-        padding: var(--space-2xl) var(--space-md);
-    }
-
-    .categories-grid {
-        grid-template-columns: 1fr;
-        gap: 1px;
-    }
-
-    .category-card {
-        padding: 24px 20px;
-    }
-
-    .category-card__num {
-        font-size: 28px;
-    }
-
-    .category-card__title {
-        font-size: 16px;
-    }
-
-    .category-strip {
-        flex-direction: column;
-        text-align: center;
-        padding: 14px 20px;
-        gap: 10px;
-    }
-
-    .category-strip span {
-        white-space: normal;
-    }
-
-    /* Nueva era */
-    .nueva-era {
-        padding: 56px 24px;
-    }
-
-    .nueva-era__inner {
-        padding-left: 20px;
-    }
-
-    .nueva-era__title {
-        font-size: clamp(1.75rem, 6vw, 2.25rem);
-    }
-
     /* Novedades */
     .novedades {
         padding: var(--space-2xl) var(--space-md);
-    }
-
-    .novedades-content {
-        padding: 1.75rem 1.25rem 1.75rem 1rem;
     }
 
     .novedades h2 {
@@ -299,10 +191,6 @@
     }
 
     /* Logos pago */
-    .logos-pago {
-        gap: 1.5rem;
-        padding: var(--space-2xl) var(--space-md);
-    }
 
     .logos-pago .logo {
         max-width: 70px;
@@ -412,28 +300,6 @@
         border-radius: 50%;
     }
 
-    /* About */
-    .container__about {
-        padding: var(--space-2xl) var(--space-md);
-        gap: 1.5rem;
-    }
-
-    .about__content {
-        padding: 1.5rem;
-    }
-
-    .container__about2 {
-        flex-direction: column !important;
-        gap: 2rem;
-        padding: 0 var(--space-md);
-        margin: var(--space-2xl) auto;
-    }
-
-    .mecanic,
-    .mecanic1 {
-        max-width: 100%;
-    }
-
     /* Envios */
     .envios__main {
         padding: var(--space-2xl) var(--space-md);
@@ -452,17 +318,6 @@
     .howbuy__main {
         margin: var(--space-2xl) var(--space-md);
         padding: var(--space-lg);
-    }
-
-    /* Novedades page */
-    .novedades__main {
-        margin: var(--space-md);
-        padding: var(--space-2xl) var(--space-md);
-        min-height: 50vh;
-    }
-
-    .novedades__title {
-        font-size: 1.5rem;
     }
 
     /* WhatsApp */
@@ -488,33 +343,9 @@
         width: 80%;
     }
 
-    .hero-split__col--left {
-        padding: 32px 20px;
-        min-height: 65vh;
-    }
-
-    .hero-desc {
-        font-size: 14px;
-    }
-
     .btn {
         padding: 0.75rem 1.5rem;
         font-size: 0.8rem;
-    }
-
-    /* Categories */
-    .categories-grid {
-        grid-template-columns: 1fr;
-        gap: 1px;
-    }
-
-    .category-card {
-        padding: 22px 18px;
-    }
-
-    .category-card.coming-soon::after {
-        font-size: 0.6rem;
-        padding: 0.2rem 1.5rem;
     }
 
     /* Catálogo — una columna en pantallas muy angostas */
@@ -560,19 +391,6 @@
     .category-list li {
         padding: 0.4rem 0.8rem;
         font-size: 0.85rem;
-    }
-
-    /* About */
-    .about__content h2 {
-        font-size: 1.1rem;
-    }
-
-    .about__content p {
-        font-size: 0.9rem;
-    }
-
-    .intern-div p {
-        font-size: 0.95rem;
     }
 
     /* Cards */
@@ -650,24 +468,6 @@
 /* =====================================================
    LANDSCAPE ORIENTATION ON MOBILE
    ===================================================== */
-@media screen and (max-height: 500px) and (orientation: landscape) {
-    .hero-split {
-        min-height: 100vh;
-    }
-
-    .hero-split__col--left {
-        padding: 24px 32px;
-        min-height: 0;
-    }
-
-    .hero-split__col--right {
-        min-height: 100vh;
-    }
-
-    .novedades__main {
-        min-height: 80vh;
-    }
-}
 
 /* =====================================================
    PRINT STYLES
@@ -679,28 +479,6 @@
     .menu-toggle,
     .footer {
         display: none;
-    }
-
-    .hero-split {
-        min-height: auto;
-        background: white;
-    }
-
-    .hero-split__col--left,
-    .hero-split__col--right {
-        background: white;
-        color: black;
-    }
-
-    .hero-headline,
-    .hero-desc {
-        color: #111;
-    }
-
-    .hero-split__logo {
-        filter: brightness(0);
-        max-height: 56px;
-        width: auto;
     }
 
     body {
@@ -750,15 +528,12 @@
     }
 
     .btn,
-    .add-to-cart,
-    .novedades__btn {
+    .add-to-cart {
         border: 2px solid currentColor;
     }
 
     .product-card,
-    .card,
-    .about__content,
-    .category-card {
+    .card {
         border: 2px solid var(--volt-white);
     }
 }

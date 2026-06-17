@@ -89,14 +89,6 @@ h6,
 .about-hero__title,
 .about-split__heading,
 .about-pillar__title,
-.section-title,
-.section-panel__link,
-.drop-banner__title,
-.nueva-era__title,
-.category-card__title,
-.benefit-item__title,
-.hero-headline,
-.hero-headline__accent,
 .orders-heading,
 .cart-offcanvas-title,
 .modal-title {
@@ -112,11 +104,6 @@ h6,
 .about-hero__lead,
 .footer-brand-desc,
 .footer-section p,
-.category-card__desc,
-.benefit-item__text,
-.hero-desc,
-.nueva-era__inner p,
-.drop-banner__desc,
 .order-item,
 .orders-subheading,
 .about-split__text p,
@@ -133,9 +120,6 @@ h6,
 }
 
 .section-eyebrow,
-.section-panel__eyebrow,
-.drop-banner__eyebrow,
-.categories-section__label,
 .order-card__total-label {
     font-family: var(--font-ds-mono) !important;
     font-size: 10px !important;
@@ -151,11 +135,7 @@ main > header,
 .section-panel,
 .about-pillars,
 .about-split,
-.categories-section,
 .home-featured,
-.drop-banner,
-.nueva-era,
-.benefits-strip,
 .envios__main,
 .howbuy__main {
     padding: 100px 0 !important;
@@ -181,11 +161,7 @@ main > header,
     .section-panel,
     .about-pillars,
     .about-split,
-    .categories-section,
     .home-featured,
-    .drop-banner,
-    .nueva-era,
-    .benefits-strip,
     .envios__main,
     .howbuy__main {
         padding: 64px 0 !important;
@@ -417,16 +393,6 @@ body.page-leaving {
     visibility: visible;
 }
 
-.nav-auth {
-    min-width: 0;
-    display: flex !important;
-    align-items: center;
-    gap: 16px;
-    justify-content: flex-end;
-    flex-shrink: 1;
-    visibility: visible;
-}
-
 .auth-greeting {
     font-family: var(--font-ds-mono) !important;
     font-size: 10px !important;
@@ -562,8 +528,6 @@ body.page-leaving {
 }
 
 /* ─── Cards, panels, category grid ─── */
-.category-card,
-.benefit-item,
 .about-pillar,
 .product-card,
 .section-panel,
@@ -573,7 +537,6 @@ body.page-leaving {
     box-shadow: none !important;
 }
 
-.category-card:hover,
 .about-pillar:hover,
 .product-card:hover,
 .order-card:hover {
@@ -581,52 +544,11 @@ body.page-leaving {
     background: #000000 !important;
 }
 
-.category-card__num,
-.about-pillar__icon,
-.benefit-item__icon {
+.about-pillar__icon {
     color: var(--volt-ds-red) !important;
 }
 
-.coming-soon {
-    opacity: 1 !important;
-}
-
 /* ─── Buttons & links (site) ─── */
-.hero-cta,
-.drop-banner__cta,
-.section-panel__link,
-.novedades-card__link,
-.envios-cta {
-    font-family: var(--font-ds-mono) !important;
-    font-size: 11px !important;
-    letter-spacing: 0.14em !important;
-    text-transform: uppercase !important;
-    border: 1px solid var(--volt-ds-border-control) !important;
-    background: transparent !important;
-    color: var(--volt-ds-white) !important;
-    border-radius: 0 !important;
-}
-
-.hero-cta:hover,
-.drop-banner__cta:hover,
-.section-panel__link:hover,
-.hero-cta--ghost:hover {
-    border-color: var(--volt-ds-red) !important;
-    background: rgba(193, 18, 31, 0.12) !important;
-    color: var(--volt-ds-white) !important;
-}
-
-.hero-cta:not(.hero-cta--ghost) {
-    background: var(--volt-ds-white) !important;
-    color: var(--volt-ds-black) !important;
-    border-color: var(--volt-ds-white) !important;
-}
-
-.hero-cta:not(.hero-cta--ghost):hover {
-    background: var(--volt-ds-red) !important;
-    color: var(--volt-ds-white) !important;
-    border-color: var(--volt-ds-red) !important;
-}
 
 .whatsapp-float {
     border: 1px solid #25D366 !important;
@@ -1064,16 +986,6 @@ body.page-leaving {
     border-color: var(--volt-ds-red) !important;
 }
 
-.auth-modal-note {
-    font-family: var(--font-ds-mono) !important;
-    font-size: 12px !important;
-    letter-spacing: 0.04em !important;
-    line-height: 1.6 !important;
-    text-align: center !important;
-    color: rgba(255, 255, 255, 0.4) !important;
-    margin: 1.5rem 0 0 !important;
-}
-
 .auth-forgot-link {
     font-family: var(--font-ds-mono) !important;
     font-size: 12px !important;
@@ -1101,7 +1013,6 @@ body.page-leaving {
 }
 
 /* ─── Bootstrap overrides (catálogo / mis-pedidos) ─── */
-.btn-primary,
 .btn-danger {
     font-family: var(--font-ds-mono) !important;
     font-size: 11px !important;
@@ -1113,7 +1024,6 @@ body.page-leaving {
     border: 1px solid var(--volt-ds-white) !important;
 }
 
-.btn-primary:hover,
 .btn-danger:hover {
     background: var(--volt-ds-red) !important;
     color: var(--volt-ds-white) !important;
@@ -1487,7 +1397,6 @@ body.page-leaving {
 
 .orders-heading span,
 .orders-empty__title span,
-.hero-headline__accent,
 .accent {
     color: var(--volt-ds-red) !important;
 }
@@ -2036,7 +1945,6 @@ main.box a.secondary:hover {
 }
 
 .bigbox,
-.catalog-wrap,
 .product-grid {
     background: transparent !important;
 }
@@ -2052,12 +1960,10 @@ main > .shop-page-header {
 }
 
 /* ─── Index landing (if volt-ds linked): identity grid + ticker ─── */
-.specs-grid,
 .identity__grid {
     background: #000000 !important;
 }
 
-.spec-card,
 .identity__card {
     background: #000000 !important;
 }
@@ -2108,15 +2014,7 @@ main > .shop-page-header {
 }
 
 /* ─── Opaque text surfaces (grid bleed-through) ─── */
-.spec-card,
-.drop-visual,
-.drop-content,
-.data-table td,
-.data-table th,
 .manifesto,
-.hero-badge,
-.ticker-item,
-.status-pill,
 .hero__badge,
 .ticker__item,
 .drop__visual,
@@ -2183,7 +2081,6 @@ main > .shop-page-header {
 
 /* Bigbox y grilla: fondo transparente para que se vea el grid overlay del body */
 .bigbox,
-.catalog-wrap,
 .product-grid {
     background: transparent !important;
 }
