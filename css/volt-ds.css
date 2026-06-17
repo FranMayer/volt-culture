@@ -1936,7 +1936,6 @@ main.box a.secondary:hover {
     font-size: 11px !important;
     letter-spacing: 0.14em !important;
     text-transform: uppercase !important;
-    color: var(--volt-ds-label) !important;
     border: 1px solid var(--volt-ds-red) !important;
     display: inline-block !important;
     padding: 8px 14px !important;
