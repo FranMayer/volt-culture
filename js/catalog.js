@@ -481,22 +481,33 @@ document.addEventListener('DOMContentLoaded', async function() {
     const filterState = { line: 'TC', category: 'all' };
 
     function loadCategories() {
-        const lineList = document.querySelector('.category-list .line-list');
-        const typeList = document.querySelector('.category-list .type-list');
-        if (!lineList || !typeList) return;
+        const nav = document.querySelector('.category-list .line-nav');
+        if (!nav) return;
 
-        lineList.innerHTML = PRODUCTION_LINES.map(l => {
+        nav.innerHTML = PRODUCTION_LINES.map(l => {
+            // Línea aún no disponible: título atenuado con badge, sin subcategorías.
             if (!l.available) {
-                return `<li class="category-sidebar-soon" aria-disabled="true">${l.label} <span class="category-soon-badge">PRÓXIMAMENTE</span></li>`;
+                return `
+                    <li class="line-group line-group--soon" aria-disabled="true">
+                        <h3 class="line-group__title line-group__title--soon">${l.label} <span class="category-soon-badge">PRÓXIMAMENTE</span></h3>
+                    </li>`;
             }
-            const active = l.id === filterState.line ? ' active' : '';
-            return `<li class="line-item${active}" data-line="${l.id}">${l.label}</li>`;
+
+            const items = [{ category: 'all', label: 'Ver todos' }]
+                .concat(ALL_CATEGORIES.map(cat => ({ category: cat, label: cat })));
+
+            const lis = items.map(it => {
+                const active = (filterState.line === l.id && filterState.category === it.category) ? ' active' : '';
+                return `<li class="cat-item${active}" data-line="${l.id}" data-category="${it.category}">${it.label}</li>`;
+            }).join('');
+
+            return `
+                <li class="line-group">
+                    <h3 class="line-group__title">${l.label}</h3>
+                    <ul class="cat-list">${lis}</ul>
+                </li>`;
         }).join('');
 
-        typeList.innerHTML = `
-            <li class="active" data-category="all">Ver todos</li>
-            ${ALL_CATEGORIES.map(cat => `<li data-category="${cat}">${cat}</li>`).join('')}
-        `;
         initCategoryFilters();
     }
 
@@ -510,53 +521,36 @@ document.addEventListener('DOMContentLoaded', async function() {
         const catParam = (params.get('cat') || '').toLowerCase().replace(/\+/g, ' ').trim();
         if (!lineParam && !catParam) return;
 
-        let changed = false;
+        const items = document.querySelectorAll('.category-list .cat-item');
+        let match = null;
+        items.forEach(li => {
+            if (match) return;
+            const liLine = (li.getAttribute('data-line') || '').toLowerCase();
+            const liCat = (li.getAttribute('data-category') || '').toLowerCase();
+            const lineOk = !lineParam || liLine === lineParam;
+            const catOk = catParam
+                ? (liCat === catParam || liCat.replace(/\s+/g, '-') === catParam.replace(/\s+/g, '-'))
+                : liCat === 'all';
+            if (lineOk && catOk) match = li;
+        });
 
-        if (lineParam) {
-            const lineItems = document.querySelectorAll('.category-list .line-item');
-            lineItems.forEach(li => {
-                if ((li.getAttribute('data-line') || '').toLowerCase() === lineParam) {
-                    lineItems.forEach(i => i.classList.remove('active'));
-                    li.classList.add('active');
-                    filterState.line = li.getAttribute('data-line');
-                    changed = true;
-                }
-            });
+        if (match) {
+            items.forEach(i => i.classList.remove('active'));
+            match.classList.add('active');
+            filterState.line = match.getAttribute('data-line');
+            filterState.category = match.getAttribute('data-category');
+            await loadProducts();
         }
-
-        if (catParam) {
-            const typeItems = document.querySelectorAll('.category-list .type-list li[data-category]');
-            typeItems.forEach(li => {
-                const v = (li.getAttribute('data-category') || '').toLowerCase();
-                if (v === catParam || v.replace(/\s+/g, '-') === catParam.replace(/\s+/g, '-')) {
-                    typeItems.forEach(i => i.classList.remove('active'));
-                    li.classList.add('active');
-                    filterState.category = li.getAttribute('data-category');
-                    changed = true;
-                }
-            });
-        }
-
-        if (changed) await loadProducts();
     }
 
     function initCategoryFilters() {
-        const lineItems = document.querySelectorAll('.category-list .line-item');
-        const typeItems = document.querySelectorAll('.category-list .type-list li[data-category]');
+        const items = document.querySelectorAll('.category-list .cat-item');
 
-        lineItems.forEach(item => {
+        items.forEach(item => {
             item.addEventListener('click', async function () {
-                lineItems.forEach(i => i.classList.remove('active'));
+                items.forEach(i => i.classList.remove('active'));
                 this.classList.add('active');
                 filterState.line = this.getAttribute('data-line');
-                await loadProducts();
-            });
-        });
-
-        typeItems.forEach(item => {
-            item.addEventListener('click', async function () {
-                typeItems.forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
                 filterState.category = this.getAttribute('data-category');
                 await loadProducts();
             });

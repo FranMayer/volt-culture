@@ -1267,21 +1267,36 @@ input[type="submit"],
     display: none;
 }
 
-/* Bloque de líneas de producción (nivel 1 del sidebar) */
-.category-list .line-list {
+/* Líneas de producción anidadas: cada línea es un grupo con su título y
+   sus subcategorías debajo. Los .cat-item heredan el estilo de .category-list li. */
+.category-list .line-nav {
     list-style: none;
     padding: 0;
-    margin: 0 0 1.5rem 0;
+    margin: 0;
 }
-.category-list .line-item {
-    cursor: pointer;
-    font-weight: 700;
+.category-list .line-group {
+    margin-bottom: 1.75rem;
 }
-.category-list .line-item.active {
-    color: #c1121f;
+.category-list .line-group:last-child {
+    margin-bottom: 0;
 }
-.category-list__types-title {
-    margin-top: 1rem;
+.category-list .line-group__title {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0 0 0.75rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border-color);
+}
+.category-list .line-group__title--soon {
+    opacity: 0.55;
+}
+.category-list .cat-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
 .product-grid {
