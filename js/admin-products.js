@@ -63,7 +63,7 @@ function renderProductCard(product) {
                      onerror="this.onerror=null;this.src='../images-brand/Isotipo color.png'">
             </td>
             <td><strong>${p.name}</strong><br><small class="text-muted">${p.id}</small></td>
-            <td>${p.category}</td>
+            <td>${p.line || 'TC'} · ${p.category}</td>
             <td>$${p.price.toLocaleString('es-AR')}</td>
             <td>
                 <span class="${p.stock === 0 ? 'text-danger' : p.stock <= 3 ? 'text-warning' : ''}">
@@ -448,6 +448,7 @@ async function saveProduct() {
     const productData = {
         name: document.getElementById('productName').value,
         category: document.getElementById('productCategory').value,
+        line: (document.getElementById('productLine').value || 'TC').toUpperCase(),
         description: document.getElementById('productDescription').value,
         price: parseInt(document.getElementById('productPrice').value, 10),
         stock: computedStock,
@@ -510,6 +511,7 @@ async function editProduct(id) {
             document.getElementById('productId').value = id;
             document.getElementById('productName').value = product.name;
             document.getElementById('productCategory').value = product.category;
+            document.getElementById('productLine').value = (product.line || 'TC').toUpperCase();
             document.getElementById('productDescription').value = product.description || '';
             document.getElementById('productPrice').value = product.price;
             document.getElementById('productStock').value = product.stock || 0;
@@ -518,6 +520,7 @@ async function editProduct(id) {
             adminFormState.editOriginal = {
                 name: product.name || '',
                 category: product.category || '',
+                line: (product.line || 'TC').toUpperCase(),
                 description: product.description || '',
                 price: Number(product.price) || 0,
                 stock: Number(product.stock) || 0,
