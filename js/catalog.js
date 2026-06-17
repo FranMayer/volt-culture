@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     const productGrid = document.querySelector('.product-grid');
-    const categoryList = document.querySelector('.category-list ul');
     const noProductsMessage = document.querySelector('.no-products-message');
     const loader = document.querySelector('.loader-overlay');
 
@@ -35,13 +34,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     // CARGAR PRODUCTOS
     // =====================================================
     
-    async function loadProducts(category = 'all') {
+    async function loadProducts() {
         try {
             // Mostrar loader
             if (loader) loader.style.display = 'flex';
 
-            // Obtener productos del servicio
-            const products = await window.ProductsService.getAll(category === 'all' ? null : category);
+            const category = filterState.category === 'all' ? null : filterState.category;
+            const line = filterState.line === 'all' ? null : filterState.line;
+            const products = await window.ProductsService.getAll(category, line);
 
             // Limpiar grid (excepto el mensaje de no productos)
             const existingCards = productGrid.querySelectorAll('.product-card');
@@ -471,15 +471,43 @@ document.addEventListener('DOMContentLoaded', async function() {
     // CATEGORÍAS FIJAS (misma lista que el panel de admin)
     // =====================================================
 
-    const ALL_CATEGORIES = ['Remeras', 'Buzos', 'Gorras'];
+    const PRODUCTION_LINES = [
+        { id: 'TC', label: 'Turismo Carretera (TC)', available: true },
+        { id: 'F1', label: 'Fórmula 1', available: false }
+    ];
+    const ALL_CATEGORIES = ['Remeras', 'Buzos', 'Pantalones', 'Gorras'];
+
+    // Estado del filtro de dos niveles
+    const filterState = { line: 'TC', category: 'all' };
 
     function loadCategories() {
-        if (!categoryList) return;
-        categoryList.innerHTML = `
-            <li class="active" data-category="all">Ver todos</li>
-            ${ALL_CATEGORIES.map(cat => `<li data-category="${cat}">${cat}</li>`).join('')}
-            <li class="category-sidebar-soon" aria-disabled="true">Autos a escala <span class="category-soon-badge">PRÓXIMAMENTE</span></li>
-        `;
+        const nav = document.querySelector('.category-list .line-nav');
+        if (!nav) return;
+
+        nav.innerHTML = PRODUCTION_LINES.map(l => {
+            // Línea aún no disponible: título atenuado con badge, sin subcategorías.
+            if (!l.available) {
+                return `
+                    <li class="line-group line-group--soon" aria-disabled="true">
+                        <h3 class="line-group__title line-group__title--soon">${l.label} <span class="category-soon-badge">PRÓXIMAMENTE</span></h3>
+                    </li>`;
+            }
+
+            const items = [{ category: 'all', label: 'Ver todos' }]
+                .concat(ALL_CATEGORIES.map(cat => ({ category: cat, label: cat })));
+
+            const lis = items.map(it => {
+                const active = (filterState.line === l.id && filterState.category === it.category) ? ' active' : '';
+                return `<li class="cat-item${active}" data-line="${l.id}" data-category="${it.category}">${it.label}</li>`;
+            }).join('');
+
+            return `
+                <li class="line-group">
+                    <h3 class="line-group__title">${l.label}</h3>
+                    <ul class="cat-list">${lis}</ul>
+                </li>`;
+        }).join('');
+
         initCategoryFilters();
     }
 
@@ -487,39 +515,44 @@ document.addEventListener('DOMContentLoaded', async function() {
     // FILTRO DE CATEGORÍAS
     // =====================================================
     
-    function applyCategoryFromQuery() {
+    async function applyCategoryFromQuery() {
         const params = new URLSearchParams(window.location.search);
-        const catParam = params.get('cat');
-        if (!catParam || !categoryList) return;
-        const needle = catParam.toLowerCase().replace(/\+/g, ' ').trim();
-        const lis = categoryList.querySelectorAll('li[data-category]');
-        for (let i = 0; i < lis.length; i++) {
-            const li = lis[i];
-            const v = (li.getAttribute('data-category') || '').toLowerCase();
-            const norm = v.replace(/\s+/g, '-');
-            const n2 = needle.replace(/\s+/g, '-');
-            if (v === needle || norm === n2) {
-                li.click();
-                return;
-            }
+        const lineParam = (params.get('line') || '').toLowerCase().trim();
+        const catParam = (params.get('cat') || '').toLowerCase().replace(/\+/g, ' ').trim();
+        if (!lineParam && !catParam) return;
+
+        const items = document.querySelectorAll('.category-list .cat-item');
+        let match = null;
+        items.forEach(li => {
+            if (match) return;
+            const liLine = (li.getAttribute('data-line') || '').toLowerCase();
+            const liCat = (li.getAttribute('data-category') || '').toLowerCase();
+            const lineOk = !lineParam || liLine === lineParam;
+            const catOk = catParam
+                ? (liCat === catParam || liCat.replace(/\s+/g, '-') === catParam.replace(/\s+/g, '-'))
+                : liCat === 'all';
+            if (lineOk && catOk) match = li;
+        });
+
+        if (match) {
+            items.forEach(i => i.classList.remove('active'));
+            match.classList.add('active');
+            filterState.line = match.getAttribute('data-line');
+            filterState.category = match.getAttribute('data-category');
+            await loadProducts();
         }
     }
 
     function initCategoryFilters() {
-        const categories = document.querySelectorAll('.category-list li');
-        
-        categories.forEach(category => {
-            if (category.classList.contains('category-sidebar-soon')) {
-                return;
-            }
-            category.addEventListener('click', async function() {
-                // Actualizar estado activo
-                categories.forEach(cat => cat.classList.remove('active'));
-                this.classList.add('active');
+        const items = document.querySelectorAll('.category-list .cat-item');
 
-                // Cargar productos de la categoría
-                const selectedCategory = this.getAttribute('data-category');
-                await loadProducts(selectedCategory);
+        items.forEach(item => {
+            item.addEventListener('click', async function () {
+                items.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                filterState.line = this.getAttribute('data-line');
+                filterState.category = this.getAttribute('data-category');
+                await loadProducts();
             });
         });
     }
@@ -904,7 +937,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Cargar categorías y productos al iniciar
     loadCategories();
     await loadProducts();
-    applyCategoryFromQuery();
+    await applyCategoryFromQuery();
     updateCartBadge();
 
     // Escuchar actualizaciones del carrito (desde main.js cuando se elimina)

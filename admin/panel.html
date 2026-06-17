@@ -1082,21 +1082,25 @@
                         <input type="hidden" id="productId">
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label class="form-label">Nombre *</label>
                                 <input type="text" class="form-control" id="productName" required>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Categoría *</label>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Línea de producción *</label>
+                                <select class="form-select" id="productLine" required>
+                                    <option value="TC">Turismo Carretera (TC)</option>
+                                    <option value="F1">Fórmula 1 (F1)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Tipo / Subcategoría *</label>
                                 <select class="form-select" id="productCategory" required>
                                     <option value="">Seleccionar...</option>
                                     <option value="Remeras">Remeras</option>
                                     <option value="Buzos">Buzos</option>
+                                    <option value="Pantalones">Pantalones</option>
                                     <option value="Gorras">Gorras</option>
-                                    <option value="Polar">Polar</option>
-                                    <option value="Tazas">Tazas</option>
-                                    <option value="Llaveros">Llaveros</option>
-                                    <option value="Chops">Chops</option>
                                 </select>
                             </div>
                         </div>
