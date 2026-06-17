@@ -2108,7 +2108,6 @@ main > .shop-page-header {
 }
 
 /* ─── Opaque text surfaces (grid bleed-through) ─── */
-.countdown-block,
 .spec-card,
 .drop-visual,
 .drop-content,
@@ -2118,7 +2117,6 @@ main > .shop-page-header {
 .hero-badge,
 .ticker-item,
 .status-pill,
-.countdown__cell,
 .hero__badge,
 .ticker__item,
 .drop__visual,
@@ -2132,20 +2130,6 @@ main > .shop-page-header {
 [class*="panel"]:not(img):not(svg),
 [class*="box"]:not(img):not(svg):not(.bigbox):not(.catalog-wrap):not(.product-grid) {
     background: #000000 !important;
-}
-
-.drop-countdown,
-#countdown,
-.countdown {
-    background: #000000 !important;
-}
-
-.drop-countdown .countdown-block,
-.countdown .countdown-block,
-.countdown .countdown__cell,
-.countdown-block {
-    background: #000000 !important;
-    border: 1px solid rgba(255, 255, 255, 0.07) !important;
 }
 
 /* ─── Header: links centrados en viewport (columnas 1fr / auto / 1fr) ─── */

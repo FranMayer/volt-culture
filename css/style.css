@@ -181,7 +181,6 @@ input[type="submit"],
 .category-card,
 .hero-cta,
 .social-icons a,
-.theme-toggle,
 .menu-toggle span,
 .footer-section a,
 .add-to-cart,
@@ -376,51 +375,6 @@ input[type="submit"],
 .header ul a.nav-link:active {
     color: #c1121f;
     transition: color 0.1s ease;
-}
-
-/* Theme Toggle Button */
-.theme-toggle {
-    background: none;
-    border: 2px solid var(--border-color);
-    border-radius: 50px;
-    padding: 0.5rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    transition: var(--transition-normal);
-    color: var(--text-primary);
-    margin-left: 1rem;
-}
-
-.theme-toggle:hover {
-    border-color: var(--primary);
-    background: var(--primary);
-    color: var(--white);
-}
-
-.theme-toggle svg {
-    width: 22px;
-    height: 22px;
-    transition: var(--transition-normal);
-}
-
-.theme-toggle .icon-sun {
-    display: none;
-}
-
-.theme-toggle .icon-moon {
-    display: block;
-}
-
-[data-theme="dark"] .theme-toggle .icon-sun {
-    display: block;
-}
-
-[data-theme="dark"] .theme-toggle .icon-moon {
-    display: none;
 }
 
 .header ul a:hover {
@@ -873,95 +827,6 @@ input[type="submit"],
     color: var(--color-gray);
     margin-bottom: 1.25rem;
     line-height: 1.9;
-}
-
-/* =====================================================
-   COUNTDOWN SECTION - VOLT
-   ===================================================== */
-.title-countdown {
-    text-align: center;
-    margin: var(--space-3xl) 0 var(--space-xl);
-    font-family: var(--font-display);
-    font-size: clamp(1.5rem, 3vw, 2rem);
-    font-weight: 700;
-    color: var(--volt-white);
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
-
-.countdown {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: var(--volt-gray);
-    padding: 1.5rem 2.5rem;
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-lg);
-    width: fit-content;
-    margin: 0 auto;
-    gap: 1.5rem;
-    position: relative;
-    overflow: hidden;
-}
-
-.countdown::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--volt-red);
-}
-
-.countdown-container {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    color: var(--volt-white);
-}
-
-.img-countdown {
-    width: 4rem;
-    height: 4rem;
-    object-fit: cover;
-    border: 2px solid var(--volt-red);
-}
-
-.countdown .logo {
-    width: 60px;
-    height: auto;
-    object-fit: contain;
-    opacity: 0.9;
-    transition: var(--transition-normal);
-}
-
-.countdown .logo:hover {
-    transform: scale(1.1);
-    opacity: 1;
-}
-
-.reloj-wrapper {
-    background: var(--volt-black);
-    padding: 1rem 1.5rem;
-    border: 1px solid var(--border-color);
-    transition: var(--transition-normal);
-}
-
-#reloj {
-    font-family: var(--font-display);
-    font-size: clamp(1.5rem, 3vw, 2.2rem);
-    color: var(--volt-white);
-    letter-spacing: 2px;
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: 'tnum';
-    text-shadow: 0 0 20px var(--volt-red-glow);
-}
-
-.reloj-wrapper.tic {
-    transform: scale(1.05);
-    background: rgba(193, 18, 31, 0.2);
-    border-color: var(--volt-red);
 }
 
 /* =====================================================
@@ -2189,12 +2054,6 @@ body.lightbox-open {
     width: 60px;
     height: 60px;
     flex-shrink: 0;
-}
-
-/* Imágenes en secciones about2 */
-[data-theme="dark"] .mecanic,
-[data-theme="dark"] .mecanic1 {
-    opacity: 0.9;
 }
 
 .container__about2 {

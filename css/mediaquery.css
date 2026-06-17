@@ -40,20 +40,6 @@
         justify-content: center;
     }
 
-    /* Countdown */
-    .countdown {
-        padding: 1.25rem 2rem;
-        gap: 1rem;
-    }
-
-    .countdown .logo {
-        width: 50px;
-    }
-
-    #reloj {
-        font-size: 1.8rem;
-    }
-
     /* Catálogo */
     .bigbox {
         gap: 1.5rem;
@@ -312,38 +298,6 @@
         font-size: 1rem;
     }
 
-    /* Countdown */
-    .title-countdown {
-        font-size: 1.25rem;
-        margin: var(--space-2xl) 0 var(--space-lg);
-    }
-
-    .countdown {
-        flex-direction: column;
-        padding: 1.5rem;
-        gap: 1rem;
-        margin: 0 1rem;
-        width: calc(100% - 2rem);
-    }
-
-    .countdown-container {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .img-countdown {
-        width: 3rem;
-        height: 3rem;
-    }
-
-    #reloj {
-        font-size: 1.5rem;
-    }
-
-    .countdown .logo {
-        width: 40px;
-    }
-
     /* Logos pago */
     .logos-pago {
         gap: 1.5rem;
@@ -561,19 +515,6 @@
     .category-card.coming-soon::after {
         font-size: 0.6rem;
         padding: 0.2rem 1.5rem;
-    }
-
-    /* Countdown */
-    .countdown {
-        padding: 1rem;
-    }
-
-    .reloj-wrapper {
-        padding: 0.75rem 1rem;
-    }
-
-    #reloj {
-        font-size: 1.25rem;
     }
 
     /* Catálogo — una columna en pantallas muy angostas */

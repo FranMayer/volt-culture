@@ -1,3 +1,13 @@
+# Dependencies
+node_modules/
+
+# Vercel
 .vercel
+
+# Env / secrets
 .env*.local
 scripts/serviceAccountKey.json
+
+# Python caches (from tooling/skills)
+__pycache__/
+*.pyc

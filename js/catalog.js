@@ -1,5 +1,5 @@
 /**
- * DRS Store - Catalog Manager
+ * VOLT - Catalog Manager
  * Maneja la carga dinámica de productos y el filtrado por categorías
  */
 

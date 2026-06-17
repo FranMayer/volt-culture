@@ -720,42 +720,6 @@
             margin-bottom: 32px;
         }
 
-        .countdown {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            margin-bottom: 32px;
-        }
-
-        .countdown__cell {
-            padding: 16px 12px;
-            text-align: center;
-            border-right: 1px solid rgba(255, 255, 255, 0.15);
-        }
-
-        .countdown__cell:last-child {
-            border-right: none;
-        }
-
-        .countdown__val {
-            font-family: var(--font-display);
-            font-weight: 700;
-            font-size: 36px;
-            line-height: 1;
-            letter-spacing: 0.02em;
-        }
-
-        .countdown__lbl {
-            font-family: var(--font-mono);
-            font-size: 9px;
-            font-weight: 400;
-            text-transform: uppercase;
-            letter-spacing: 0.14em;
-            color: #666666;
-            margin-top: 8px;
-        }
-
         /* ——— Manifesto ——— */
         .manifesto {
             padding: clamp(80px, 14vw, 140px) clamp(16px, 4vw, 48px);
@@ -1080,10 +1044,6 @@
         @media (max-width: 560px) {
             .hero__headline {
                 font-size: clamp(48px, 18vw, 96px);
-            }
-
-            .countdown__val {
-                font-size: 28px;
             }
 
             .manifesto__quote {

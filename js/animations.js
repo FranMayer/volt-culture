@@ -1,5 +1,5 @@
 /**
- * DRS Store - Animations & Interactions
+ * VOLT - Animations & Interactions
  * Maneja animaciones de scroll, menú móvil y efectos visuales
  */
 
@@ -134,21 +134,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 hero.style.backgroundPositionY = rate + 'px';
             }
         });
-    }
-
-    // =====================================================
-    // ANIMACIÓN DE NÚMEROS (para countdown)
-    // =====================================================
-    const relojWrapper = document.querySelector('.reloj-wrapper');
-    
-    if (relojWrapper) {
-        // Efecto de pulso cada segundo
-        setInterval(() => {
-            relojWrapper.classList.add('tic');
-            setTimeout(() => {
-                relojWrapper.classList.remove('tic');
-            }, 100);
-        }, 1000);
     }
 
 });

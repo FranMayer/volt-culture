@@ -1,5 +1,5 @@
 /**
- * DRS Store - Sistema de Carrito
+ * VOLT - Sistema de Carrito
  * Maneja el carrito de compras con localStorage
  */
 

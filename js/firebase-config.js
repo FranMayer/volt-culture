@@ -1,5 +1,5 @@
 /**
- * DRS Store - Firebase Configuration
+ * VOLT - Firebase Configuration
  * Configuración de Firebase para el catálogo de productos
  */
 
