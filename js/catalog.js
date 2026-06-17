@@ -504,25 +504,40 @@ document.addEventListener('DOMContentLoaded', async function() {
     // FILTRO DE CATEGORÍAS
     // =====================================================
     
-    function applyCategoryFromQuery() {
+    async function applyCategoryFromQuery() {
         const params = new URLSearchParams(window.location.search);
         const lineParam = (params.get('line') || '').toLowerCase().trim();
         const catParam = (params.get('cat') || '').toLowerCase().replace(/\+/g, ' ').trim();
+        if (!lineParam && !catParam) return;
+
+        let changed = false;
 
         if (lineParam) {
-            const lineLis = document.querySelectorAll('.category-list .line-item');
-            lineLis.forEach(li => {
-                if ((li.getAttribute('data-line') || '').toLowerCase() === lineParam) li.click();
+            const lineItems = document.querySelectorAll('.category-list .line-item');
+            lineItems.forEach(li => {
+                if ((li.getAttribute('data-line') || '').toLowerCase() === lineParam) {
+                    lineItems.forEach(i => i.classList.remove('active'));
+                    li.classList.add('active');
+                    filterState.line = li.getAttribute('data-line');
+                    changed = true;
+                }
             });
         }
 
         if (catParam) {
-            const typeLis = document.querySelectorAll('.category-list .type-list li[data-category]');
-            typeLis.forEach(li => {
+            const typeItems = document.querySelectorAll('.category-list .type-list li[data-category]');
+            typeItems.forEach(li => {
                 const v = (li.getAttribute('data-category') || '').toLowerCase();
-                if (v === catParam || v.replace(/\s+/g, '-') === catParam.replace(/\s+/g, '-')) li.click();
+                if (v === catParam || v.replace(/\s+/g, '-') === catParam.replace(/\s+/g, '-')) {
+                    typeItems.forEach(i => i.classList.remove('active'));
+                    li.classList.add('active');
+                    filterState.category = li.getAttribute('data-category');
+                    changed = true;
+                }
             });
         }
+
+        if (changed) await loadProducts();
     }
 
     function initCategoryFilters() {
@@ -928,7 +943,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Cargar categorías y productos al iniciar
     loadCategories();
     await loadProducts();
-    applyCategoryFromQuery();
+    await applyCategoryFromQuery();
     updateCartBadge();
 
     // Escuchar actualizaciones del carrito (desde main.js cuando se elimina)
