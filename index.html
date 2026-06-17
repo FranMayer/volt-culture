@@ -905,6 +905,32 @@
         }
 
         /* ——— Responsive ——— */
+        /* The absolute featured panel only clears the big clamp(…14vw…)
+           headline on very wide screens (~1800px+). Below that, stack the
+           panel under the headline so the two never overlap. */
+        @media (max-width: 1700px) {
+            .hero {
+                justify-content: flex-start;
+            }
+
+            .hero-featured {
+                position: relative;
+                right: auto;
+                top: auto;
+                width: 100%;
+                max-width: none;
+                transform: none;
+                margin: 8px 0 clamp(56px, 10vh, 88px);
+            }
+
+            .hero__scroll {
+                position: relative;
+                bottom: auto;
+                left: auto;
+                margin-top: 24px;
+            }
+        }
+
         @media (max-width: 900px) {
             :root {
                 --nav-h: 56px;
@@ -1023,15 +1049,6 @@
                 min-height: 360px;
             }
 
-            .hero-featured {
-                position: relative;
-                right: auto;
-                top: auto;
-                width: min(100%, 560px);
-                transform: none;
-                margin: 8px 0 clamp(56px, 10vh, 88px);
-            }
-
             .hero-featured .home-featured__grid--carousel {
                 grid-auto-columns: minmax(160px, 48%);
                 gap: 14px;
@@ -1052,13 +1069,6 @@
 
             .site-footer__copy {
                 text-align: center;
-            }
-
-            .hero__scroll {
-                position: relative;
-                bottom: auto;
-                left: auto;
-                margin-top: 24px;
             }
 
             .site-nav__logo.logo-lockup img {
@@ -1201,7 +1211,7 @@
                     <a class="hero-featured__link" href="/pages/catalogo.html">Tienda →</a>
                 </div>
                 <p class="home-featured__status" id="homeFeaturedStatus" hidden></p>
-                <div class="home-featured__grid home-featured__grid--carousel" id="homeFeaturedGrid" data-limit="3"></div>
+                <div class="home-featured__grid home-featured__grid--carousel" id="homeFeaturedGrid" data-limit="8"></div>
             </aside>
             <div class="hero__scroll" aria-hidden="true">
                 <span class="hero__scroll-line"></span>
