@@ -163,16 +163,17 @@ const ProductsService = {
     /**
      * Obtener todos los productos
      * @param {string} category - Filtrar por categoría (opcional)
+     * @param {string} line - Filtrar por línea de producción (opcional)
      * @returns {Promise<Array>} Lista de productos
      */
-    async getAll(category = null) {
+    async getAll(category = null, line = null) {
         // Si Firebase está configurado, usar Firestore
         if (window.FirebaseConfig && window.FirebaseConfig.isInitialized()) {
-            return await this._getFromFirestore(category);
+            return await this._getFromFirestore(category, line);
         }
-        
+
         // Si no, usar datos de ejemplo
-        return this._getFromSample(category);
+        return this._getFromSample(category, line);
     },
 
     /**
@@ -230,35 +231,45 @@ const ProductsService = {
     /**
      * Obtener productos desde Firestore
      */
-    async _getFromFirestore(category) {
+    async _getFromFirestore(category, line) {
         const db = window.FirebaseConfig.getDb();
         let query = db.collection('products').where('active', '==', true);
-        
+
         if (category && category !== 'all') {
             query = query.where('category', '==', category);
         }
-        
+
         const snapshot = await query.get();
-        const products = [];
-        
+        let products = [];
+
         snapshot.forEach(doc => {
             const data = this._normalizeProduct({ id: doc.id, ...doc.data() });
             products.push(data);
         });
-        
+
+        if (line && line !== 'all') {
+            const wanted = String(line).toUpperCase();
+            products = products.filter(p => p.line === wanted);
+        }
+
         return products;
     },
 
     /**
      * Obtener productos desde datos de ejemplo
      */
-    _getFromSample(category) {
+    _getFromSample(category, line) {
         let products = SAMPLE_PRODUCTS.filter(p => p.active).map(p => this._normalizeProduct(p));
-        
+
         if (category && category !== 'all') {
             products = products.filter(p => p.category === category);
         }
-        
+
+        if (line && line !== 'all') {
+            const wanted = String(line).toUpperCase();
+            products = products.filter(p => p.line === wanted);
+        }
+
         return Promise.resolve(products);
     },
 
@@ -330,6 +341,10 @@ const ProductsService = {
         if (typeof normalized.stock !== 'number') {
             normalized.stock = Number(normalized.stock) || 0;
         }
+
+        // Línea de producción: los productos viejos no tienen `line`.
+        // Se asume Turismo Carretera (TC) por defecto, sin migrar datos.
+        normalized.line = String(normalized.line || 'TC').trim().toUpperCase() || 'TC';
 
         return normalized;
     },
