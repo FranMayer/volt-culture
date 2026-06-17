@@ -1267,6 +1267,23 @@ input[type="submit"],
     display: none;
 }
 
+/* Bloque de líneas de producción (nivel 1 del sidebar) */
+.category-list .line-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem 0;
+}
+.category-list .line-item {
+    cursor: pointer;
+    font-weight: 700;
+}
+.category-list .line-item.active {
+    color: #c1121f;
+}
+.category-list__types-title {
+    margin-top: 1rem;
+}
+
 .product-grid {
     flex: 1;
     display: grid;
