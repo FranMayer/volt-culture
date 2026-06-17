@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     const productGrid = document.querySelector('.product-grid');
-    const categoryList = document.querySelector('.category-list ul');
     const noProductsMessage = document.querySelector('.no-products-message');
     const loader = document.querySelector('.loader-overlay');
 
@@ -35,13 +34,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     // CARGAR PRODUCTOS
     // =====================================================
     
-    async function loadProducts(category = 'all') {
+    async function loadProducts() {
         try {
             // Mostrar loader
             if (loader) loader.style.display = 'flex';
 
-            // Obtener productos del servicio
-            const products = await window.ProductsService.getAll(category === 'all' ? null : category);
+            const category = filterState.category === 'all' ? null : filterState.category;
+            const line = filterState.line === 'all' ? null : filterState.line;
+            const products = await window.ProductsService.getAll(category, line);
 
             // Limpiar grid (excepto el mensaje de no productos)
             const existingCards = productGrid.querySelectorAll('.product-card');
@@ -471,14 +471,31 @@ document.addEventListener('DOMContentLoaded', async function() {
     // CATEGORÍAS FIJAS (misma lista que el panel de admin)
     // =====================================================
 
-    const ALL_CATEGORIES = ['Remeras', 'Buzos', 'Gorras'];
+    const PRODUCTION_LINES = [
+        { id: 'TC', label: 'Turismo Carretera (TC)', available: true },
+        { id: 'F1', label: 'Fórmula 1', available: false }
+    ];
+    const ALL_CATEGORIES = ['Remeras', 'Buzos', 'Pantalones', 'Gorras'];
+
+    // Estado del filtro de dos niveles
+    const filterState = { line: 'TC', category: 'all' };
 
     function loadCategories() {
-        if (!categoryList) return;
-        categoryList.innerHTML = `
+        const lineList = document.querySelector('.category-list .line-list');
+        const typeList = document.querySelector('.category-list .type-list');
+        if (!lineList || !typeList) return;
+
+        lineList.innerHTML = PRODUCTION_LINES.map(l => {
+            if (!l.available) {
+                return `<li class="category-sidebar-soon" aria-disabled="true">${l.label} <span class="category-soon-badge">PRÓXIMAMENTE</span></li>`;
+            }
+            const active = l.id === filterState.line ? ' active' : '';
+            return `<li class="line-item${active}" data-line="${l.id}">${l.label}</li>`;
+        }).join('');
+
+        typeList.innerHTML = `
             <li class="active" data-category="all">Ver todos</li>
             ${ALL_CATEGORIES.map(cat => `<li data-category="${cat}">${cat}</li>`).join('')}
-            <li class="category-sidebar-soon" aria-disabled="true">Autos a escala <span class="category-soon-badge">PRÓXIMAMENTE</span></li>
         `;
         initCategoryFilters();
     }
@@ -489,37 +506,44 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     function applyCategoryFromQuery() {
         const params = new URLSearchParams(window.location.search);
-        const catParam = params.get('cat');
-        if (!catParam || !categoryList) return;
-        const needle = catParam.toLowerCase().replace(/\+/g, ' ').trim();
-        const lis = categoryList.querySelectorAll('li[data-category]');
-        for (let i = 0; i < lis.length; i++) {
-            const li = lis[i];
-            const v = (li.getAttribute('data-category') || '').toLowerCase();
-            const norm = v.replace(/\s+/g, '-');
-            const n2 = needle.replace(/\s+/g, '-');
-            if (v === needle || norm === n2) {
-                li.click();
-                return;
-            }
+        const lineParam = (params.get('line') || '').toLowerCase().trim();
+        const catParam = (params.get('cat') || '').toLowerCase().replace(/\+/g, ' ').trim();
+
+        if (lineParam) {
+            const lineLis = document.querySelectorAll('.category-list .line-item');
+            lineLis.forEach(li => {
+                if ((li.getAttribute('data-line') || '').toLowerCase() === lineParam) li.click();
+            });
+        }
+
+        if (catParam) {
+            const typeLis = document.querySelectorAll('.category-list .type-list li[data-category]');
+            typeLis.forEach(li => {
+                const v = (li.getAttribute('data-category') || '').toLowerCase();
+                if (v === catParam || v.replace(/\s+/g, '-') === catParam.replace(/\s+/g, '-')) li.click();
+            });
         }
     }
 
     function initCategoryFilters() {
-        const categories = document.querySelectorAll('.category-list li');
-        
-        categories.forEach(category => {
-            if (category.classList.contains('category-sidebar-soon')) {
-                return;
-            }
-            category.addEventListener('click', async function() {
-                // Actualizar estado activo
-                categories.forEach(cat => cat.classList.remove('active'));
-                this.classList.add('active');
+        const lineItems = document.querySelectorAll('.category-list .line-item');
+        const typeItems = document.querySelectorAll('.category-list .type-list li[data-category]');
 
-                // Cargar productos de la categoría
-                const selectedCategory = this.getAttribute('data-category');
-                await loadProducts(selectedCategory);
+        lineItems.forEach(item => {
+            item.addEventListener('click', async function () {
+                lineItems.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                filterState.line = this.getAttribute('data-line');
+                await loadProducts();
+            });
+        });
+
+        typeItems.forEach(item => {
+            item.addEventListener('click', async function () {
+                typeItems.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                filterState.category = this.getAttribute('data-category');
+                await loadProducts();
             });
         });
     }
