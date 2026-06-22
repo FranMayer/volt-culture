@@ -473,7 +473,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     const PRODUCTION_LINES = [
         { id: 'TC', label: 'Turismo Carretera (TC)', available: true },
-        { id: 'F1', label: 'Fórmula 1', available: false }
+        { id: 'F1', label: 'Fórmula 1', available: true }
     ];
     const ALL_CATEGORIES = ['Remeras', 'Buzos', 'Pantalones', 'Gorras'];
 
