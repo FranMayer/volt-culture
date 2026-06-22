@@ -243,6 +243,40 @@ function renderSizes() {
     });
 }
 
+// Redimensiona/recomprime la imagen en el navegador para no chocar con el
+// límite de Cloudinary (10 MB por archivo en el plan gratuito) y aligerar la
+// tienda. Devuelve un File JPG; si algo falla, cae al archivo original.
+async function compressImage(file, { maxDimension = 2000, quality = 0.85 } = {}) {
+    if (!file.type.startsWith('image/') || file.type === 'image/gif') return file;
+
+    try {
+        const bitmap = await createImageBitmap(file);
+        const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+        const width = Math.round(bitmap.width * scale);
+        const height = Math.round(bitmap.height * scale);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height);
+        bitmap.close?.();
+
+        const blob = await new Promise((resolve) =>
+            canvas.toBlob(resolve, 'image/jpeg', quality)
+        );
+        if (!blob) return file;
+
+        // Si por lo que sea quedó más pesado que el original, usamos el original.
+        if (blob.size >= file.size) return file;
+
+        const name = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+        return new File([blob], name, { type: 'image/jpeg' });
+    } catch (err) {
+        console.warn('No se pudo comprimir la imagen, se sube el original:', err);
+        return file;
+    }
+}
+
 async function uploadImageToCloudinary(file) {
     const token = await getAdminToken();
     const signResp = await fetch(getAdminApiUrl('/api/admin-upload'), {
@@ -283,7 +317,8 @@ function handleImageFiles(files) {
         adminFormState.images.push({ id, url: previewUrl, uploading: true });
         renderImages();
 
-        uploadImageToCloudinary(file)
+        compressImage(file)
+            .then((optimized) => uploadImageToCloudinary(optimized))
             .then((secureUrl) => {
                 const item = adminFormState.images.find((i) => i.id === id);
                 if (item) {
@@ -295,7 +330,7 @@ function handleImageFiles(files) {
             .catch((err) => {
                 console.error('Cloudinary upload error:', err);
                 adminFormState.images = adminFormState.images.filter((i) => i.id !== id);
-                alert('❌ Error al subir imagen');
+                alert('❌ Error al subir imagen: ' + (err?.message || 'desconocido'));
             })
             .finally(() => renderImages());
     });
