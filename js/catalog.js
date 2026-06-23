@@ -62,9 +62,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                     const card = createProductCard(product, index);
                     productGrid.appendChild(card);
                 });
-
-                // Inicializar botones de carrito para los nuevos productos
-                initCartButtons();
             }
 
         } catch (error) {
@@ -134,28 +131,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Formatear precio
         const formattedPrice = product.price.toLocaleString('es-AR');
 
-        // Verificar si está en el carrito
-        const variants = Array.isArray(product.variants) ? product.variants : [];
-        const sizes = Array.isArray(product.sizes) ? product.sizes : [];
+        // La card es solo el "trigger": imagen + datos + botón que abre el modal.
+        // La selección (color/talle/cantidad) y la compra viven en el quick-view.
         const gallery = getProductGallery(product);
         const initialImageRaw = gallery[0] || product.image || productImgFallback();
         const initialImage = escapeHtml(initialImageRaw);
-
-        const selectedColor = variants.length > 0 ? variants.find(v => Number(v.stock) > 0)?.color || variants[0].color : '';
-        const selectedSize = sizes.length > 0 ? sizes.find(s => Number(s.stock) > 0)?.size || sizes[0].size : '';
-        const initialStock = computeAvailableStock(product, selectedColor, selectedSize);
-
-        card.setAttribute('data-selected-color', selectedColor || '');
-        card.setAttribute('data-selected-size', selectedSize || '');
-        card.setAttribute('data-selected-qty', '1');
-        card.setAttribute('data-stock', initialStock);
-
-        const cart = JSON.parse(localStorage.getItem('cart')) || [];
-        const inCart = cart.some(item =>
-            item.id === product.id &&
-            (item.variantColor || '') === (selectedColor || '') &&
-            (item.variantSize || '') === (selectedSize || '')
-        );
 
         card.innerHTML = `
             <div class="product-image-wrap">
@@ -170,27 +150,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                     <p class="product-price">$${formattedPrice}</p>
                     ${renderProductTypeTag(product)}
                 </div>
-                <button type="button" class="product-expand-toggle" aria-expanded="false" aria-label="Ver producto ${escapeHtml(product.name)}">
+                <button type="button" class="product-expand-toggle" aria-haspopup="dialog" aria-label="Ver producto ${escapeHtml(product.name)}">
                     <span class="product-expand-label">Ver producto →</span>
                 </button>
-            </div>
-            <div class="product-expanded">
-                <div class="product-expanded-inner">
-                    ${renderColorSelector(variants, selectedColor)}
-                    ${renderSizeSelector(sizes, selectedSize)}
-                    ${renderQuantitySelector(initialStock)}
-                    <p class="product-stock ${initialStock === 0 ? 'product-stock--out' : ''}">
-                        ${initialStock === 0 ? 'Sin stock' : 'Disponibles: '}<span>${initialStock}</span>
-                    </p>
-                    <div class="product-buttons">
-                        <button type="button" class="add-to-cart ${inCart ? 'add-to-cart--in-cart' : ''}" ${initialStock === 0 ? 'disabled' : ''}>
-                            ${initialStock === 0 ? 'Sin stock' : inCart ? 'Eliminar del carrito' : 'Añadir al carrito'}
-                        </button>
-                        <button type="button" class="product-finalize-btn" style="display: ${inCart ? 'flex' : 'none'};" aria-label="Finalizar compra e ir al pago">
-                            Finalizar compra
-                        </button>
-                    </div>
-                </div>
             </div>
         `;
 
@@ -264,138 +226,27 @@ document.addEventListener('DOMContentLoaded', async function() {
     function initCardInteractions(card, product) {
         const imageEl = card.querySelector('.product-image');
         const expandToggle = card.querySelector('.product-expand-toggle');
-        const swatches = card.querySelectorAll('.color-swatch');
-        const sizeButtons = card.querySelectorAll('.size-btn');
-        const qtyInput = card.querySelector('.qty-input');
-        const qtyPlus = card.querySelector('.qty-plus');
-        const qtyMinus = card.querySelector('.qty-minus');
-
-        const getState = () => ({
-            color: card.getAttribute('data-selected-color') || '',
-            size: card.getAttribute('data-selected-size') || '',
-            qty: Math.max(1, parseInt(card.getAttribute('data-selected-qty') || '1', 10) || 1)
-        });
-
-        const refreshState = () => {
-            const state = getState();
-            const stock = computeAvailableStock(product, state.color, state.size);
-            card.setAttribute('data-stock', String(stock));
-            updateStockUI(card, stock);
-
-            const nextImage = getImageForColor(product, state.color) || getProductGallery(product)[0] || product.image;
-            if (imageEl && nextImage) imageEl.src = nextImage;
-
-            if (qtyInput) {
-                qtyInput.max = String(Math.max(1, stock));
-                const nextQty = Math.min(Math.max(1, state.qty), Math.max(1, stock));
-                qtyInput.value = String(nextQty);
-                card.setAttribute('data-selected-qty', String(nextQty));
-            }
-
-            const addBtn = card.querySelector('.add-to-cart');
-            const finalizeBtn = card.querySelector('.product-finalize-btn');
-            const cart = JSON.parse(localStorage.getItem('cart')) || [];
-            const inCart = cart.some(item =>
-                item.id === product.id &&
-                (item.variantColor || '') === (state.color || '') &&
-                (item.variantSize || '') === (state.size || '')
-            );
-            if (addBtn) {
-                const hasStock = stock > 0;
-                if (!hasStock) {
-                    addBtn.disabled = true;
-                    addBtn.innerText = 'Sin stock';
-                    addBtn.style.background = '';
-                    addBtn.classList.remove('add-to-cart--in-cart');
-                    if (finalizeBtn) finalizeBtn.style.display = 'none';
-                    return;
-                }
-                if (inCart) {
-                    addBtn.disabled = false;
-                    addBtn.innerText = 'Eliminar del carrito';
-                    addBtn.style.background = '';
-                    addBtn.classList.add('add-to-cart--in-cart');
-                    if (finalizeBtn) finalizeBtn.style.display = 'flex';
-                } else {
-                    addBtn.disabled = false;
-                    addBtn.innerText = 'Añadir al carrito';
-                    addBtn.style.background = '';
-                    addBtn.classList.remove('add-to-cart--in-cart');
-                    if (finalizeBtn) finalizeBtn.style.display = 'none';
-                }
-            }
-        };
-
-        const toggleExpanded = () => {
-            const expanded = card.classList.toggle('is-expanded');
-            if (expandToggle) {
-                expandToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-            }
-        };
 
         if (expandToggle) {
             expandToggle.addEventListener('click', function(event) {
                 event.stopPropagation();
-                toggleExpanded();
+                openQuickView(product);
             });
         }
 
+        // Tap en la card (fuera de imagen/botones/inputs) también abre el modal.
         card.addEventListener('click', function(event) {
             if (
                 event.target.closest('.product-image') ||
-                event.target.closest('.product-expanded') ||
-                event.target.closest('.product-expand-toggle') ||
                 event.target.closest('button') ||
                 event.target.closest('input')
             ) {
                 return;
             }
-            toggleExpanded();
+            openQuickView(product);
         });
 
-        swatches.forEach(swatch => {
-            swatch.addEventListener('click', function() {
-                swatches.forEach(s => s.classList.remove('is-active'));
-                this.classList.add('is-active');
-                card.setAttribute('data-selected-color', this.getAttribute('data-color') || '');
-                refreshState();
-            });
-        });
-
-        sizeButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
-                if (this.disabled) return;
-                sizeButtons.forEach(b => b.classList.remove('is-active'));
-                this.classList.add('is-active');
-                card.setAttribute('data-selected-size', this.getAttribute('data-size') || '');
-                refreshState();
-            });
-        });
-
-        if (qtyMinus && qtyInput) {
-            qtyMinus.addEventListener('click', function() {
-                const next = Math.max(1, (parseInt(qtyInput.value, 10) || 1) - 1);
-                qtyInput.value = String(next);
-                card.setAttribute('data-selected-qty', String(next));
-            });
-        }
-        if (qtyPlus && qtyInput) {
-            qtyPlus.addEventListener('click', function() {
-                const max = parseInt(qtyInput.max, 10) || 1;
-                const next = Math.min(max, (parseInt(qtyInput.value, 10) || 1) + 1);
-                qtyInput.value = String(next);
-                card.setAttribute('data-selected-qty', String(next));
-            });
-        }
-        if (qtyInput) {
-            qtyInput.addEventListener('change', function() {
-                const max = parseInt(this.max, 10) || 1;
-                const normalized = Math.min(max, Math.max(1, parseInt(this.value, 10) || 1));
-                this.value = String(normalized);
-                card.setAttribute('data-selected-qty', String(normalized));
-            });
-        }
-
+        // La imagen de la card abre el zoom (lightbox) directamente.
         if (imageEl) {
             imageEl.addEventListener('click', function() {
                 openLightbox(product, this.getAttribute('src') || '');
@@ -625,75 +476,33 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // =====================================================
-    // INICIALIZAR BOTONES DE CARRITO
+    // CARRITO — operaciones genéricas sobre un "contexto"
+    // El contexto es un elemento con los data-* de selección y los controles
+    // dentro (hoy: el diálogo del quick-view modal).
     // =====================================================
-    
-    function initCartButtons() {
-        const addToCartButtons = document.querySelectorAll('.add-to-cart');
-        const finalizeButtons = document.querySelectorAll('.product-finalize-btn');
+
+    function isItemInCart(ctx) {
+        const id = ctx.getAttribute('data-id');
+        const color = ctx.getAttribute('data-selected-color') || '';
+        const size = ctx.getAttribute('data-selected-size') || '';
         const cart = JSON.parse(localStorage.getItem('cart')) || [];
-
-        addToCartButtons.forEach(button => {
-            const productCard = button.closest('.product-card');
-            const productId = productCard.getAttribute('data-id');
-            const finalizeBtn = productCard.querySelector('.product-finalize-btn');
-            const selectedColor = productCard.getAttribute('data-selected-color') || '';
-            const selectedSize = productCard.getAttribute('data-selected-size') || '';
-            
-            const inCart = cart.some(item =>
-                item.id === productId &&
-                (item.variantColor || '') === selectedColor &&
-                (item.variantSize || '') === selectedSize
-            );
-            if (inCart) {
-                button.innerText = 'Eliminar del carrito';
-                button.disabled = false;
-                button.style.background = '';
-                button.classList.add('add-to-cart--in-cart');
-                if (finalizeBtn) finalizeBtn.style.display = 'flex';
-            }
-
-            button.addEventListener('click', function onToggleCart() {
-                const card = this.closest('.product-card');
-                const pid = card.getAttribute('data-id');
-                const color = card.getAttribute('data-selected-color') || '';
-                const size = card.getAttribute('data-selected-size') || '';
-                const currentCart = JSON.parse(localStorage.getItem('cart')) || [];
-                const isInCart = currentCart.some(item =>
-                    item.id === pid &&
-                    (item.variantColor || '') === color &&
-                    (item.variantSize || '') === size
-                );
-                if (isInCart) {
-                    removeFromCartForCard(card);
-                } else {
-                    addToCart(this);
-                }
-            });
-        });
-
-        finalizeButtons.forEach(btn => {
-            btn.addEventListener('click', function (e) {
-                e.stopPropagation();
-                goToCheckoutFlow();
-            });
-        });
+        return cart.some(item =>
+            item.id === id &&
+            (item.variantColor || '') === color &&
+            (item.variantSize || '') === size
+        );
     }
 
-    // =====================================================
-    // QUITAR DEL CARRITO (desde la card — toggle)
-    // =====================================================
-    
-    function removeFromCartForCard(productCard) {
-        const productId = productCard.getAttribute('data-id');
-        const selectedColor = productCard.getAttribute('data-selected-color') || '';
-        const selectedSize = productCard.getAttribute('data-selected-size') || '';
+    function removeItemFromCart(ctx) {
+        const productId = ctx.getAttribute('data-id');
+        const variantColor = ctx.getAttribute('data-selected-color') || '';
+        const variantSize = ctx.getAttribute('data-selected-size') || '';
 
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
         cart = cart.filter(item =>
             !(item.id === productId &&
-                (item.variantColor || '') === selectedColor &&
-                (item.variantSize || '') === selectedSize)
+                (item.variantColor || '') === variantColor &&
+                (item.variantSize || '') === variantSize)
         );
         localStorage.setItem('cart', JSON.stringify(cart));
 
@@ -701,46 +510,31 @@ document.addEventListener('DOMContentLoaded', async function() {
         window.dispatchEvent(new CustomEvent('cartUpdated'));
     }
 
-    // =====================================================
-    // AGREGAR AL CARRITO
-    // =====================================================
-    
-    function addToCart(button) {
-        const productCard = button.closest('.product-card');
-        const productId = productCard.getAttribute('data-id');
-        const productTitle = productCard.querySelector('.product-title').innerText;
-        const productPrice = parseFloat(productCard.getAttribute('data-price'));
-        const finalizeBtn = productCard.querySelector('.product-finalize-btn');
-        const variantColor = productCard.getAttribute('data-selected-color') || '';
-        const variantSize = productCard.getAttribute('data-selected-size') || '';
-        const quantity = Math.max(1, parseInt(productCard.getAttribute('data-selected-qty') || '1', 10) || 1);
-        const stock = Math.max(0, parseInt(productCard.getAttribute('data-stock') || '0', 10) || 0);
+    function addItemToCart(ctx, triggerBtn) {
+        const productId = ctx.getAttribute('data-id');
+        const productTitle = ctx.getAttribute('data-name') || '';
+        const productPrice = parseFloat(ctx.getAttribute('data-price'));
+        const variantColor = ctx.getAttribute('data-selected-color') || '';
+        const variantSize = ctx.getAttribute('data-selected-size') || '';
+        const quantity = Math.max(1, parseInt(ctx.getAttribute('data-selected-qty') || '1', 10) || 1);
+        const stock = Math.max(0, parseInt(ctx.getAttribute('data-stock') || '0', 10) || 0);
 
-        if (stock <= 0) {
-            button.innerText = 'Sin stock';
-            button.disabled = true;
-            return;
-        }
+        if (stock <= 0) return;
 
-        // Obtener carrito actual
+        const imgEl = ctx.querySelector('[data-cart-img]');
+        const imageSrc = imgEl ? (imgEl.getAttribute('src') || '') : '';
+
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
-
-        // Verificar si ya existe
         const existingItem = cart.find(item =>
             item.id === productId &&
             (item.variantColor || '') === variantColor &&
             (item.variantSize || '') === variantSize
         );
-        
-        const productImgEl = productCard.querySelector('.product-image');
-        const imageSrc = productImgEl ? (productImgEl.getAttribute('src') || '') : '';
 
         if (existingItem) {
             const nextQty = (existingItem.quantity || 0) + quantity;
             existingItem.quantity = Math.min(nextQty, stock);
-            if (imageSrc && !existingItem.image) {
-                existingItem.image = imageSrc;
-            }
+            if (imageSrc && !existingItem.image) existingItem.image = imageSrc;
         } else {
             cart.push({
                 id: productId,
@@ -753,23 +547,250 @@ document.addEventListener('DOMContentLoaded', async function() {
             });
         }
 
-        // Guardar carrito
         localStorage.setItem('cart', JSON.stringify(cart));
 
-        button.innerText = 'Eliminar del carrito';
-        button.disabled = false;
-        button.style.background = '';
-        button.classList.add('add-to-cart--in-cart');
-        if (finalizeBtn) finalizeBtn.style.display = 'flex';
-
-        flyProductToCart(button, imageSrc);
-
-        // Actualizar badge del carrito
+        if (triggerBtn) flyProductToCart(triggerBtn, imageSrc);
         updateCartBadge();
         triggerCartBadgeBounce();
-
-        // Disparar evento para que main.js actualice el carrito
         window.dispatchEvent(new CustomEvent('cartUpdated'));
+    }
+
+    // =====================================================
+    // QUICK-VIEW MODAL — detalle + compra de un producto
+    // =====================================================
+
+    let activeQuickView = null;
+
+    function openQuickView(product) {
+        if (activeQuickView) {
+            activeQuickView.remove();
+            activeQuickView = null;
+        }
+
+        const variants = Array.isArray(product.variants) ? product.variants : [];
+        const sizes = Array.isArray(product.sizes) ? product.sizes : [];
+        const gallery = getProductGallery(product);
+
+        const selectedColor = variants.length > 0
+            ? (variants.find(v => Number(v.stock) > 0)?.color || variants[0].color)
+            : '';
+        const selectedSize = sizes.length > 0
+            ? (sizes.find(s => Number(s.stock) > 0)?.size || sizes[0].size)
+            : '';
+        const initialStock = computeAvailableStock(product, selectedColor, selectedSize);
+        const initialImage = getImageForColor(product, selectedColor) || gallery[0] || product.image || productImgFallback();
+        const formattedPrice = product.price.toLocaleString('es-AR');
+
+        const galleryNav = gallery.length > 1
+            ? `<button type="button" class="product-quickview__nav prev" aria-label="Imagen anterior">‹</button>
+               <button type="button" class="product-quickview__nav next" aria-label="Imagen siguiente">›</button>
+               <div class="product-quickview__dots">${gallery.map((_, i) => `<span class="product-quickview__dot${i === 0 ? ' is-active' : ''}" data-i="${i}"></span>`).join('')}</div>`
+            : '';
+
+        const overlay = document.createElement('div');
+        overlay.className = 'product-quickview';
+        overlay.innerHTML = `
+            <div class="product-quickview__dialog" role="dialog" aria-modal="true"
+                aria-label="Detalle de ${escapeHtml(product.name || 'producto')}"
+                data-id="${escapeHtml(String(product.id))}"
+                data-name="${escapeHtml(product.name || '')}"
+                data-price="${product.price}"
+                data-selected-color="${escapeHtml(selectedColor || '')}"
+                data-selected-size="${escapeHtml(selectedSize || '')}"
+                data-selected-qty="1"
+                data-stock="${initialStock}">
+                <button type="button" class="product-quickview__close" aria-label="Cerrar">×</button>
+                <div class="product-quickview__media">
+                    <img class="product-quickview__img" data-cart-img src="${escapeHtml(initialImage)}" alt="${escapeHtml(product.name || 'Producto')}" role="button" tabindex="0" aria-label="Ampliar imagen" ${productImgOnerror()}>
+                    ${galleryNav}
+                </div>
+                <div class="product-quickview__info">
+                    <h2 class="product-quickview__title">${escapeHtml(product.name || '')}</h2>
+                    <div class="product-price-row">
+                        <p class="product-price">$${formattedPrice}</p>
+                        ${renderProductTypeTag(product)}
+                    </div>
+                    ${product.description ? `<p class="product-quickview__desc">${escapeHtml(product.description)}</p>` : ''}
+                    ${renderColorSelector(variants, selectedColor)}
+                    ${renderSizeSelector(sizes, selectedSize)}
+                    ${renderQuantitySelector(initialStock)}
+                    <p class="product-stock ${initialStock === 0 ? 'product-stock--out' : ''}">
+                        ${initialStock === 0 ? 'Sin stock ' : 'Disponibles: '}<span>${initialStock}</span>
+                    </p>
+                    <div class="product-buttons">
+                        <button type="button" class="add-to-cart" ${initialStock === 0 ? 'disabled' : ''}>
+                            ${initialStock === 0 ? 'Sin stock' : 'Añadir al carrito'}
+                        </button>
+                        <button type="button" class="product-finalize-btn" style="display: none;" aria-label="Finalizar compra e ir al pago">
+                            Finalizar compra
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        document.body.classList.add('quickview-open');
+        activeQuickView = overlay;
+
+        const dialog = overlay.querySelector('.product-quickview__dialog');
+        const imgEl = overlay.querySelector('.product-quickview__img');
+        const swatches = overlay.querySelectorAll('.color-swatch');
+        const sizeButtons = overlay.querySelectorAll('.size-btn');
+        const qtyInput = overlay.querySelector('.qty-input');
+        const qtyPlus = overlay.querySelector('.qty-plus');
+        const qtyMinus = overlay.querySelector('.qty-minus');
+        const navPrev = overlay.querySelector('.product-quickview__nav.prev');
+        const navNext = overlay.querySelector('.product-quickview__nav.next');
+        const dots = overlay.querySelectorAll('.product-quickview__dot');
+        const addBtn = overlay.querySelector('.add-to-cart');
+        const finalizeBtn = overlay.querySelector('.product-finalize-btn');
+
+        let currentIndex = Math.max(0, gallery.indexOf(initialImage));
+
+        const setGallery = (idx) => {
+            if (!gallery.length) return;
+            currentIndex = (idx + gallery.length) % gallery.length;
+            if (imgEl) imgEl.src = gallery[currentIndex];
+            dots.forEach((d, i) => d.classList.toggle('is-active', i === currentIndex));
+        };
+
+        const refresh = () => {
+            const color = dialog.getAttribute('data-selected-color') || '';
+            const size = dialog.getAttribute('data-selected-size') || '';
+            const qty = Math.max(1, parseInt(dialog.getAttribute('data-selected-qty') || '1', 10) || 1);
+            const stock = computeAvailableStock(product, color, size);
+            dialog.setAttribute('data-stock', String(stock));
+            updateStockUI(dialog, stock);
+
+            if (qtyInput) {
+                qtyInput.max = String(Math.max(1, stock));
+                const nextQty = Math.min(Math.max(1, qty), Math.max(1, stock));
+                qtyInput.value = String(nextQty);
+                dialog.setAttribute('data-selected-qty', String(nextQty));
+            }
+
+            const colorImg = getImageForColor(product, color);
+            if (colorImg) {
+                const gi = gallery.indexOf(colorImg);
+                if (gi >= 0) setGallery(gi);
+                else if (imgEl) imgEl.src = colorImg;
+            }
+
+            const inCart = isItemInCart(dialog);
+            if (addBtn) {
+                if (stock <= 0) {
+                    addBtn.disabled = true;
+                    addBtn.innerText = 'Sin stock';
+                    addBtn.classList.remove('add-to-cart--in-cart');
+                    if (finalizeBtn) finalizeBtn.style.display = 'none';
+                } else if (inCart) {
+                    addBtn.disabled = false;
+                    addBtn.innerText = 'Eliminar del carrito';
+                    addBtn.classList.add('add-to-cart--in-cart');
+                    if (finalizeBtn) finalizeBtn.style.display = 'flex';
+                } else {
+                    addBtn.disabled = false;
+                    addBtn.innerText = 'Añadir al carrito';
+                    addBtn.classList.remove('add-to-cart--in-cart');
+                    if (finalizeBtn) finalizeBtn.style.display = 'none';
+                }
+            }
+        };
+        overlay._refresh = refresh;
+
+        const onKey = (event) => {
+            // Si hay un lightbox de zoom encima, Esc lo cierra a él primero.
+            if (event.key === 'Escape' && !document.querySelector('.product-lightbox')) {
+                closeQuickView();
+            }
+        };
+
+        const closeQuickView = () => {
+            if (!activeQuickView) return;
+            document.removeEventListener('keydown', onKey);
+            document.body.classList.remove('quickview-open');
+            overlay.remove();
+            activeQuickView = null;
+        };
+
+        overlay.querySelector('.product-quickview__close').addEventListener('click', closeQuickView);
+        overlay.addEventListener('click', function(event) {
+            if (event.target === overlay) closeQuickView();
+        });
+        document.addEventListener('keydown', onKey);
+
+        if (navPrev) navPrev.addEventListener('click', () => setGallery(currentIndex - 1));
+        if (navNext) navNext.addEventListener('click', () => setGallery(currentIndex + 1));
+        dots.forEach(dot => dot.addEventListener('click', () => setGallery(parseInt(dot.getAttribute('data-i'), 10) || 0)));
+
+        if (imgEl) {
+            const openZoom = () => openLightbox(product, imgEl.getAttribute('src') || '');
+            imgEl.addEventListener('click', openZoom);
+            imgEl.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') openZoom(); });
+        }
+
+        swatches.forEach(swatch => {
+            swatch.addEventListener('click', function() {
+                swatches.forEach(s => s.classList.remove('is-active'));
+                this.classList.add('is-active');
+                dialog.setAttribute('data-selected-color', this.getAttribute('data-color') || '');
+                refresh();
+            });
+        });
+
+        sizeButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.disabled) return;
+                sizeButtons.forEach(b => b.classList.remove('is-active'));
+                this.classList.add('is-active');
+                dialog.setAttribute('data-selected-size', this.getAttribute('data-size') || '');
+                refresh();
+            });
+        });
+
+        if (qtyMinus && qtyInput) {
+            qtyMinus.addEventListener('click', function() {
+                const next = Math.max(1, (parseInt(qtyInput.value, 10) || 1) - 1);
+                qtyInput.value = String(next);
+                dialog.setAttribute('data-selected-qty', String(next));
+            });
+        }
+        if (qtyPlus && qtyInput) {
+            qtyPlus.addEventListener('click', function() {
+                const max = parseInt(qtyInput.max, 10) || 1;
+                const next = Math.min(max, (parseInt(qtyInput.value, 10) || 1) + 1);
+                qtyInput.value = String(next);
+                dialog.setAttribute('data-selected-qty', String(next));
+            });
+        }
+        if (qtyInput) {
+            qtyInput.addEventListener('change', function() {
+                const max = parseInt(this.max, 10) || 1;
+                const normalized = Math.min(max, Math.max(1, parseInt(this.value, 10) || 1));
+                this.value = String(normalized);
+                dialog.setAttribute('data-selected-qty', String(normalized));
+            });
+        }
+
+        if (addBtn) {
+            addBtn.addEventListener('click', function() {
+                if (isItemInCart(dialog)) {
+                    removeItemFromCart(dialog);
+                } else {
+                    addItemToCart(dialog, this);
+                }
+                refresh();
+            });
+        }
+        if (finalizeBtn) {
+            finalizeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                closeQuickView();
+                goToCheckoutFlow();
+            });
+        }
+
+        refresh();
     }
 
     // =====================================================
@@ -818,48 +839,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     `;
     document.head.appendChild(styleSheet);
-
-    // =====================================================
-    // ACTUALIZAR BOTONES SEGÚN EL CARRITO
-    // =====================================================
-    
-    function refreshButtonStates() {
-        const cart = JSON.parse(localStorage.getItem('cart')) || [];
-        const productCards = document.querySelectorAll('.product-card');
-
-        productCards.forEach(card => {
-            const productId = card.getAttribute('data-id');
-            const addBtn = card.querySelector('.add-to-cart');
-            const finalizeBtn = card.querySelector('.product-finalize-btn');
-            const stock = parseInt(card.getAttribute('data-stock'), 10) || 0;
-            const selectedColor = card.getAttribute('data-selected-color') || '';
-            const selectedSize = card.getAttribute('data-selected-size') || '';
-            
-            const inCart = cart.some(item =>
-                item.id === productId &&
-                (item.variantColor || '') === selectedColor &&
-                (item.variantSize || '') === selectedSize
-            );
-
-            if (!addBtn) return;
-
-            if (inCart) {
-                addBtn.innerText = 'Eliminar del carrito';
-                addBtn.disabled = false;
-                addBtn.style.background = '';
-                addBtn.classList.add('add-to-cart--in-cart');
-                if (finalizeBtn) finalizeBtn.style.display = 'flex';
-            } else {
-                if (stock > 0) {
-                    addBtn.innerText = 'Añadir al carrito';
-                    addBtn.disabled = false;
-                    addBtn.style.background = '';
-                }
-                addBtn.classList.remove('add-to-cart--in-cart');
-                if (finalizeBtn) finalizeBtn.style.display = 'none';
-            }
-        });
-    }
 
     // =====================================================
     // LIGHTBOX
@@ -943,7 +922,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Escuchar actualizaciones del carrito (desde main.js cuando se elimina)
     window.addEventListener('cartUpdated', function() {
         updateCartBadge();
-        refreshButtonStates();
+        // Si el quick-view está abierto, reflejar el estado del carrito.
+        if (activeQuickView && typeof activeQuickView._refresh === 'function') {
+            activeQuickView._refresh();
+        }
     });
 });
 

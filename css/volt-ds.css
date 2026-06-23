@@ -1973,10 +1973,6 @@ main > .shop-page-header {
     border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
 }
 
-.product-card.is-expanded .product-expanded {
-    border-top-color: var(--volt-ds-border) !important;
-}
-
 .size-btn {
     font-family: var(--font-ds-mono) !important;
     border: 1px solid var(--volt-ds-border) !important;
