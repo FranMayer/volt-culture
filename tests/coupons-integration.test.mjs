@@ -29,5 +29,12 @@ inc('transfer persiste coupon en orden', transferApi, 'coupon,');
 inc('transfer persiste discountSource en orden', transferApi, 'discountSource,');
 inc('transfer devuelve discountSource', transferApi, 'discountSource,');
 
+// ── create-preference ──
+const prefApi = read('api/create-preference.js');
+inc('preference importa _coupons', prefApi, "from './_coupons.mjs'");
+inc('preference lee body.couponCode', prefApi, 'body.couponCode');
+inc('preference persiste discountSource', prefApi, 'discountSource');
+inc('preference descuenta unit_price', prefApi, 'unitPrice');
+
 if (failed > 0) { console.error(`\n❌ ${failed} coupon integration checks failed`); process.exit(1); }
 console.log('✅ coupon integration checks passed');

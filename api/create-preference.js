@@ -4,6 +4,7 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { computeAvailableStock } from './_stock.js';
 import { applyRateLimit } from './_rate-limit.js';
 import { SHIPPING_CONFIG } from '../js/shipping-config.js';
+import { normalizeCouponCode, isCouponValid } from './_coupons.mjs';
 
 function initAdmin() {
     if (!process.env.FIREBASE_PRIVATE_KEY) {
@@ -232,7 +233,30 @@ export default async function handler(req, res) {
         }
 
         const productsTotal = normalizedItems.reduce((sum, i) => sum + (i.price * i.quantity), 0);
-        const total = productsTotal + shippingCost;
+
+        // Cupón válido: baja el unit_price de cada producto en su %.
+        let coupon = null;
+        let discountSource = null;
+        let discountPercent = 0;
+        const couponCode = normalizeCouponCode(body.couponCode);
+        if (couponCode) {
+            const couponSnap = await db.collection('coupons').doc(couponCode).get();
+            const couponData = couponSnap.exists ? couponSnap.data() : null;
+            if (isCouponValid(couponData).valid) {
+                coupon = couponData.code || couponCode;
+                discountSource = 'coupon';
+                discountPercent = Number(couponData.percent);
+            }
+        }
+
+        const discountedItems = normalizedItems.map((i) => ({
+            ...i,
+            unitPrice: discountPercent ? Math.round(i.price * (100 - discountPercent) / 100) : i.price
+        }));
+        const discountedProductsTotal = discountedItems.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
+        const discountAmount = productsTotal - discountedProductsTotal;
+        const subtotal = productsTotal + shippingCost;
+        const total = discountedProductsTotal + shippingCost;
         const orderId = generateOrderId();
         const orderRef = db.collection('orders').doc(orderId);
 
@@ -248,6 +272,11 @@ export default async function handler(req, res) {
                 },
                 shipping,
                 items: normalizedItems,
+                subtotal,
+                discountPercent,
+                discountAmount,
+                coupon,
+                discountSource,
                 total,
                 paymentId: null,
                 paidAt: null,
@@ -260,14 +289,14 @@ export default async function handler(req, res) {
             });
         }
 
-        const mpItems = normalizedItems.map((item, index) => ({
+        const mpItems = discountedItems.map((item, index) => ({
             id: `${item.id}-${index}`,
             title: item.title,
             description: [item.title, item.variantColor, item.variantSize].filter(Boolean).join(' · ') || item.title,
             category_id: 'fashion',
             quantity: item.quantity,
             currency_id: 'ARS',
-            unit_price: item.price
+            unit_price: item.unitPrice
         }));
 
         if (shipping.type === 'cordoba') {
