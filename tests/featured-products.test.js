@@ -17,5 +17,13 @@ const homeFeatured = read('js/home-featured.js');
 inc('home filtra por featured', homeFeatured, 'p.featured === true');
 inc('home cae a los primeros si no hay destacados', homeFeatured, 'flagged.length ? flagged : products');
 
+// ── Admin: estrella + toggleFeatured + expuesto en window ──
+const adminProducts = read('js/admin-products.js');
+inc('admin estrella llama toggleFeatured', adminProducts, 'toggleFeatured(');
+inc('admin estrella usa dorado #FFD700', adminProducts, '#FFD700');
+inc('admin define toggleFeatured', adminProducts, 'async function toggleFeatured');
+inc('admin togglea el flag', adminProducts, 'featured: !isFeatured');
+inc('admin expone window.toggleFeatured', adminProducts, 'window.toggleFeatured = toggleFeatured');
+
 if (failed > 0) { console.error(`\n❌ ${failed} featured checks failed`); process.exit(1); }
 console.log('✅ featured products checks passed');

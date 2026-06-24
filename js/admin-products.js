@@ -76,6 +76,9 @@ function renderProductCard(product) {
                 </span>
             </td>
             <td>
+                <button class="btn btn-sm btn-outline-secondary" onclick="toggleFeatured('${p.id}', ${p.featured === true})" title="${p.featured === true ? 'Quitar de destacados' : 'Destacar'}" aria-label="${p.featured === true ? 'Quitar de destacados' : 'Destacar'}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="${p.featured === true ? '#FFD700' : 'none'}" stroke="${p.featured === true ? '#FFD700' : 'currentColor'}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-0.15em"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </button>
                 <button class="btn btn-sm btn-outline-volt" onclick="editProduct('${p.id}')" title="Editar" aria-label="Editar">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-0.15em"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
                 </button>
@@ -596,6 +599,16 @@ async function deleteProduct(id) {
     }
 }
 
+async function toggleFeatured(id, isFeatured) {
+    try {
+        await window.ProductsService.update(id, { featured: !isFeatured });
+        await loadProducts();
+    } catch (error) {
+        console.error('Error al cambiar destacado:', error);
+        alert(`❌ No se pudo actualizar el destacado: ${error.message}`);
+    }
+}
+
 async function importSampleProducts() {
     if (!window.FirebaseConfig.isInitialized()) {
         alert('⚠️ Primero debes configurar Firebase');
@@ -671,6 +684,7 @@ function init(deps = {}) {
     // Mantener compatibilidad con handlers inline existentes.
     window.editProduct = editProduct;
     window.deleteProduct = deleteProduct;
+    window.toggleFeatured = toggleFeatured;
 }
 
 window.AdminProducts = {
