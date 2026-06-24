@@ -17,6 +17,7 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { computeAvailableStock } from './_stock.js';
 import { applyRateLimit } from './_rate-limit.js';
 import { SHIPPING_CONFIG } from '../js/shipping-config.js';
+import { normalizeCouponCode, isCouponValid, computeCouponDiscount } from './_coupons.mjs';
 
 const TRANSFER_DISCOUNT_RATE = 0.10;
 
@@ -225,8 +226,26 @@ export default async function handler(req, res) {
 
         const productsTotal = normalizedItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
         const subtotal = productsTotal + shippingCost;
-        // Mismo redondeo que el frontend (renderSummary / buildTransferWaUrl).
-        const discountAmount = Math.round(subtotal * TRANSFER_DISCOUNT_RATE);
+
+        // Default: descuento por transferencia (−10% sobre subtotal).
+        let coupon = null;
+        let discountSource = 'transfer';
+        let discountPercent = Math.round(TRANSFER_DISCOUNT_RATE * 100);
+        let discountAmount = Math.round(subtotal * TRANSFER_DISCOUNT_RATE);
+
+        // Cupón válido REEMPLAZA al −10% (descuento solo sobre productos).
+        const couponCode = normalizeCouponCode(body.couponCode);
+        if (couponCode) {
+            const couponSnap = await db.collection('coupons').doc(couponCode).get();
+            const couponData = couponSnap.exists ? couponSnap.data() : null;
+            if (isCouponValid(couponData).valid) {
+                coupon = couponData.code || couponCode;
+                discountSource = 'coupon';
+                discountPercent = Number(couponData.percent);
+                discountAmount = computeCouponDiscount(productsTotal, discountPercent);
+            }
+        }
+
         const total = subtotal - discountAmount;
 
         const orderId = generateOrderId();
@@ -246,7 +265,9 @@ export default async function handler(req, res) {
                 shipping,
                 items: normalizedItems,
                 subtotal,
-                discountPercent: Math.round(TRANSFER_DISCOUNT_RATE * 100),
+                coupon,
+                discountSource,
+                discountPercent,
                 discountAmount,
                 total,
                 paymentId: null,
@@ -266,7 +287,9 @@ export default async function handler(req, res) {
             total,
             subtotal,
             discountAmount,
-            discountPercent: Math.round(TRANSFER_DISCOUNT_RATE * 100)
+            discountPercent,
+            discountSource,
+            coupon
         });
     } catch (error) {
         if (error.message?.includes('Invalid PEM formatted message')) {

@@ -20,5 +20,14 @@ inc('rules: match coupons', rules, 'match /coupons/{couponId}');
 inc('rules: coupons read público', rules, 'allow read: if true;');
 inc('rules: coupons write admin', rules, 'request.auth.token.admin == true');
 
+// ── create-transfer-order ──
+const transferApi = read('api/create-transfer-order.js');
+inc('transfer importa _coupons', transferApi, "from './_coupons.mjs'");
+inc('transfer lee body.couponCode', transferApi, 'body.couponCode');
+inc('transfer setea discountSource coupon', transferApi, "discountSource = 'coupon'");
+inc('transfer persiste coupon en orden', transferApi, 'coupon,');
+inc('transfer persiste discountSource en orden', transferApi, 'discountSource,');
+inc('transfer devuelve discountSource', transferApi, 'discountSource,');
+
 if (failed > 0) { console.error(`\n❌ ${failed} coupon integration checks failed`); process.exit(1); }
 console.log('✅ coupon integration checks passed');
