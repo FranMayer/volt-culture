@@ -4,7 +4,7 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { computeAvailableStock } from './_stock.js';
 import { applyRateLimit } from './_rate-limit.js';
 import { SHIPPING_CONFIG } from '../js/shipping-config.js';
-import { normalizeCouponCode, isCouponValid } from './_coupons.mjs';
+import { normalizeCouponCode, isCouponValid } from './_coupons.js';
 
 function initAdmin() {
     if (!process.env.FIREBASE_PRIVATE_KEY) {

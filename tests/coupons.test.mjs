@@ -1,7 +1,7 @@
 /**
  * Tests unitarios del helper de cupones. Uso: node tests/coupons.test.mjs
  */
-import { normalizeCouponCode, isCouponValid, computeCouponDiscount } from '../api/_coupons.mjs';
+import { normalizeCouponCode, isCouponValid, computeCouponDiscount } from '../api/_coupons.js';
 
 let failed = 0;
 function check(label, cond) {
