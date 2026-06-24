@@ -39,6 +39,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /** Envío validado al tocar "Continuar" en paso 2; se usa en "IR A PAGAR" y se limpia al cerrar/resetear el modal. */
     let _shippingConfirmado = null;
+    /** Cupón aplicado en el paso 3 ({ code, percent }) o null. Se resetea al abrir el modal. */
+    let _couponAplicado = null;
 
     if (!checkoutBtn) return;
 
@@ -127,6 +129,12 @@ document.addEventListener("DOMContentLoaded", () => {
             #customerDataModal .volt-mp-trust { font-size:0.72rem; color:#888; line-height:1.45; margin:0.75rem 0 0; text-align:center; }
             #customerDataModal .volt-summary-discount { color:#6daa6d; }
             #customerDataModal .volt-summary-total-transfer { color:#6daa6d; font-weight:700; }
+            #customerDataModal .volt-coupon { margin:0.25rem 0 1rem; }
+            #customerDataModal .volt-coupon__row { display:flex; gap:0.4rem; flex-wrap:wrap; }
+            #customerDataModal .volt-coupon__row .form-control { flex:1 1 auto; min-width:0; text-transform:uppercase; }
+            #customerDataModal .volt-coupon__feedback { font-size:0.78rem; margin-top:0.35rem; min-height:1em; }
+            #customerDataModal .volt-coupon__feedback.is-ok { color:#6daa6d; }
+            #customerDataModal .volt-coupon__feedback.is-error { color:#e06b6b; }
             @media (max-width:575px) {
                 #customerDataModal .modal-body { padding:0.75rem; }
                 #customerDataModal .modal-footer { padding:0.5rem 0.75rem; flex-wrap:wrap; gap:0.4rem; }
@@ -234,6 +242,15 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div id="checkoutStep3" class="volt-step-panel">
                             <h6 class="text-uppercase small mb-2" style="font-family:Teko,sans-serif;letter-spacing:0.1em;color:#c1121f;">Tu pedido</h6>
                             <ul class="volt-summary-list" id="checkoutSummaryItems"></ul>
+                            <div class="volt-coupon" id="checkoutCouponBlock">
+                                <label class="form-label" for="checkoutCouponInput">¿Tenés un cupón?</label>
+                                <div class="volt-coupon__row">
+                                    <input type="text" class="form-control" id="checkoutCouponInput" placeholder="Ej: VOLT20" autocomplete="off" style="${CHECKOUT_INPUT_STYLE}">
+                                    <button type="button" class="btn btn-danger btn-sm" id="checkoutCouponApply">Aplicar</button>
+                                    <button type="button" class="btn btn-outline-light btn-sm d-none" id="checkoutCouponRemove">Quitar</button>
+                                </div>
+                                <div class="volt-coupon__feedback" id="checkoutCouponFeedback" role="status"></div>
+                            </div>
                             <h6 class="text-uppercase small mb-2" style="font-family:Teko,sans-serif;letter-spacing:0.1em;color:#c1121f;">Envío</h6>
                             <div class="volt-summary-ship" id="checkoutSummaryShipping"></div>
                             <div id="checkoutBankPanel" class="volt-bank-panel d-none">
@@ -346,6 +363,28 @@ document.addEventListener("DOMContentLoaded", () => {
         return `$${Number(n || 0).toLocaleString("es-AR")}`;
     }
 
+    function normalizeCouponCode(code) {
+        return String(code || "").trim().toUpperCase().replace(/\s+/g, "");
+    }
+
+    function couponValidity(data, now = new Date()) {
+        if (!data) return { valid: false, reason: "No encontramos ese cupón." };
+        if (data.active !== true) return { valid: false, reason: "Ese cupón no está activo." };
+        const percent = Number(data.percent);
+        if (!Number.isInteger(percent) || percent < 1 || percent > 100) {
+            return { valid: false, reason: "Cupón inválido." };
+        }
+        if (data.expiresAt) {
+            const exp = typeof data.expiresAt.toDate === "function"
+                ? data.expiresAt.toDate()
+                : new Date(data.expiresAt);
+            if (exp && !Number.isNaN(exp.getTime()) && exp.getTime() <= now.getTime()) {
+                return { valid: false, reason: "Ese cupón está vencido." };
+            }
+        }
+        return { valid: true, percent };
+    }
+
     function renderSummary(modalEl, cart, customer, shippingState, mode = 'mp') {
         const itemsEl = modalEl.querySelector("#checkoutSummaryItems");
         const shipEl = modalEl.querySelector("#checkoutSummaryShipping");
@@ -381,7 +420,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         let totalLine;
-        if (mode === 'transfer') {
+        if (_couponAplicado) {
+            const discountAmount = Math.round(productsTotal * _couponAplicado.percent / 100);
+            const finalTotal = subtotal - discountAmount;
+            const totalLabel = mode === 'transfer' ? 'Total a transferir' : 'Total';
+            totalLine =
+                `<li><span>Subtotal</span><span>${formatMoney(subtotal)}</span></li>` +
+                `<li class="volt-summary-discount"><span>Cupón ${_couponAplicado.code} (−${_couponAplicado.percent}%)</span><span>−${formatMoney(discountAmount)}</span></li>` +
+                `<li class="volt-summary-total-transfer"><span><strong>${totalLabel}</strong></span><span><strong>${formatMoney(finalTotal)}</strong></span></li>`;
+        } else if (mode === 'transfer') {
             const discountAmount = Math.round(subtotal * TRANSFER_DISCOUNT);
             const finalTotal = subtotal - discountAmount;
             totalLine =
@@ -509,6 +556,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const modalEl = document.getElementById("customerDataModal");
 
         _shippingConfirmado = null;
+        _couponAplicado = null;
+        const couponInputReset = modalEl.querySelector("#checkoutCouponInput");
+        const couponFeedbackReset = modalEl.querySelector("#checkoutCouponFeedback");
+        const couponRemoveReset = modalEl.querySelector("#checkoutCouponRemove");
+        if (couponInputReset) couponInputReset.value = "";
+        if (couponFeedbackReset) { couponFeedbackReset.textContent = ""; couponFeedbackReset.className = "volt-coupon__feedback"; }
+        if (couponRemoveReset) couponRemoveReset.classList.add("d-none");
 
         const saved = getSavedCustomerData();
         const authUser = window.VoltStoreAuth?.getCurrentUser();
@@ -575,6 +629,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 btnBack.removeEventListener("click", onBack);
                 btnPay.removeEventListener("click", onPay);
                 modalEl.removeEventListener("hidden.bs.modal", onHidden);
+                couponApplyBtn.removeEventListener("click", onCouponApply);
+                couponRemoveBtn.removeEventListener("click", onCouponRemove);
             };
 
             const onHidden = () => {
@@ -582,6 +638,64 @@ document.addEventListener("DOMContentLoaded", () => {
                     _shippingConfirmado = null;
                     finish(null);
                 }
+            };
+
+            const couponInput = modalEl.querySelector("#checkoutCouponInput");
+            const couponApplyBtn = modalEl.querySelector("#checkoutCouponApply");
+            const couponRemoveBtn = modalEl.querySelector("#checkoutCouponRemove");
+            const couponFeedback = modalEl.querySelector("#checkoutCouponFeedback");
+
+            const setCouponFeedback = (msg, ok) => {
+                couponFeedback.textContent = msg || "";
+                couponFeedback.classList.toggle("is-ok", !!ok && !!msg);
+                couponFeedback.classList.toggle("is-error", !ok && !!msg);
+            };
+
+            const rerenderSummaryNow = () => {
+                if (!_shippingConfirmado) return;
+                const customer = {
+                    name: modalEl.querySelector("#customerName").value.trim(),
+                    dni: modalEl.querySelector("#customerDni").value.trim(),
+                    phone: modalEl.querySelector("#customerPhone").value.trim(),
+                    email: modalEl.querySelector("#customerEmail").value.trim(),
+                };
+                renderSummary(modalEl, cart, customer, _shippingConfirmado, mode);
+            };
+
+            const onCouponApply = async () => {
+                const code = normalizeCouponCode(couponInput.value);
+                if (!code) { setCouponFeedback("Ingresá un código.", false); return; }
+                couponApplyBtn.disabled = true;
+                setCouponFeedback("Validando…", true);
+                try {
+                    const snap = await firebase.firestore().collection('coupons').doc(code).get();
+                    const data = snap.exists ? snap.data() : null;
+                    const res = couponValidity(data);
+                    if (!res.valid) {
+                        _couponAplicado = null;
+                        couponRemoveBtn.classList.add("d-none");
+                        setCouponFeedback(res.reason, false);
+                    } else {
+                        _couponAplicado = { code: data.code || code, percent: res.percent };
+                        couponRemoveBtn.classList.remove("d-none");
+                        setCouponFeedback(`Cupón ${_couponAplicado.code} aplicado: ${res.percent}% off en productos.`, true);
+                    }
+                } catch (e) {
+                    _couponAplicado = null;
+                    couponRemoveBtn.classList.add("d-none");
+                    setCouponFeedback("No se pudo validar el cupón. Probá de nuevo.", false);
+                } finally {
+                    couponApplyBtn.disabled = false;
+                    rerenderSummaryNow();
+                }
+            };
+
+            const onCouponRemove = () => {
+                _couponAplicado = null;
+                couponInput.value = "";
+                couponRemoveBtn.classList.add("d-none");
+                setCouponFeedback("", false);
+                rerenderSummaryNow();
             };
 
             const onBack = () => {
@@ -674,6 +788,8 @@ document.addEventListener("DOMContentLoaded", () => {
             btnNext.addEventListener("click", onNext);
             btnBack.addEventListener("click", onBack);
             btnPay.addEventListener("click", onPay);
+            couponApplyBtn.addEventListener("click", onCouponApply);
+            couponRemoveBtn.addEventListener("click", onCouponRemove);
             modalEl.addEventListener("hidden.bs.modal", onHidden, { once: true });
             modal.show();
         });

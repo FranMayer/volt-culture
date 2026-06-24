@@ -36,5 +36,12 @@ inc('preference lee body.couponCode', prefApi, 'body.couponCode');
 inc('preference persiste discountSource', prefApi, 'discountSource');
 inc('preference descuenta unit_price', prefApi, 'unitPrice');
 
+// ── pagos.js (preview en checkout) ──
+const pagosJs = read('js/pagos.js');
+inc('pagos input de cupón', pagosJs, 'checkoutCouponInput');
+inc('pagos botón aplicar', pagosJs, 'checkoutCouponApply');
+inc('pagos estado _couponAplicado', pagosJs, '_couponAplicado');
+inc('pagos lee colección coupons', pagosJs, "collection('coupons')");
+
 if (failed > 0) { console.error(`\n❌ ${failed} coupon integration checks failed`); process.exit(1); }
 console.log('✅ coupon integration checks passed');
