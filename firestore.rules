@@ -8,6 +8,12 @@ service cloud.firestore {
       allow write: if request.auth != null && request.auth.token.admin == true;
     }
 
+    // Cupones: lectura pública (preview en checkout), escritura solo admin.
+    match /coupons/{couponId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.admin == true;
+    }
+
     // Pedidos: escritura solo por Admin SDK del backend (allow write: if false bloquea clientes).
     //          Lectura para admin, o para el usuario dueño de la orden (por email).
     match /orders/{orderId} {
