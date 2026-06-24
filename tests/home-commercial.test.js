@@ -13,7 +13,7 @@ function assertIncludes(label, needle) {
 assertIncludes('featured products section', 'id="homeFeaturedGrid"');
 assertIncludes('featured products hero placement', 'class="hero-featured"');
 assertIncludes('featured products larger desktop width', 'width: min(700px, 48vw);');
-assertIncludes('featured products compact limit', 'data-limit="3"');
+assertIncludes('featured products compact limit', 'data-limit="8"');
 assertIncludes('featured products carousel layout', 'home-featured__grid--carousel');
 assertIncludes('featured products script', '/js/home-featured.js');
 assertIncludes('home cart button', 'data-bs-target="#offcanvasRight"');
