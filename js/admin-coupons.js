@@ -7,6 +7,12 @@ function normalizeCouponCode(code) {
     return String(code || '').trim().toUpperCase().replace(/\s+/g, '');
 }
 
+function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+}
+
 const db = () => firebase.firestore();
 
 function renderRow(doc) {
@@ -16,7 +22,7 @@ function renderRow(doc) {
         ? c.expiresAt.toDate().toLocaleDateString('es-AR')
         : '—';
     return `<tr>
-        <td>${c.code}</td>
+        <td>${escapeHtml(c.code)}</td>
         <td>${c.percent}%</td>
         <td>${active ? 'Activo' : 'Inactivo'}</td>
         <td>${expires}</td>

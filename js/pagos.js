@@ -421,7 +421,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         let totalLine;
         if (_couponAplicado) {
-            const discountAmount = Math.round(productsTotal * _couponAplicado.percent / 100);
+            const percent = _couponAplicado.percent;
+            const discountAmount = mode === 'transfer'
+                ? Math.round(productsTotal * percent / 100)
+                : productsTotal - cart.reduce((sum, item) =>
+                    sum + Math.round((item.price || 0) * (100 - percent) / 100) * (item.quantity || 1), 0);
             const finalTotal = subtotal - discountAmount;
             const totalLabel = mode === 'transfer' ? 'Total a transferir' : 'Total';
             totalLine =
@@ -649,8 +653,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const setCouponFeedback = (msg, ok) => {
                 couponFeedback.textContent = msg || "";
-                couponFeedback.classList.toggle("is-ok", !!ok && !!msg);
-                couponFeedback.classList.toggle("is-error", !ok && !!msg);
+                couponFeedback.classList.toggle("is-ok", ok === true && !!msg);
+                couponFeedback.classList.toggle("is-error", ok === false && !!msg);
             };
 
             const rerenderSummaryNow = () => {
@@ -668,7 +672,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const code = normalizeCouponCode(couponInput.value);
                 if (!code) { setCouponFeedback("Ingresá un código.", false); return; }
                 couponApplyBtn.disabled = true;
-                setCouponFeedback("Validando…", true);
+                setCouponFeedback("Validando…", "pending");
                 try {
                     const snap = await firebase.firestore().collection('coupons').doc(code).get();
                     const data = snap.exists ? snap.data() : null;
