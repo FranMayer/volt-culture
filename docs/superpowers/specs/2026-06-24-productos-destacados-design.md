@@ -50,7 +50,8 @@ Campo nuevo en `products/{id}`:
 
 - **`renderProductCard(product)`**: agregar un botón estrella en el `<td>` de
   acciones, antes de Editar/Eliminar:
-  - Estrella **rellena** (color rojo de marca `#c1121f`) si `p.featured === true`.
+  - Estrella **rellena** (dorado clásico de favoritos `#FFD700`) si
+    `p.featured === true`.
   - Estrella **contorno** (gris) si no.
   - `onclick="toggleFeatured('${p.id}', ${p.featured === true})"`.
   - `title`/`aria-label`: "Quitar de destacados" si está destacado, "Destacar"
