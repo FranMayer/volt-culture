@@ -510,7 +510,9 @@ document.addEventListener("DOMContentLoaded", () => {
             `*Envío:* ${shipInfo}`,
             '',
             `*Subtotal:* ${formatMoney(subtotal)}`,
-            `*Descuento 10% transferencia:* −${formatMoney(discountAmount)}`,
+            serverTotals.discountSource === 'coupon'
+                ? `*Descuento cupón ${serverTotals.coupon} (${serverTotals.discountPercent}%):* −${formatMoney(discountAmount)}`
+                : `*Descuento 10% transferencia:* −${formatMoney(discountAmount)}`,
             `*TOTAL A TRANSFERIR: ${formatMoney(finalTotal)}*`,
             '',
             '*MIS DATOS:*',
@@ -781,6 +783,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         address: _shippingConfirmado.address,
                     };
                 }
+                payload.couponCode = _couponAplicado?.code || null;
                 _shippingConfirmado = null;
                 finish(payload);
             };
@@ -829,7 +832,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 checkoutBtn.disabled = false;
                 return;
             }
-            const { customer, shippingOption, shipping } = result;
+            const { customer, shippingOption, shipping, couponCode } = result;
 
             const missingId = cart.find((item) => !item.id);
             if (missingId) {
@@ -856,6 +859,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (shipping?.address) {
                 postBody.shipping = shipping;
             }
+            if (couponCode) postBody.couponCode = couponCode;
 
             const response = await fetch(API_URL, {
                 method: "POST",
@@ -932,7 +936,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const result = await askCheckoutData(cart, { mode: 'transfer' });
                 if (!result) return;
 
-                const { customer, shippingOption, shipping } = result;
+                const { customer, shippingOption, shipping, couponCode } = result;
 
                 const missingId = cart.find((item) => !item.id);
                 if (missingId) {
@@ -954,6 +958,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const postBody = { items, customer, shippingOption };
                 if (shipping?.address) postBody.shipping = shipping;
+                if (couponCode) postBody.couponCode = couponCode;
 
                 const response = await fetch(TRANSFER_API_URL, {
                     method: "POST",
@@ -983,6 +988,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     subtotal: data.subtotal,
                     discountAmount: data.discountAmount,
                     total: data.total,
+                    discountSource: data.discountSource,
+                    coupon: data.coupon,
+                    discountPercent: data.discountPercent,
                 });
 
                 const uid = firebase.auth().currentUser?.uid;

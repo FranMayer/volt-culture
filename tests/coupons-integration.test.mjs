@@ -43,5 +43,10 @@ inc('pagos botón aplicar', pagosJs, 'checkoutCouponApply');
 inc('pagos estado _couponAplicado', pagosJs, '_couponAplicado');
 inc('pagos lee colección coupons', pagosJs, "collection('coupons')");
 
+// ── pagos.js (envío al backend + WhatsApp) ──
+inc('pagos arma payload con couponCode', pagosJs, 'payload.couponCode');
+inc('pagos manda couponCode en postBody', pagosJs, 'postBody.couponCode');
+inc('pagos WA muestra descuento cupón', pagosJs, 'Descuento cupón');
+
 if (failed > 0) { console.error(`\n❌ ${failed} coupon integration checks failed`); process.exit(1); }
 console.log('✅ coupon integration checks passed');
