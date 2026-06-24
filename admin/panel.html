@@ -810,6 +810,7 @@
                 <button class="admin-tab active" data-tab="productos"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M3.3 7 12 12l8.7-5"/><path d="M12 22V12"/></svg>Productos</button>
                 <button class="admin-tab" data-tab="pedidos"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>Pedidos</button>
                 <button class="admin-tab" data-tab="configuracion"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configuración</button>
+                <button class="admin-tab" data-tab="cupones"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>Cupones</button>
             </div>
 
             <!-- ============================================
@@ -1049,6 +1050,39 @@
                 </div>
             </div>
 
+            <!-- ============================================
+                 TAB: CUPONES
+            ============================================ -->
+            <div class="tab-content" id="tab-cupones">
+                <form id="couponForm" class="row g-2 align-items-end mb-4" style="max-width:640px;">
+                    <div class="col-12 col-sm-4">
+                        <label class="form-label" for="couponCodeInput">Código</label>
+                        <input type="text" class="form-control" id="couponCodeInput" placeholder="VOLT20" autocomplete="off" style="text-transform:uppercase;">
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <label class="form-label" for="couponPercentInput">% descuento</label>
+                        <input type="number" class="form-control" id="couponPercentInput" min="1" max="100" step="1" placeholder="20">
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <label class="form-label" for="couponExpiresInput">Vence (opcional)</label>
+                        <input type="date" class="form-control" id="couponExpiresInput">
+                    </div>
+                    <div class="col-12 col-sm-2">
+                        <button type="submit" class="btn btn-danger w-100">Crear</button>
+                    </div>
+                </form>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr><th>Código</th><th>%</th><th>Estado</th><th>Vence</th><th>Acciones</th></tr>
+                        </thead>
+                        <tbody id="couponsTable">
+                            <tr><td colspan="5">Cargando…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -1239,9 +1273,11 @@
     <script type="module">
         import * as AdminProducts from '/js/admin-products.js';
         import * as AdminOrders from '/js/admin-orders.js';
+        import * as AdminCoupons from '/js/admin-coupons.js';
         import * as AdminUI from '/js/admin-ui.js';
 
-        AdminUI.init({ AdminProducts, AdminOrders });
+        AdminUI.init({ AdminProducts, AdminOrders, AdminCoupons });
+        AdminCoupons.init();
         window.VoltAdminAuth.init();
     </script>
 </body>

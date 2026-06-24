@@ -48,5 +48,16 @@ inc('pagos arma payload con couponCode', pagosJs, 'payload.couponCode');
 inc('pagos manda couponCode en postBody', pagosJs, 'postBody.couponCode');
 inc('pagos WA muestra descuento cupón', pagosJs, 'Descuento cupón');
 
+// ── admin ──
+const adminHtml = read('admin/panel.html');
+inc('admin tab cupones', adminHtml, 'data-tab="cupones"');
+inc('admin tab-content cupones', adminHtml, 'id="tab-cupones"');
+inc('admin importa admin-coupons', adminHtml, 'admin-coupons.js');
+const adminUiJs = read('js/admin-ui.js');
+inc('admin-ui carga cupones en tab', adminUiJs, "tabId === 'cupones'");
+const adminCouponsJs = read('js/admin-coupons.js');
+inc('admin-coupons usa colección coupons', adminCouponsJs, "collection('coupons')");
+inc('admin-coupons exporta loadCoupons', adminCouponsJs, 'export async function loadCoupons');
+
 if (failed > 0) { console.error(`\n❌ ${failed} coupon integration checks failed`); process.exit(1); }
 console.log('✅ coupon integration checks passed');

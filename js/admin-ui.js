@@ -45,6 +45,9 @@ function setupTabs() {
             if (tabId === 'pedidos') {
                 state.deps.AdminOrders.loadOrders();
             }
+            if (tabId === 'cupones') {
+                state.deps.AdminCoupons.loadCoupons();
+            }
         });
     });
 }
