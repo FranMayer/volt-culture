@@ -822,11 +822,6 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        if (window.VoltStoreAuth) {
-            const user = await window.VoltStoreAuth.requireAuth();
-            if (!user) return;
-        }
-
         checkoutFlowActive = true;
         const originalText = checkoutBtn.innerHTML;
         checkoutBtn.innerHTML = "Generando link de pago...";
@@ -964,11 +959,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (cart.length === 0) {
                 alert("El carrito está vacío.");
                 return;
-            }
-
-            if (window.VoltStoreAuth) {
-                const user = await window.VoltStoreAuth.requireAuth();
-                if (!user) return;
             }
 
             checkoutFlowActive = true;

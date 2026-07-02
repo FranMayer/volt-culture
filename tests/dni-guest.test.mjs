@@ -23,5 +23,9 @@ for (const f of ['api/create-preference.js', 'api/create-transfer-order.js']) {
     inc(`${f} guarda dni en customer`, src, 'dni');
 }
 
+// N2 — pagos.js no debe exigir login para comprar
+const pagos = read('js/pagos.js');
+exc('pagos.js sin gate requireAuth', pagos, 'requireAuth');
+
 if (failed) { console.error(`\n❌ ${failed} check(s) fallaron`); process.exit(1); }
 console.log('✅ dni/guest checks passed');
