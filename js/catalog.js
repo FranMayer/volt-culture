@@ -62,6 +62,15 @@ document.addEventListener('DOMContentLoaded', async function() {
                     const card = createProductCard(product, index);
                     productGrid.appendChild(card);
                 });
+
+                if (!deepLinkHandled) {
+                    deepLinkHandled = true;
+                    const wantedId = new URLSearchParams(location.search).get('product');
+                    if (wantedId) {
+                        const target = products.find((x) => String(x.id) === wantedId);
+                        if (target) openQuickView(target);
+                    }
+                }
             }
 
         } catch (error) {
@@ -559,6 +568,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // QUICK-VIEW MODAL — detalle + compra de un producto
     // =====================================================
 
+    let deepLinkHandled = false;
     let activeQuickView = null;
 
     function openQuickView(product) {

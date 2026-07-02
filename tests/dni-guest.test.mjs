@@ -27,5 +27,10 @@ for (const f of ['api/create-preference.js', 'api/create-transfer-order.js']) {
 const pagos = read('js/pagos.js');
 exc('pagos.js sin gate requireAuth', pagos, 'requireAuth');
 
+// SEO1 — catálogo abre quick-view por ?product=
+const catalog = read('js/catalog.js');
+inc('catalog lee ?product', catalog, "get('product')");
+inc('catalog abre quick-view del deep-link', catalog, 'openQuickView');
+
 if (failed) { console.error(`\n❌ ${failed} check(s) fallaron`); process.exit(1); }
 console.log('✅ dni/guest checks passed');
