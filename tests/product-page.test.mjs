@@ -65,4 +65,11 @@ const ldBlock = htmlXss.slice(ldStart, ldEnd);
 assert.ok(!ldBlock.includes('</script>'), 'JSON-LD no contiene </script> literal sin escapar');
 assert.ok(ldBlock.includes('\\u003c/script>'), 'JSON-LD escapa < como \\u003c');
 
+// Fix: el id interpolado en el script de hidratación tampoco debe permitir
+// breakout de </script> (mismo patrón que el JSON-LD).
+const htmlIdXss = renderProductPage({
+    id: 'x</script><script>alert(1)</script>', name: 'P', price: 1000, image: '/x.png'
+}, { siteUrl: SITE });
+assert.ok(!htmlIdXss.includes('</script><script>alert(1)'), 'ningún path (JSON-LD, hydration, CTA) filtra el id crudo');
+
 console.log('✅ product-page helper checks passed');

@@ -165,7 +165,7 @@ export function renderProductPage(product, { siteUrl }) {
   (function () {
     try {
       if (!window.FirebaseConfig || !window.FirebaseConfig.init()) return;
-      firebase.firestore().collection('products').doc(${JSON.stringify(String(product.id))}).get().then(function (snap) {
+      firebase.firestore().collection('products').doc(${JSON.stringify(String(product.id)).replace(/</g, '\\u003c')}).get().then(function (snap) {
         if (!snap.exists) return;
         var d = snap.data();
         var priceEl = document.querySelector('[data-pp-price]');
