@@ -26,6 +26,22 @@ function getAdminApiUrl(path) {
     return path;
 }
 
+let _redeployTimer = null;
+function triggerRedeploy() {
+    clearTimeout(_redeployTimer);
+    _redeployTimer = setTimeout(async () => {
+        try {
+            const token = await getAdminToken();
+            await fetch(getAdminApiUrl('/api/admin-redeploy'), {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+        } catch (e) {
+            console.warn('[admin] No se pudo disparar redeploy:', e.message);
+        }
+    }, 10000);
+}
+
 function formatAdminApiError(resp, body) {
     if (typeof moduleState.deps?.formatAdminApiError === 'function') {
         return moduleState.deps.formatAdminApiError(resp, body);
@@ -535,6 +551,7 @@ async function saveProduct() {
         bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
         resetForm();
         await loadProducts();
+        triggerRedeploy();
     } catch (error) {
         console.error('Error al guardar:', error);
         alert(`❌ Error: ${error.message}`);
@@ -593,6 +610,7 @@ async function deleteProduct(id) {
         await window.ProductsService.delete(id);
         alert('✅ Producto eliminado');
         await loadProducts();
+        triggerRedeploy();
     } catch (error) {
         console.error('Error al eliminar:', error);
         alert(`❌ Error: ${error.message}`);
@@ -603,6 +621,7 @@ async function toggleFeatured(id, isFeatured) {
     try {
         await window.ProductsService.update(id, { featured: !isFeatured });
         await loadProducts();
+        triggerRedeploy();
     } catch (error) {
         console.error('Error al cambiar destacado:', error);
         alert(`❌ No se pudo actualizar el destacado: ${error.message}`);

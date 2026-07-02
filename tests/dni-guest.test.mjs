@@ -47,5 +47,10 @@ if (!fs.existsSync(redeployPath)) {
     inc('redeploy lee VERCEL_DEPLOY_HOOK_URL', redeploy, 'VERCEL_DEPLOY_HOOK_URL');
 }
 
+// SEO1 — admin dispara redeploy en mutaciones
+const adminProducts = read('js/admin-products.js');
+inc('admin tiene triggerRedeploy', adminProducts, 'function triggerRedeploy');
+inc('admin apunta al endpoint redeploy', adminProducts, '/api/admin-redeploy');
+
 if (failed) { console.error(`\n❌ ${failed} check(s) fallaron`); process.exit(1); }
 console.log('✅ dni/guest checks passed');
