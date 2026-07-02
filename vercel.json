@@ -1,5 +1,7 @@
 {
   "version": 2,
+  "buildCommand": "node scripts/gen-product-pages.mjs",
+  "outputDirectory": ".",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" }
   ],

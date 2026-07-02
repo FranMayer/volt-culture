@@ -32,5 +32,9 @@ const catalog = read('js/catalog.js');
 inc('catalog lee ?product', catalog, "get('product')");
 inc('catalog abre quick-view del deep-link', catalog, 'openQuickView');
 
+// SEO1 — vercel.json corre el generador en build
+const vercelJson = read('vercel.json');
+inc('vercel.json tiene buildCommand del generador', vercelJson, 'gen-product-pages.mjs');
+
 if (failed) { console.error(`\n❌ ${failed} check(s) fallaron`); process.exit(1); }
 console.log('✅ dni/guest checks passed');

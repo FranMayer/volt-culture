@@ -11,3 +11,6 @@ scripts/serviceAccountKey.json
 # Python caches (from tooling/skills)
 __pycache__/
 *.pyc
+
+# Páginas de producto generadas en build (SEO)
+producto/
