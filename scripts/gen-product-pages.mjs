@@ -63,7 +63,7 @@ async function main() {
     }
     const snap = await db.collection('products').where('active', '==', true).get();
     const products = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    const siteUrl = (process.env.SITE_URL || 'https://voltculture.com.ar').replace(/^"|"$/g, '').trim();
+    const siteUrl = (process.env.SITE_URL || 'https://www.voltculture.com.ar').replace(/^"|"$/g, '').trim();
     const count = generate(products, {
         productsDir: path.join(ROOT, 'producto'),
         sitemapPath: path.join(ROOT, 'sitemap.xml'),
