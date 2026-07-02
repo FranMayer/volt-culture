@@ -36,5 +36,16 @@ inc('catalog abre quick-view del deep-link', catalog, 'openQuickView');
 const vercelJson = read('vercel.json');
 inc('vercel.json tiene buildCommand del generador', vercelJson, 'gen-product-pages.mjs');
 
+// SEO1 — endpoint de redeploy protegido (reusa fs/path/root/read/inc del top)
+const redeployPath = path.join(root, 'api/admin-redeploy.js');
+if (!fs.existsSync(redeployPath)) {
+    console.error('FAIL — no se creó api/admin-redeploy.js');
+    failed++;
+} else {
+    const redeploy = read('api/admin-redeploy.js');
+    inc('redeploy usa verifyAdmin', redeploy, 'verifyAdmin');
+    inc('redeploy lee VERCEL_DEPLOY_HOOK_URL', redeploy, 'VERCEL_DEPLOY_HOOK_URL');
+}
+
 if (failed) { console.error(`\n❌ ${failed} check(s) fallaron`); process.exit(1); }
 console.log('✅ dni/guest checks passed');
