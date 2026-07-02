@@ -62,3 +62,124 @@ export function buildSitemap(products, siteUrl) {
     for (const p of products) urls.push(entry(productPath(p), 'weekly', '0.8'));
     return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`;
 }
+
+function esc(s) {
+    return String(s ?? '')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function aggregateStock(product) {
+    const v = Array.isArray(product.variants) ? product.variants.reduce((n, x) => n + (Number(x.stock) || 0), 0) : 0;
+    const s = Array.isArray(product.sizes) ? product.sizes.reduce((n, x) => n + (Number(x.stock) || 0), 0) : 0;
+    if (v > 0) return v;
+    if (s > 0) return s;
+    return Number(product.stock) || 0;
+}
+
+export function renderProductPage(product, { siteUrl }) {
+    const base = siteUrl.replace(/\/$/, '');
+    const url = base + productPath(product);
+    const images = buildImageArray(product, siteUrl);
+    const mainImage = images[0] || `${base}/images-brand/Isotipo color.png`;
+    const price = Number(product.price) || 0;
+    const inStock = aggregateStock(product) > 0;
+    const desc = String(product.description
+        || `${product.name} — VOLT Culture. Streetwear inspirado en el motorsport, desde Córdoba.`).trim();
+
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: product.name || 'Producto VOLT',
+        description: desc,
+        image: images.length ? images : [mainImage],
+        sku: String(product.id),
+        mpn: String(product.id),
+        brand: { '@type': 'Brand', name: 'VOLT' },
+        offers: {
+            '@type': 'Offer',
+            price: String(price),
+            priceCurrency: 'ARS',
+            availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+            url
+        }
+    };
+
+    const colorDots = (Array.isArray(product.variants) ? product.variants : [])
+        .map((v) => `<span class="pp-swatch" style="background:${esc(v.hex || '#44464c')}" title="${esc(v.color || '')}"></span>`).join('');
+    const sizeTags = (Array.isArray(product.sizes) ? product.sizes : [])
+        .map((s) => `<span class="pp-size">${esc(s.size || '')}</span>`).join('');
+
+    return `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${esc(product.name)} · VOLT Culture</title>
+<meta name="description" content="${esc(desc.slice(0, 160))}">
+<link rel="canonical" href="${url}">
+<meta property="og:type" content="product">
+<meta property="og:title" content="${esc(product.name)} · VOLT">
+<meta property="og:description" content="${esc(desc.slice(0, 160))}">
+<meta property="og:image" content="${esc(mainImage)}">
+<meta property="og:url" content="${url}">
+<link rel="icon" href="/images-brand/Isotipo color.png" type="image/png">
+<link href="/css/volt-ds.css" rel="stylesheet">
+<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
+<style>
+  body{background:#000;color:#fff;font-family:'Glacial Indifference',sans-serif;margin:0}
+  .pp-nav{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.1)}
+  .pp-nav a{color:#fff;text-decoration:none;font-family:'Teko',sans-serif;font-size:1.5rem;letter-spacing:.1em}
+  .pp-wrap{max-width:960px;margin:0 auto;padding:2rem 1.5rem;display:grid;gap:2rem;grid-template-columns:1fr}
+  @media(min-width:768px){.pp-wrap{grid-template-columns:1fr 1fr}}
+  .pp-img img{width:100%;height:auto;display:block;border:1px solid rgba(255,255,255,.08)}
+  .pp-title{font-family:'Teko',sans-serif;font-size:2.5rem;line-height:1;text-transform:uppercase;margin:0 0 .5rem}
+  .pp-price{font-size:1.5rem;color:#c1121f;font-weight:700;margin:0 0 1rem}
+  .pp-desc{color:#bbb;line-height:1.6;margin:0 0 1.5rem}
+  .pp-row{display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;margin:0 0 1rem}
+  .pp-swatch{width:22px;height:22px;border:1px solid #444;display:inline-block}
+  .pp-size{border:1px solid #444;padding:.2rem .55rem;font-size:.85rem}
+  .pp-cta{display:inline-block;background:#c1121f;color:#fff;text-decoration:none;padding:.85rem 1.5rem;font-family:'Teko',sans-serif;font-size:1.3rem;letter-spacing:.06em}
+  .pp-foot{padding:2rem 1.5rem;border-top:1px solid rgba(255,255,255,.1);color:#666;font-size:.8rem;text-align:center}
+</style>
+</head>
+<body>
+<nav class="pp-nav"><a href="/">⚡ VOLT</a></nav>
+<main class="pp-wrap">
+  <div class="pp-img"><img src="${esc(mainImage)}" alt="${esc(product.name)}"></div>
+  <div class="pp-info">
+    <h1 class="pp-title">${esc(product.name)}</h1>
+    <p class="pp-price" data-pp-price>$${price.toLocaleString('es-AR')}</p>
+    <p class="pp-desc">${esc(desc)}</p>
+    ${colorDots ? `<div class="pp-row">${colorDots}</div>` : ''}
+    ${sizeTags ? `<div class="pp-row">${sizeTags}</div>` : ''}
+    <p data-pp-availability>${inStock ? 'En stock' : 'Sin stock'}</p>
+    <a class="pp-cta" href="/pages/catalogo.html?product=${esc(product.id)}">Comprar &rarr;</a>
+  </div>
+</main>
+<footer class="pp-foot">VOLT — Motorsport Culture · Córdoba, Argentina</footer>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="/js/firebase-config.js"></script>
+<script>
+  (function () {
+    try {
+      if (!window.FirebaseConfig || !window.FirebaseConfig.init()) return;
+      firebase.firestore().collection('products').doc(${JSON.stringify(String(product.id))}).get().then(function (snap) {
+        if (!snap.exists) return;
+        var d = snap.data();
+        var priceEl = document.querySelector('[data-pp-price]');
+        if (priceEl && Number(d.price)) priceEl.textContent = '$' + Number(d.price).toLocaleString('es-AR');
+        var stock = 0;
+        if (Array.isArray(d.variants)) stock = d.variants.reduce(function (n, x) { return n + (Number(x.stock) || 0); }, 0);
+        if (!stock && Array.isArray(d.sizes)) stock = d.sizes.reduce(function (n, x) { return n + (Number(x.stock) || 0); }, 0);
+        if (!stock) stock = Number(d.stock) || 0;
+        var availEl = document.querySelector('[data-pp-availability]');
+        if (availEl) availEl.textContent = stock > 0 ? 'En stock' : 'Sin stock';
+      }).catch(function () {});
+    } catch (e) {}
+  })();
+</script>
+</body>
+</html>`;
+}

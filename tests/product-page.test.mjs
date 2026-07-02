@@ -3,7 +3,7 @@
  * Uso: node tests/product-page.test.mjs
  */
 import assert from 'node:assert';
-import { slugify, productPath, buildImageArray, buildSitemap } from '../scripts/product-page-template.mjs';
+import { slugify, productPath, buildImageArray, buildSitemap, renderProductPage } from '../scripts/product-page-template.mjs';
 
 const SITE = 'https://voltculture.com.ar';
 
@@ -34,5 +34,25 @@ const xml = buildSitemap([{ name: 'Hoodie F1', id: 'x1' }], SITE);
 assert.ok(xml.includes('<loc>https://voltculture.com.ar/pages/catalogo.html</loc>'), 'sitemap estáticas');
 assert.ok(xml.includes('<loc>https://voltculture.com.ar/producto/hoodie-f1-x1.html</loc>'), 'sitemap producto');
 assert.ok(xml.trimStart().startsWith('<?xml'), 'sitemap header');
+
+// renderProductPage
+const html = renderProductPage({
+    id: 'x1',
+    name: 'Hoodie F1 Negro',
+    description: 'Buzo motorsport',
+    price: 45000,
+    image: '/multi/front.png',
+    variants: [{ color: 'Negro', hex: '#000', stock: 4 }],
+    sizes: [{ size: 'M', stock: 2 }]
+}, { siteUrl: SITE });
+
+assert.ok(html.includes('"@type":"Product"'), 'JSON-LD Product');
+assert.ok(html.includes('"priceCurrency":"ARS"'), 'JSON-LD ARS');
+assert.ok(html.includes('"price":"45000"'), 'JSON-LD price');
+assert.ok(html.includes('"availability":"https://schema.org/InStock"'), 'JSON-LD InStock');
+assert.ok(html.includes('<link rel="canonical" href="https://voltculture.com.ar/producto/hoodie-f1-negro-x1.html">'), 'canonical');
+assert.ok(html.includes('/pages/catalogo.html?product=x1'), 'CTA deep-link');
+assert.ok(html.includes('firebasejs/9.22.0/firebase-app-compat.js'), 'script hidratación');
+assert.ok(html.includes('data-pp-price'), 'hook de precio para hidratar');
 
 console.log('✅ product-page helper checks passed');
