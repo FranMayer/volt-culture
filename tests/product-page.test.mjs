@@ -55,4 +55,14 @@ assert.ok(html.includes('/pages/catalogo.html?product=x1'), 'CTA deep-link');
 assert.ok(html.includes('firebasejs/9.22.0/firebase-app-compat.js'), 'script hidratación');
 assert.ok(html.includes('data-pp-price'), 'hook de precio para hidratar');
 
+// Fix: el JSON-LD no debe permitir breakout de </script>
+const htmlXss = renderProductPage({
+    id: 'x9', name: 'Hack </script><script>alert(1)</script>', price: 1000, image: '/x.png'
+}, { siteUrl: SITE });
+const ldStart = htmlXss.indexOf('application/ld+json">') + 'application/ld+json">'.length;
+const ldEnd = htmlXss.indexOf('</script>', ldStart);
+const ldBlock = htmlXss.slice(ldStart, ldEnd);
+assert.ok(!ldBlock.includes('</script>'), 'JSON-LD no contiene </script> literal sin escapar');
+assert.ok(ldBlock.includes('\\u003c/script>'), 'JSON-LD escapa < como \\u003c');
+
 console.log('✅ product-page helper checks passed');

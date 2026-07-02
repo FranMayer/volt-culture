@@ -117,15 +117,15 @@ export function renderProductPage(product, { siteUrl }) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${esc(product.name)} · VOLT Culture</title>
 <meta name="description" content="${esc(desc.slice(0, 160))}">
-<link rel="canonical" href="${url}">
+<link rel="canonical" href="${esc(url)}">
 <meta property="og:type" content="product">
 <meta property="og:title" content="${esc(product.name)} · VOLT">
 <meta property="og:description" content="${esc(desc.slice(0, 160))}">
 <meta property="og:image" content="${esc(mainImage)}">
-<meta property="og:url" content="${url}">
+<meta property="og:url" content="${esc(url)}">
 <link rel="icon" href="/images-brand/Isotipo color.png" type="image/png">
 <link href="/css/volt-ds.css" rel="stylesheet">
-<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
+<script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, '\\u003c')}</script>
 <style>
   body{background:#000;color:#fff;font-family:'Glacial Indifference',sans-serif;margin:0}
   .pp-nav{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.1)}
