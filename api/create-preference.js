@@ -159,6 +159,10 @@ export default async function handler(req, res) {
         if (!customer?.name || !customer?.phone || !customer?.email) {
             return res.status(400).json({ error: 'Faltan datos del cliente (nombre, teléfono y email)' });
         }
+        const dni = String(customer?.dni || '').trim();
+        if (!/^\d{7,8}$/.test(dni)) {
+            return res.status(400).json({ error: 'DNI inválido: debe tener 7 u 8 dígitos, sin puntos ni espacios.' });
+        }
         const shipNorm = resolveShippingOption(shippingOption);
         if (shipNorm.error) {
             return res.status(400).json({ error: shipNorm.error });
@@ -268,7 +272,8 @@ export default async function handler(req, res) {
                 customer: {
                     name: String(customer.name).trim(),
                     phone: String(customer.phone).trim(),
-                    email: String(customer.email).trim()
+                    email: String(customer.email).trim(),
+                    dni
                 },
                 shipping,
                 items: normalizedItems,
