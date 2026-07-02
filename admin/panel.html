@@ -1054,30 +1054,34 @@
                  TAB: CUPONES
             ============================================ -->
             <div class="tab-content" id="tab-cupones">
-                <form id="couponForm" class="row g-2 align-items-end mb-4" style="max-width:640px;">
-                    <div class="col-12 col-sm-4">
+                <form id="couponForm" class="row g-2 align-items-end mb-4" style="max-width:820px;">
+                    <div class="col-12 col-sm-3">
                         <label class="form-label" for="couponCodeInput">Código</label>
                         <input type="text" class="form-control" id="couponCodeInput" placeholder="VOLT20" autocomplete="off" style="text-transform:uppercase;">
                     </div>
-                    <div class="col-6 col-sm-3">
+                    <div class="col-6 col-sm-2">
                         <label class="form-label" for="couponPercentInput">% descuento</label>
                         <input type="number" class="form-control" id="couponPercentInput" min="1" max="100" step="1" placeholder="20">
+                    </div>
+                    <div class="col-6 col-sm-2">
+                        <label class="form-label" for="couponMaxUsesInput">Máx. usos</label>
+                        <input type="number" class="form-control" id="couponMaxUsesInput" min="1" step="1" placeholder="∞">
                     </div>
                     <div class="col-6 col-sm-3">
                         <label class="form-label" for="couponExpiresInput">Vence (opcional)</label>
                         <input type="date" class="form-control" id="couponExpiresInput">
                     </div>
-                    <div class="col-12 col-sm-2">
+                    <div class="col-6 col-sm-2">
                         <button type="submit" class="btn btn-danger w-100">Crear</button>
                     </div>
                 </form>
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
-                            <tr><th>Código</th><th>%</th><th>Estado</th><th>Vence</th><th>Acciones</th></tr>
+                            <tr><th>Código</th><th>%</th><th>Estado</th><th>Vence</th><th>Usos</th><th>Acciones</th></tr>
                         </thead>
                         <tbody id="couponsTable">
-                            <tr><td colspan="5">Cargando…</td></tr>
+                            <tr><td colspan="6">Cargando…</td></tr>
                         </tbody>
                     </table>
                 </div>

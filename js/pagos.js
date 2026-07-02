@@ -382,6 +382,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 return { valid: false, reason: "Ese cupón está vencido." };
             }
         }
+        const maxUses = Number(data.maxUses);
+        if (Number.isInteger(maxUses) && maxUses > 0 && (Number(data.usedCount) || 0) >= maxUses) {
+            return { valid: false, reason: "Ese cupón alcanzó su límite de usos." };
+        }
         return { valid: true, percent };
     }
 
@@ -891,12 +895,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             localStorage.setItem("volt_current_order", data.orderId);
 
-            const uid = firebase.auth().currentUser?.uid;
-            if (window.VoltCartSync) {
-                await window.VoltCartSync.clearFirestore(uid);
-                window.VoltCartSync.clearLocal();
-            }
-
+            // No vaciamos el carrito acá: si el pago se rechaza o se abandona en
+            // Mercado Pago, el cliente vuelve a failure.html con su carrito intacto
+            // para reintentar. El carrito se limpia recién en success.html (local y
+            // Firestore) cuando el pago se confirma.
             window.location.href = payUrl;
         } catch (error) {
             console.error("❌ Error al iniciar el pago:", error);
@@ -906,6 +908,42 @@ document.addEventListener("DOMContentLoaded", () => {
             checkoutBtn.disabled = false;
         }
     });
+
+    /**
+     * Muestra la orden creada con un botón real de WhatsApp. Un <a> disparado por
+     * click del usuario nunca lo bloquea el navegador, a diferencia de window.open
+     * tras varios await (Safari/bloqueadores de popups lo frenan).
+     */
+    function showTransferSuccessModal(orderId, waUrl) {
+        let modalEl = document.getElementById("transferSuccessModal");
+        if (!modalEl) {
+            modalEl = document.createElement("div");
+            modalEl.className = "modal fade";
+            modalEl.id = "transferSuccessModal";
+            modalEl.tabIndex = -1;
+            modalEl.setAttribute("aria-labelledby", "transferSuccessTitle");
+            modalEl.innerHTML = `
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content" style="background:#111;color:#f2f2f2;border:1px solid #44464c;">
+                        <div class="modal-header" style="border-bottom:1px solid #44464c;">
+                            <h5 class="modal-title" id="transferSuccessTitle" style="font-family:Teko,sans-serif;letter-spacing:0.08em;font-size:1.5rem;">ORDEN CREADA</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p style="font-family:Barlow,sans-serif;margin-bottom:0.5rem;">Tu orden <strong id="transferSuccessOrderId" style="color:#c1121f;"></strong> quedó registrada.</p>
+                            <p style="font-family:Barlow,sans-serif;font-size:0.9rem;color:#ccc;margin-bottom:1.25rem;">Para confirmarla, envianos el comprobante de transferencia por WhatsApp. Ya te dejamos el mensaje armado.</p>
+                            <a id="transferSuccessWaBtn" href="#" target="_blank" rel="noopener" class="btn btn-success w-100" style="font-family:Teko,sans-serif;letter-spacing:0.06em;font-size:1.15rem;">Abrir WhatsApp y enviar comprobante</a>
+                            <p style="font-size:0.75rem;color:#888;margin:0.75rem 0 0;text-align:center;">Si no se abre, escribinos al WhatsApp de VOLT con tu número de orden.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modalEl);
+        }
+        modalEl.querySelector("#transferSuccessOrderId").textContent = `#${orderId}`;
+        modalEl.querySelector("#transferSuccessWaBtn").href = waUrl;
+        new bootstrap.Modal(modalEl).show();
+    }
 
     // ── Transferencia bancaria ─────────────────────────────
     const transferBtn = document.getElementById("transfer-btn");
@@ -1003,7 +1041,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     window.VoltCartSync.clearLocal();
                 }
 
-                window.open(waUrl, '_blank');
+                showTransferSuccessModal(data.orderId, waUrl);
             } catch (error) {
                 console.error("❌ Error en flujo transferencia:", error);
                 alert("Error al generar la orden: " + error.message);

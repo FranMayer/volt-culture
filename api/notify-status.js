@@ -3,7 +3,7 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { Resend } from 'resend';
 import { formatShippingBlockClientHtml } from './_shipping-email.js';
 import { verifyAdmin } from './_verify-admin.js';
-import { applyStockDecrement } from './_stock.js';
+import { applyStockDecrement, applyStockIncrement } from './_stock.js';
 
 function initAdmin() {
     const projectId   = (process.env.FIREBASE_PROJECT_ID   || '').replace(/^"|"$/g, '').trim();
@@ -123,6 +123,71 @@ async function applyAdminPaidTransition(db, orderRef) {
     return { decremented };
 }
 
+/**
+ * Cancelación desde el admin. Idempotente: si la orden ya había descontado
+ * inventario (`inventoryAdjusted`), lo repone una única vez (`inventoryRestored`).
+ * Cancelar una orden que nunca descontó stock solo cambia el estado.
+ *
+ * @returns {Promise<{restored: boolean}>}
+ */
+async function applyCancelTransition(db, orderRef) {
+    let restored = false;
+    await db.runTransaction(async (tx) => {
+        const snap = await tx.get(orderRef);
+        if (!snap.exists) {
+            const err = new Error('Orden no encontrada');
+            err.code = 'ORDER_NOT_FOUND';
+            throw err;
+        }
+        const o = snap.data();
+        const needRestore = o.inventoryAdjusted === true && o.inventoryRestored !== true;
+
+        if (needRestore) {
+            const items = Array.isArray(o.items) ? o.items : [];
+            const productSnaps = [];
+            for (const item of items) {
+                const pid = item.id || item.productId;
+                if (!pid) {
+                    productSnaps.push(null);
+                    continue;
+                }
+                const pref = db.collection('products').doc(pid);
+                const psnap = await tx.get(pref);
+                productSnaps.push({ pref, psnap });
+            }
+
+            items.forEach((item, idx) => {
+                const entry = productSnaps[idx];
+                if (!entry || !entry.psnap.exists) return;
+                const { variants, sizes, stock } = applyStockIncrement(
+                    entry.psnap.data(),
+                    item.quantity,
+                    item.variantColor,
+                    item.variantSize
+                );
+                tx.update(entry.pref, {
+                    variants,
+                    sizes,
+                    stock,
+                    updatedAt: FieldValue.serverTimestamp()
+                });
+            });
+        }
+
+        tx.set(
+            orderRef,
+            {
+                status: 'cancelled',
+                inventoryRestored: needRestore ? true : o.inventoryRestored === true,
+                updatedAt: FieldValue.serverTimestamp()
+            },
+            { merge: true }
+        );
+        restored = needRestore;
+    });
+    return { restored };
+}
+
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
 
@@ -151,6 +216,15 @@ export default async function handler(req, res) {
             try {
                 const result = await applyAdminPaidTransition(db, orderRef);
                 stockDecremented = result.decremented;
+            } catch (e) {
+                if (e.code === 'ORDER_NOT_FOUND') {
+                    return res.status(404).json({ error: 'Orden no encontrada' });
+                }
+                throw e;
+            }
+        } else if (status === 'cancelled') {
+            try {
+                await applyCancelTransition(db, orderRef);
             } catch (e) {
                 if (e.code === 'ORDER_NOT_FOUND') {
                     return res.status(404).json({ error: 'Orden no encontrada' });

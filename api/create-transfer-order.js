@@ -282,6 +282,16 @@ export default async function handler(req, res) {
             });
         }
 
+        // ponytail: best-effort. Bajo alta concurrencia dos órdenes podrían pasar el
+        // límite por 1; para un cupón de descuento es tolerable. Estricto = transacción.
+        if (discountSource === 'coupon' && couponCode) {
+            try {
+                await db.collection('coupons').doc(couponCode).update({ usedCount: FieldValue.increment(1) });
+            } catch (e) {
+                console.warn('[create-transfer-order] No se pudo incrementar usedCount del cupón:', e.message);
+            }
+        }
+
         return res.status(200).json({
             orderId,
             total,

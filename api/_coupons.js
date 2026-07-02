@@ -33,6 +33,10 @@ export function isCouponValid(data, now = new Date()) {
     if (exp && exp.getTime() <= now.getTime()) {
         return { valid: false, reason: 'expired' };
     }
+    const maxUses = Number(data.maxUses);
+    if (Number.isInteger(maxUses) && maxUses > 0 && (Number(data.usedCount) || 0) >= maxUses) {
+        return { valid: false, reason: 'exhausted' };
+    }
     return { valid: true };
 }
 

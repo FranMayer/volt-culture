@@ -17,7 +17,8 @@ function inc(label, hay, needle) {
 // ── Firestore rules ──
 const rules = read('firestore.rules');
 inc('rules: match coupons', rules, 'match /coupons/{couponId}');
-inc('rules: coupons read público', rules, 'allow read: if true;');
+inc('rules: coupons get público', rules, 'allow get: if true;');
+inc('rules: coupons list solo admin', rules, 'allow list: if request.auth != null && request.auth.token.admin == true;');
 inc('rules: coupons write admin', rules, 'request.auth.token.admin == true');
 
 // ── create-transfer-order ──

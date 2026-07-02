@@ -37,13 +37,14 @@ export function computeAvailableStock(product, variantColor, variantSize) {
 }
 
 /**
- * Decrementa stock; nunca baja de 0 en cada campo tocado.
- * Recalcula `stock` agregado como en el panel (suma variants si hay, si no suma sizes).
+ * Aplica un delta de stock por variante/talle; nunca baja de 0 en cada campo tocado.
+ * sign = -1 descuenta (compra), sign = +1 repone (cancelación). Recalcula el `stock`
+ * agregado como en el panel (suma variants si hay, si no suma sizes).
  *
  * @returns {{ variants: array, sizes: array, stock: number }}
  */
-export function applyStockDecrement(product, quantity, variantColor, variantSize) {
-    const qty = Math.max(0, Number(quantity) || 0);
+function applyStockDelta(product, quantity, variantColor, variantSize, sign) {
+    const delta = Math.max(0, Number(quantity) || 0) * sign;
     const variants = Array.isArray(product.variants)
         ? product.variants.map((v) => ({
               color: String(v.color || '').trim(),
@@ -66,17 +67,17 @@ export function applyStockDecrement(product, quantity, variantColor, variantSize
     if (hasVariants && hasSizes && color && size) {
         const vi = variants.findIndex((v) => v.color === color);
         const si = sizes.findIndex((s) => s.size === size);
-        if (vi >= 0) variants[vi].stock = Math.max(0, variants[vi].stock - qty);
-        if (si >= 0) sizes[si].stock = Math.max(0, sizes[si].stock - qty);
+        if (vi >= 0) variants[vi].stock = Math.max(0, variants[vi].stock + delta);
+        if (si >= 0) sizes[si].stock = Math.max(0, sizes[si].stock + delta);
     } else if (hasVariants && color) {
         const vi = variants.findIndex((v) => v.color === color);
-        if (vi >= 0) variants[vi].stock = Math.max(0, variants[vi].stock - qty);
+        if (vi >= 0) variants[vi].stock = Math.max(0, variants[vi].stock + delta);
     } else if (hasSizes && size) {
         const si = sizes.findIndex((s) => s.size === size);
-        if (si >= 0) sizes[si].stock = Math.max(0, sizes[si].stock - qty);
+        if (si >= 0) sizes[si].stock = Math.max(0, sizes[si].stock + delta);
     } else {
         const base = Math.max(0, Number(product.stock) || 0);
-        return { variants, sizes, stock: Math.max(0, base - qty) };
+        return { variants, sizes, stock: Math.max(0, base + delta) };
     }
 
     const totalStockByVariants = variants.reduce((sum, v) => sum + v.stock, 0);
@@ -84,4 +85,14 @@ export function applyStockDecrement(product, quantity, variantColor, variantSize
     const computedStock = totalStockByVariants > 0 ? totalStockByVariants : totalStockBySizes;
 
     return { variants, sizes, stock: computedStock };
+}
+
+/** Descuenta stock por una compra. */
+export function applyStockDecrement(product, quantity, variantColor, variantSize) {
+    return applyStockDelta(product, quantity, variantColor, variantSize, -1);
+}
+
+/** Repone stock (ej: orden cancelada que ya había descontado inventario). */
+export function applyStockIncrement(product, quantity, variantColor, variantSize) {
+    return applyStockDelta(product, quantity, variantColor, variantSize, 1);
 }

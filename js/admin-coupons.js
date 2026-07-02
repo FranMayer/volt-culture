@@ -21,11 +21,15 @@ function renderRow(doc) {
     const expires = c.expiresAt && typeof c.expiresAt.toDate === 'function'
         ? c.expiresAt.toDate().toLocaleDateString('es-AR')
         : '—';
+    const usedCount = Number(c.usedCount) || 0;
+    const maxUses = Number(c.maxUses);
+    const uses = Number.isInteger(maxUses) && maxUses > 0 ? `${usedCount}/${maxUses}` : `${usedCount}/∞`;
     return `<tr>
         <td>${escapeHtml(c.code)}</td>
         <td>${c.percent}%</td>
         <td>${active ? 'Activo' : 'Inactivo'}</td>
         <td>${expires}</td>
+        <td>${uses}</td>
         <td>
             <button class="btn btn-sm btn-outline-light me-1" data-coupon-toggle="${doc.id}">${active ? 'Desactivar' : 'Activar'}</button>
             <button class="btn btn-sm" style="background:#780000;color:#fff;border:none;" data-coupon-delete="${doc.id}">Borrar</button>
@@ -43,17 +47,17 @@ function bindRowActions(tbody) {
 export async function loadCoupons() {
     const tbody = document.getElementById('couponsTable');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="5">Cargando…</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6">Cargando…</td></tr>';
     try {
         const snap = await db().collection('coupons').orderBy('createdAt', 'desc').get();
         if (snap.empty) {
-            tbody.innerHTML = '<tr><td colspan="5">Todavía no hay cupones.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6">Todavía no hay cupones.</td></tr>';
             return;
         }
         tbody.innerHTML = snap.docs.map(renderRow).join('');
         bindRowActions(tbody);
     } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="5">Error: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6">Error: ${e.message}</td></tr>`;
     }
 }
 
@@ -61,6 +65,7 @@ export async function createCoupon() {
     const codeEl = document.getElementById('couponCodeInput');
     const percentEl = document.getElementById('couponPercentInput');
     const expiresEl = document.getElementById('couponExpiresInput');
+    const maxUsesEl = document.getElementById('couponMaxUsesInput');
     const code = normalizeCouponCode(codeEl.value);
     const percent = Number(percentEl.value);
     if (!code) { alert('Ingresá un código.'); return; }
@@ -68,10 +73,14 @@ export async function createCoupon() {
         alert('El % debe ser un entero entre 1 y 100.');
         return;
     }
+    const maxUsesRaw = maxUsesEl ? Number(maxUsesEl.value) : NaN;
+    const maxUses = Number.isInteger(maxUsesRaw) && maxUsesRaw > 0 ? maxUsesRaw : null;
     const data = {
         code,
         percent,
         active: true,
+        maxUses,
+        usedCount: 0,
         expiresAt: expiresEl && expiresEl.value
             ? firebase.firestore.Timestamp.fromDate(new Date(expiresEl.value + 'T23:59:59'))
             : null,
@@ -83,6 +92,7 @@ export async function createCoupon() {
         codeEl.value = '';
         percentEl.value = '';
         if (expiresEl) expiresEl.value = '';
+        if (maxUsesEl) maxUsesEl.value = '';
         await loadCoupons();
     } catch (e) {
         alert('No se pudo crear el cupón: ' + e.message);

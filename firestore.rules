@@ -8,9 +8,11 @@ service cloud.firestore {
       allow write: if request.auth != null && request.auth.token.admin == true;
     }
 
-    // Cupones: lectura pública (preview en checkout), escritura solo admin.
+    // Cupones: get por código exacto es público (preview en checkout), pero
+    // list se restringe a admin para que nadie descargue la tabla de códigos.
     match /coupons/{couponId} {
-      allow read: if true;
+      allow get: if true;
+      allow list: if request.auth != null && request.auth.token.admin == true;
       allow write: if request.auth != null && request.auth.token.admin == true;
     }
 

@@ -133,11 +133,29 @@
       </div>
     </div>
   </main>
+  <!-- Firebase para limpiar el carrito server-side tras el pago confirmado -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="/js/firebase-config.js"></script>
+  <script src="/js/cart-sync.js"></script>
   <script>
     const orderId = new URLSearchParams(window.location.search).get("order") || "—";
     document.getElementById("orderId").textContent = orderId;
+
+    // Pago confirmado: limpiamos el carrito local y el de Firestore. Si solo
+    // limpiáramos el local, loadAndMerge lo repoblaría con los items comprados
+    // en el próximo login.
     localStorage.removeItem("cart");
     window.dispatchEvent(new CustomEvent("cartUpdated"));
+
+    if (window.FirebaseConfig?.init()) {
+      firebase.auth().onAuthStateChanged((user) => {
+        if (user && window.VoltCartSync) {
+          window.VoltCartSync.clearFirestore(user.uid);
+        }
+      });
+    }
   </script>
 </body>
 </html>

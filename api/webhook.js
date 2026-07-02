@@ -436,7 +436,12 @@ export default async function handler(req, res) {
             }
         }
     } catch (error) {
-        console.error('Webhook error (respondiendo 200):', error.message);
+        // Error transitorio (Firestore/MP caídos, timeout). Respondemos 500 para
+        // que Mercado Pago reintente con backoff en vez de dar por entregada la
+        // notificación: así un pago aprobado no queda huérfano sin stock ni mails.
+        // Los casos de negocio que NO deben reintentar ya devolvieron 200 antes.
+        console.error('[Webhook] Error procesando notificación — respondiendo 500 para reintento de MP:', error.message);
+        return res.status(500).json({ error: 'Error interno procesando webhook' });
     }
 
     return res.status(200).json({ received: true });
