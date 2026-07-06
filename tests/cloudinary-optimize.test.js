@@ -12,9 +12,9 @@ assert.ok(m, 'optimizeCloudinary debe existir en products-service.js');
 const optimizeCloudinary = new Function(`${m[0]}; return optimizeCloudinary;`)();
 
 const base = 'https://res.cloudinary.com/demo/image/upload/v123/foo.jpg';
-const opt = 'https://res.cloudinary.com/demo/image/upload/f_auto,q_auto/v123/foo.jpg';
+const opt = 'https://res.cloudinary.com/demo/image/upload/f_auto,q_auto,c_limit,w_1000/v123/foo.jpg';
 
-assert.strictEqual(optimizeCloudinary(base), opt, 'inserta f_auto,q_auto tras /image/upload/');
+assert.strictEqual(optimizeCloudinary(base), opt, 'inserta f_auto,q_auto,c_limit,w_1000 tras /image/upload/');
 assert.strictEqual(optimizeCloudinary(opt), opt, 'idempotente: no duplica el transform');
 const ext = 'https://example.com/img.jpg';
 assert.strictEqual(optimizeCloudinary(ext), ext, 'deja pasar URLs que no son de Cloudinary');

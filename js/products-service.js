@@ -124,14 +124,16 @@ function getProductImageFallback() {
  * @param {string|null|undefined} url
  * @returns {string}
  */
-// Cloudinary: pedir formato y calidad automáticos en la entrega (WebP/AVIF
-// donde el browser lo soporte, JPG si no). Aplica a fotos ya subidas sin
-// re-subir nada, porque es una transformación en el momento de servir.
-// ponytail: idempotente; deja pasar cualquier URL que no sea de Cloudinary.
+// Cloudinary: en la entrega pedir formato y calidad automáticos (WebP/AVIF
+// donde el browser lo soporte) y capar el ancho a 1000px (c_limit solo achica,
+// nunca agranda) — así una foto de 2000px no viaja entera a una tarjeta chica.
+// Aplica a fotos ya subidas sin re-subir nada: es una transformación al servir.
+// ponytail: un solo ancho para todos los contextos; idempotente; deja pasar
+// cualquier URL que no sea de Cloudinary.
 function optimizeCloudinary(url) {
     if (!/res\.cloudinary\.com/.test(url) || !url.includes('/image/upload/')) return url;
     if (url.includes('f_auto')) return url;
-    return url.replace('/image/upload/', '/image/upload/f_auto,q_auto/');
+    return url.replace('/image/upload/', '/image/upload/f_auto,q_auto,c_limit,w_1000/');
 }
 
 function sanitizeImageUrl(url) {
