@@ -124,12 +124,22 @@ function getProductImageFallback() {
  * @param {string|null|undefined} url
  * @returns {string}
  */
+// Cloudinary: pedir formato y calidad automáticos en la entrega (WebP/AVIF
+// donde el browser lo soporte, JPG si no). Aplica a fotos ya subidas sin
+// re-subir nada, porque es una transformación en el momento de servir.
+// ponytail: idempotente; deja pasar cualquier URL que no sea de Cloudinary.
+function optimizeCloudinary(url) {
+    if (!/res\.cloudinary\.com/.test(url) || !url.includes('/image/upload/')) return url;
+    if (url.includes('f_auto')) return url;
+    return url.replace('/image/upload/', '/image/upload/f_auto,q_auto/');
+}
+
 function sanitizeImageUrl(url) {
     if (url == null || url === '') return getProductImageFallback();
     const str = typeof url === 'string' ? url : String(url);
     const trimmed = str.trim().replace(/^["']|["']$/g, '').trim();
     if (!trimmed) return getProductImageFallback();
-    return trimmed;
+    return optimizeCloudinary(trimmed);
 }
 
 function sanitizeImageMap(map) {
