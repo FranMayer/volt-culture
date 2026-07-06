@@ -166,7 +166,10 @@
     <div class="bigbox">
         <!-- Sidebar: cada línea de producción con sus subcategorías anidadas -->
         <div class="category-list">
-            <ul class="line-nav">
+            <button type="button" class="category-toggle" aria-expanded="false" aria-controls="category-nav">
+                Categorías <span class="category-toggle__icon" aria-hidden="true">▾</span>
+            </button>
+            <ul class="line-nav" id="category-nav">
                 <!-- Las líneas y subcategorías se cargan dinámicamente -->
             </ul>
         </div>

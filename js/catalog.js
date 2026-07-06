@@ -412,6 +412,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                 this.classList.add('active');
                 filterState.line = this.getAttribute('data-line');
                 filterState.category = this.getAttribute('data-category');
+                // En mobile, cerrar el panel al elegir para liberar espacio.
+                const list = document.querySelector('.category-list');
+                if (list) {
+                    list.classList.remove('open');
+                    const btn = list.querySelector('.category-toggle');
+                    if (btn) btn.setAttribute('aria-expanded', 'false');
+                }
                 await loadProducts();
             });
         });
@@ -923,6 +930,17 @@ document.addEventListener('DOMContentLoaded', async function() {
     // INICIALIZACIÓN
     // =====================================================
     
+    // Toggle colapsable del sidebar (solo relevante en mobile vía CSS)
+    (function initCategoryToggle() {
+        const list = document.querySelector('.category-list');
+        const btn = list && list.querySelector('.category-toggle');
+        if (!btn) return;
+        btn.addEventListener('click', function () {
+            const open = list.classList.toggle('open');
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+    })();
+
     // Cargar categorías y productos al iniciar
     loadCategories();
     await loadProducts();

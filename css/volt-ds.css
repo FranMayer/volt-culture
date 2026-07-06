@@ -1576,6 +1576,99 @@ main.box a.secondary:hover {
     margin-left: 8px !important;
 }
 
+/* ─── Sidebar categorías: compacto y sin la "barra" tosca (desktop + mobile) ───
+   .line-group es un <li>, así que heredaba padding, fondo hover y la barra
+   roja de altura completa (::before) de .category-list li. Lo neutralizamos:
+   el grupo es solo un contenedor, y lo interactivo (hover + acento rojo)
+   queda solo en los .cat-item. En mobile mantenemos la MISMA línea vertical
+   agrupada (no los chips sueltos) para que sea consistente con el desktop. */
+.category-list .line-group {
+    padding: 0 !important;
+    margin-bottom: 1rem !important;
+    background: transparent !important;
+    border: none !important;
+}
+.category-list .line-group:hover {
+    background: transparent !important;
+    padding-left: 0 !important;
+    color: inherit !important;
+    border-color: transparent !important;
+}
+.category-list .line-group::before {
+    display: none !important; /* mata la barra roja de altura completa */
+}
+.category-list .line-group__title {
+    font-size: 11px !important;
+    margin-bottom: 0.4rem !important;
+    padding-bottom: 0.45rem !important;
+}
+/* Layout vertical agrupado también en mobile (mediaquery.css lo hace chips) */
+.category-list .line-nav,
+.category-list .cat-list {
+    display: block !important;
+}
+.category-list .cat-item {
+    padding: 0.3rem 0.6rem !important;
+    margin: 0 !important;
+    font-size: 12px !important;
+    letter-spacing: 0.1em !important;
+    background: transparent !important;
+    border: none !important;
+    width: auto !important;
+}
+.category-list .cat-item::before {
+    display: block !important; /* acento rojo por-item, incl. mobile */
+}
+.category-list .cat-item:hover,
+.category-list .cat-item.active {
+    padding-left: 0.9rem !important; /* shift más sutil, no salta tanto */
+    background: transparent !important;
+}
+
+@media screen and (min-width: 769px) {
+    .category-list {
+        padding: 1rem !important;
+    }
+}
+
+/* ─── Colapsable solo en mobile ───
+   En desktop la lista está siempre abierta y el toggle oculto. En mobile
+   arranca colapsada (ocupa poco arriba de los productos) y se abre al tocar. */
+.category-toggle {
+    display: none;
+}
+@media screen and (max-width: 768px) {
+    .category-toggle {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        background: transparent !important;
+        border: none !important;
+        padding: 0.15rem 0 !important;
+        font-family: var(--font-ds-mono) !important;
+        font-size: 12px !important;
+        letter-spacing: 0.14em !important;
+        text-transform: uppercase !important;
+        color: var(--volt-ds-white) !important;
+        cursor: pointer;
+    }
+    .category-toggle__icon {
+        color: var(--volt-ds-red) !important;
+        transition: transform 0.2s ease;
+    }
+    .category-list.open .category-toggle__icon {
+        transform: rotate(180deg);
+    }
+    .category-list .line-nav {
+        display: none !important;
+    }
+    .category-list.open .line-nav {
+        display: block !important;
+        margin-top: 0.85rem !important;
+    }
+}
+
 .product-card {
     background: #0a0a0a !important;
     background-image: none !important;
@@ -2117,11 +2210,11 @@ main > .shop-page-header {
     padding-bottom: 3rem !important;
 }
 
-/* Alineación vertical desktop: primera card alineada con primer item del sidebar
-   = category-list padding-top (1.5rem) + h3 height calculado con font 10px (~3.5rem) */
+/* Alineación vertical desktop: el tope de la primera card coincide con el
+   tope del sidebar (misma línea arriba), sin desfase. */
 @media screen and (min-width: 769px) {
     .bigbox .product-grid {
-        padding-top: 5rem !important;
+        padding-top: 0 !important;
     }
 }
 
