@@ -12,6 +12,9 @@ const moduleState = {
     initialized: false
 };
 
+// Última lista renderizada, para leer los featuredOrder actuales sin refetch.
+let currentProducts = [];
+
 function getAdminToken() {
     if (typeof moduleState.deps?.getAdminToken === 'function') {
         return moduleState.deps.getAdminToken();
@@ -95,6 +98,7 @@ function renderProductCard(product) {
                 <button class="btn btn-sm btn-outline-secondary" onclick="toggleFeatured('${p.id}', ${p.featured === true})" title="${p.featured === true ? 'Quitar de destacados' : 'Destacar'}" aria-label="${p.featured === true ? 'Quitar de destacados' : 'Destacar'}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="${p.featured === true ? '#FFD700' : 'none'}" stroke="${p.featured === true ? '#FFD700' : 'currentColor'}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-0.15em"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                 </button>
+                ${p.featured === true ? `<input type="number" min="1" step="1" value="${Number(p.featuredOrder) || ''}" onchange="setFeaturedOrder('${p.id}', this.value)" title="Orden en la home (1 = primero)" aria-label="Orden en la home" style="width:3.5em;vertical-align:middle">` : ''}
                 <button class="btn btn-sm btn-outline-volt" onclick="editProduct('${p.id}')" title="Editar" aria-label="Editar">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-0.15em"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
                 </button>
@@ -118,6 +122,7 @@ function renderProducts(products) {
         `;
         return;
     }
+    currentProducts = products;
     tbody.innerHTML = products.map((p) => renderProductCard(p)).join('');
 }
 
@@ -619,12 +624,45 @@ async function deleteProduct(id) {
 
 async function toggleFeatured(id, isFeatured) {
     try {
-        await window.ProductsService.update(id, { featured: !isFeatured });
+        const data = { featured: !isFeatured };
+        // Al marcar, asignar el próximo número libre (1 primero, 2 segundo, ...).
+        if (!isFeatured) {
+            const maxOrder = currentProducts
+                .filter((p) => p.featured === true && p.id !== id)
+                .reduce((max, p) => Math.max(max, Number(p.featuredOrder) || 0), 0);
+            data.featuredOrder = maxOrder + 1;
+        }
+        await window.ProductsService.update(id, data);
         await loadProducts();
         triggerRedeploy();
     } catch (error) {
         console.error('Error al cambiar destacado:', error);
         alert(`❌ No se pudo actualizar el destacado: ${error.message}`);
+    }
+}
+
+async function setFeaturedOrder(id, rawValue) {
+    const order = Number(rawValue);
+    if (!Number.isInteger(order) || order < 1) {
+        alert('❌ El orden debe ser un número entero mayor o igual a 1.');
+        await loadProducts();
+        return;
+    }
+    const clash = currentProducts.find(
+        (p) => p.id !== id && p.featured === true && Number(p.featuredOrder) === order
+    );
+    if (clash) {
+        alert(`❌ El número ${order} ya lo usa "${clash.name}". Elegí otro.`);
+        await loadProducts();
+        return;
+    }
+    try {
+        await window.ProductsService.update(id, { featuredOrder: order });
+        await loadProducts();
+        triggerRedeploy();
+    } catch (error) {
+        console.error('Error al cambiar el orden destacado:', error);
+        alert(`❌ No se pudo actualizar el orden: ${error.message}`);
     }
 }
 
@@ -704,6 +742,7 @@ function init(deps = {}) {
     window.editProduct = editProduct;
     window.deleteProduct = deleteProduct;
     window.toggleFeatured = toggleFeatured;
+    window.setFeaturedOrder = setFeaturedOrder;
 }
 
 window.AdminProducts = {

@@ -47,7 +47,9 @@
         try {
             const products = await window.ProductsService.getAll();
             const limit = Math.max(1, Number(grid.dataset.limit) || 6);
-            const flagged = products.filter((p) => p.featured === true);
+            const flagged = products
+                .filter((p) => p.featured === true)
+                .sort((a, b) => (a.featuredOrder ?? Infinity) - (b.featuredOrder ?? Infinity));
             const featured = (flagged.length ? flagged : products).slice(0, limit);
 
             if (!featured.length) {
