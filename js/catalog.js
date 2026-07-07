@@ -332,13 +332,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     // =====================================================
 
     const PRODUCTION_LINES = [
-        { id: 'TC', label: 'Turismo Carretera (TC)', available: true },
-        { id: 'F1', label: 'Fórmula 1', available: true }
+        { id: 'F1', label: 'Fórmula 1', available: true },
+        { id: 'TC', label: 'Turismo Carretera (TC)', available: true }
     ];
     const ALL_CATEGORIES = ['Remeras', 'Buzos', 'Pantalones', 'Gorras'];
 
     // Estado del filtro de dos niveles
-    const filterState = { line: 'TC', category: 'all' };
+    const filterState = { line: 'F1', category: 'all' };
 
     function loadCategories() {
         const nav = document.querySelector('.category-list .line-nav');
