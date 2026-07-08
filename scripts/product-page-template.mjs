@@ -105,11 +105,6 @@ export function renderProductPage(product, { siteUrl }) {
         }
     };
 
-    const colorDots = (Array.isArray(product.variants) ? product.variants : [])
-        .map((v) => `<span class="pp-swatch" style="background:${esc(v.hex || '#44464c')}" title="${esc(v.color || '')}"></span>`).join('');
-    const sizeTags = (Array.isArray(product.sizes) ? product.sizes : [])
-        .map((s) => `<span class="pp-size">${esc(s.size || '')}</span>`).join('');
-
     return `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -134,31 +129,27 @@ export function renderProductPage(product, { siteUrl }) {
   /* volt-ds pinta su grilla en body::before (fixed, z-index 0): el contenido
      debe posicionarse por encima, como en el resto de las páginas del sitio. */
   .pp-nav,.pp-wrap,.pp-foot{position:relative;z-index:1}
-  .pp-nav{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.1)}
-  .pp-nav a{color:#fff;text-decoration:none;font-family:'Teko',sans-serif;font-size:1.5rem;letter-spacing:.1em}
+  .pp-nav{padding:.5rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.1)}
+  .pp-nav a{display:inline-block;line-height:0}
+  .pp-nav img{height:88px;width:auto;display:block}
   .pp-wrap{max-width:960px;margin:0 auto;padding:2rem 1.5rem;display:grid;gap:2rem;grid-template-columns:1fr}
   @media(min-width:768px){.pp-wrap{grid-template-columns:1fr 1fr}}
   .pp-img img{width:100%;height:auto;display:block;border:1px solid rgba(255,255,255,.08)}
   .pp-title{font-family:'Teko',sans-serif;font-size:2.5rem;line-height:1;text-transform:uppercase;margin:0 0 .5rem}
   .pp-price{font-size:1.5rem;color:#c1121f;font-weight:700;margin:0 0 1rem}
   .pp-desc{color:#bbb;line-height:1.6;margin:0 0 1.5rem}
-  .pp-row{display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;margin:0 0 1rem}
-  .pp-swatch{width:22px;height:22px;border:1px solid #444;display:inline-block}
-  .pp-size{border:1px solid #444;padding:.2rem .55rem;font-size:.85rem}
   .pp-cta{display:inline-block;background:#c1121f;color:#fff;text-decoration:none;padding:.85rem 1.5rem;font-family:'Teko',sans-serif;font-size:1.3rem;letter-spacing:.06em}
   .pp-foot{padding:2rem 1.5rem;border-top:1px solid rgba(255,255,255,.1);color:#666;font-size:.8rem;text-align:center}
 </style>
 </head>
 <body>
-<nav class="pp-nav"><a href="/">⚡ VOLT</a></nav>
+<nav class="pp-nav"><a href="/" aria-label="VOLT — Inicio"><img src="/images-brand/Logo color y blanco.svg" alt="VOLT — Motorsport Culture"></a></nav>
 <main class="pp-wrap">
   <div class="pp-img"><img src="${esc(mainImage)}" alt="${esc(product.name)}"></div>
   <div class="pp-info">
     <h1 class="pp-title">${esc(product.name)}</h1>
     <p class="pp-price" data-pp-price>$${price.toLocaleString('es-AR')}</p>
     <p class="pp-desc">${esc(desc)}</p>
-    ${colorDots ? `<div class="pp-row">${colorDots}</div>` : ''}
-    ${sizeTags ? `<div class="pp-row">${sizeTags}</div>` : ''}
     <p data-pp-availability>${inStock ? 'En stock' : 'Sin stock'}</p>
     <a class="pp-cta" href="/pages/catalogo.html?product=${esc(product.id)}">Comprar &rarr;</a>
   </div>
