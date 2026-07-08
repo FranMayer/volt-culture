@@ -383,25 +383,42 @@
             pointer-events: none;
         }
 
+        /* Panel del semáforo (gantry): caja oscura con marco, como en la grilla real */
         .lights-out__row {
             display: flex;
-            gap: clamp(14px, 3vw, 26px);
+            gap: clamp(10px, 2vw, 16px);
+            padding: clamp(10px, 2vw, 16px);
+            background: #050505;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
         }
 
+        /* Cada housing es cuadrado (DS); el bulbo redondo vive en el ::before */
         .lights-out__light {
-            width: clamp(22px, 4vw, 34px);
-            height: clamp(22px, 4vw, 34px);
-            border: 1px solid rgba(255, 255, 255, 0.25);
+            position: relative;
+            width: clamp(36px, 6vw, 56px);
+            height: clamp(36px, 6vw, 56px);
+            background: #0a0a0a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .lights-out__light::before {
+            content: '';
+            position: absolute;
+            inset: 16%;
             /* Excepción deliberada al DS de esquinas rectas: el semáforo es redondo */
             border-radius: 50%;
-            background: transparent;
-            transition: background 0.08s ease, border-color 0.08s ease, box-shadow 0.08s ease;
+            background: radial-gradient(circle at 35% 30%, #2b0d10, #150708 70%);
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.9);
+            transition: background 0.08s ease, box-shadow 0.08s ease;
         }
 
-        .lights-out__light.is-on {
-            background: var(--volt-red);
-            border-color: var(--volt-red);
-            box-shadow: 0 0 26px rgba(193, 18, 31, 0.6);
+        .lights-out__light.is-on::before {
+            background: radial-gradient(circle at 35% 30%, #ff8a8a 0%, #d91423 45%, #7f0b13 100%);
+            box-shadow:
+                0 0 16px rgba(193, 18, 31, 0.95),
+                0 0 44px rgba(193, 18, 31, 0.5),
+                inset 0 -2px 6px rgba(0, 0, 0, 0.35);
         }
 
         .lights-out__phrase {
