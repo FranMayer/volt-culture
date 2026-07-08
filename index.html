@@ -196,8 +196,29 @@
             background: transparent;
         }
 
+        .site-nav__link {
+            position: relative;
+        }
+
+        .site-nav__link::after {
+            content: '';
+            position: absolute;
+            left: 8px;
+            right: 8px;
+            bottom: 7px;
+            height: 1px;
+            background: var(--volt-red);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
         .site-nav__link:hover {
             color: var(--volt-white);
+        }
+
+        .site-nav__link:hover::after {
+            transform: scaleX(1);
         }
 
         .site-nav__link:focus-visible {
@@ -584,10 +605,42 @@
         }
 
         .identity__card {
+            position: relative;
             padding: clamp(24px, 4vw, 40px);
             border-right: 1px solid rgba(255, 255, 255, 0.15);
             transition: border-color 0.2s ease, background 0.2s ease;
             background: #000000 !important;
+        }
+
+        /* Corner ticks tipo plano técnico */
+        .identity__card::before,
+        .identity__card::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border: 0 solid #444444;
+            transition: border-color 0.2s ease;
+            pointer-events: none;
+        }
+
+        .identity__card::before {
+            top: 10px;
+            left: 10px;
+            border-top-width: 1px;
+            border-left-width: 1px;
+        }
+
+        .identity__card::after {
+            bottom: 10px;
+            right: 10px;
+            border-bottom-width: 1px;
+            border-right-width: 1px;
+        }
+
+        .identity__card:hover::before,
+        .identity__card:hover::after {
+            border-color: var(--volt-red);
         }
 
         .identity__card:last-child {
@@ -750,6 +803,16 @@
             text-transform: uppercase;
             color: #666666;
             margin-bottom: 36px;
+        }
+
+        /* ——— Kerb (piano de curva) ——— */
+        .kerb {
+            height: 6px;
+            background: repeating-linear-gradient(
+                -45deg,
+                var(--volt-red) 0 12px,
+                var(--volt-white) 12px 24px
+            );
         }
 
         /* ——— Footer ——— */
@@ -990,6 +1053,10 @@
                 background: rgba(255,255,255,0.04);
             }
 
+            .site-nav__link::after {
+                display: none;
+            }
+
             .identity__grid {
                 grid-template-columns: 1fr;
             }
@@ -1157,7 +1224,7 @@
                 <span class="hero__pulse" aria-hidden="true"></span>
                 <span>Córdoba, Argentina · Est. 2025</span>
             </div>
-            <h1 class="hero__headline">BUILT FOR THE FAST LANE</h1>
+            <h1 class="hero__headline">BUILT FOR THE <span class="accent">FAST LANE</span></h1>
             <p class="hero__sub">Velocidad es cultura</p>
             <div class="hero__ctas">
                 <a class="btn btn--fill hero__shop-btn" href="/pages/catalogo.html">VER TIENDA</a>
@@ -1166,7 +1233,7 @@
             <aside class="hero-featured" aria-labelledby="home-featured-heading">
                 <div class="hero-featured__head">
                     <div>
-                        <p class="hero-featured__eyebrow">SHOP / 002</p>
+                        <p class="hero-featured__eyebrow">/ 001 — SHOP</p>
                         <h2 class="hero-featured__title" id="home-featured-heading">Destacados</h2>
                     </div>
                     <a class="hero-featured__link" href="/pages/catalogo.html">Tienda →</a>
@@ -1204,7 +1271,7 @@
         </div>
 
         <section class="identity" id="identity" aria-labelledby="identity-heading">
-            <p class="section-label reveal" id="identity-heading">/ 001 — IDENTIDAD</p>
+            <p class="section-label reveal" id="identity-heading">/ 002 — IDENTIDAD</p>
             <div class="identity__grid">
                 <article class="identity__card reveal">
                     <p class="identity__num">01</p>
@@ -1238,6 +1305,7 @@
         </section>
 
         <section class="drop" id="drop" aria-labelledby="drop-heading">
+            <p class="section-label reveal">/ 003 — COLECCIÓN</p>
             <div class="drop__split reveal">
                 <div class="drop__visual">
                     <img src="/images-brand/maxfuk.jpg" alt="Identidad VOLT — Colección 01" width="1200" height="1400" loading="lazy" decoding="async">
@@ -1255,7 +1323,7 @@
         </section>
 
         <section class="manifesto" id="about" aria-labelledby="manifesto-heading">
-            <p class="section-label reveal">/ 003 — MANIFIESTO</p>
+            <p class="section-label reveal">/ 004 — MANIFIESTO</p>
             <h2 class="manifesto__quote reveal" id="manifesto-heading">
                 No hacemos ropa. Hacemos <span class="accent">equipamiento</span> para quienes viven al <span class="accent">límite del crono.</span>
             </h2>
@@ -1263,6 +1331,8 @@
             <a class="btn btn--fill reveal" href="/pages/catalogo.html">Ver tienda →</a>
         </section>
     </main>
+
+    <div class="kerb" aria-hidden="true"></div>
 
     <footer class="site-footer" role="contentinfo">
         <div class="site-footer__logo">

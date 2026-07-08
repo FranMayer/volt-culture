@@ -129,7 +129,7 @@ export async function initHeroEntrance(rootSelector = '.hero') {
     }
 
     // Split + hide ANTES de await: evita el flash mientras carga Motion desde CDN.
-    const words = headline ? splitWords(headline) : [];
+    const words = headline ? splitWordsPreservingSpans(headline) : [];
     words.forEach((w) => {
         w.style.opacity = '0';
         w.style.transform = 'translateY(0.5em)';
