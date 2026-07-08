@@ -124,10 +124,16 @@ export function renderProductPage(product, { siteUrl }) {
 <meta property="og:image" content="${esc(mainImage)}">
 <meta property="og:url" content="${esc(url)}">
 <link rel="icon" href="/images-brand/Isotipo color.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@700&display=swap" rel="stylesheet">
 <link href="/css/volt-ds.css" rel="stylesheet">
 <script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, '\\u003c')}</script>
 <style>
   body{background:#000;color:#fff;font-family:'Glacial Indifference',sans-serif;margin:0}
+  /* volt-ds pinta su grilla en body::before (fixed, z-index 0): el contenido
+     debe posicionarse por encima, como en el resto de las páginas del sitio. */
+  .pp-nav,.pp-wrap,.pp-foot{position:relative;z-index:1}
   .pp-nav{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.1)}
   .pp-nav a{color:#fff;text-decoration:none;font-family:'Teko',sans-serif;font-size:1.5rem;letter-spacing:.1em}
   .pp-wrap{max-width:960px;margin:0 auto;padding:2rem 1.5rem;display:grid;gap:2rem;grid-template-columns:1fr}
