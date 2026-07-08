@@ -67,7 +67,15 @@ document.addEventListener('DOMContentLoaded', async function() {
                     deepLinkHandled = true;
                     const wantedId = new URLSearchParams(location.search).get('product');
                     if (wantedId) {
-                        const target = products.find((x) => String(x.id) === wantedId);
+                        let target = products.find((x) => String(x.id) === wantedId);
+                        if (!target) {
+                            // El filtro inicial (ej. línea F1) puede no incluir el producto
+                            // buscado: las páginas /producto/ enlazan con ?product= a
+                            // cualquier línea. El modal no depende de la grilla, así que
+                            // buscamos en el catálogo completo.
+                            const all = await window.ProductsService.getAll(null, null);
+                            target = all.find((x) => String(x.id) === wantedId);
+                        }
                         if (target) openQuickView(target);
                     }
                 }
@@ -578,6 +586,21 @@ document.addEventListener('DOMContentLoaded', async function() {
     let deepLinkHandled = false;
     let activeQuickView = null;
 
+    // Mantener en sync con scripts/product-page-template.mjs (slugify/productPath):
+    // genera la misma URL que las páginas estáticas creadas en el build.
+    function slugify(name) {
+        return String(name || '')
+            .normalize('NFD').replace(/[̀-ͯ]/g, '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '')
+            || 'producto';
+    }
+
+    function productPath(product) {
+        return `/producto/${slugify(product.name)}-${product.id}.html`;
+    }
+
     function openQuickView(product) {
         if (activeQuickView) {
             activeQuickView.remove();
@@ -642,6 +665,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                             Finalizar compra
                         </button>
                     </div>
+                    <div class="product-quickview__share">
+                        <a class="product-quickview__permalink" href="${productPath(product)}">Página del producto →</a>
+                        <button type="button" class="product-quickview__share-btn">Compartir</button>
+                    </div>
                 </div>
             </div>
         `;
@@ -661,6 +688,22 @@ document.addEventListener('DOMContentLoaded', async function() {
         const dots = overlay.querySelectorAll('.product-quickview__dot');
         const addBtn = overlay.querySelector('.add-to-cart');
         const finalizeBtn = overlay.querySelector('.product-finalize-btn');
+        const shareBtn = overlay.querySelector('.product-quickview__share-btn');
+
+        if (shareBtn) {
+            shareBtn.addEventListener('click', async () => {
+                const url = location.origin + productPath(product);
+                try {
+                    if (navigator.share) {
+                        await navigator.share({ title: product.name, url });
+                    } else {
+                        await navigator.clipboard.writeText(url);
+                        shareBtn.textContent = 'Link copiado ✓';
+                        setTimeout(() => { shareBtn.textContent = 'Compartir'; }, 2000);
+                    }
+                } catch (e) { /* usuario canceló el share: no es error */ }
+            });
+        }
 
         let currentIndex = Math.max(0, gallery.indexOf(initialImage));
 

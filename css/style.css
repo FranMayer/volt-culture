@@ -1389,6 +1389,33 @@ body.lightbox-open {
     line-height: 1.45;
 }
 
+.product-quickview__share {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.product-quickview__permalink,
+.product-quickview__share-btn {
+    font-family: var(--font-ds-mono, 'DM Mono'), monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #888888;
+    background: transparent;
+    border: none;
+    padding: 4px 0;
+    cursor: pointer;
+    border-bottom: 1px solid transparent;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.product-quickview__permalink:hover,
+.product-quickview__share-btn:hover {
+    color: #ffffff;
+    border-bottom-color: var(--color-red, #c1121f);
+}
+
 @media (max-width: 768px) {
     .product-quickview {
         padding: 0;
