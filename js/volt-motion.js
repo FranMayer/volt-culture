@@ -204,6 +204,48 @@ export async function initHeroEntrance(rootSelector = '.hero') {
 }
 
 /**
+ * Intro "lights out" estilo largada de F1:
+ *   - 5 luces rojas encienden en secuencia sobre overlay negro.
+ *   - Hold de suspenso, se apagan de golpe y el overlay se desvanece.
+ *   - Una vez por sesión (sessionStorage) y nunca con reduced-motion.
+ * Devuelve una promise que resuelve en el instante del "lights out",
+ * para encadenar la entrada del hero.
+ */
+export function initLightsOut() {
+    if (typeof document === 'undefined') return Promise.resolve();
+    const overlay = document.getElementById('voltLightsOut');
+    if (!overlay) return Promise.resolve();
+
+    let seen = false;
+    try { seen = sessionStorage.getItem('voltLightsOut') === '1'; } catch (e) { /* modo privado */ }
+
+    if (seen || prefersReducedMotion()) {
+        overlay.remove();
+        return Promise.resolve();
+    }
+
+    try { sessionStorage.setItem('voltLightsOut', '1'); } catch (e) { /* modo privado */ }
+
+    overlay.classList.add('is-running'); // cancela el fallback CSS de auto-desvanecido
+    const lights = Array.from(overlay.querySelectorAll('.lights-out__light'));
+    const STEP = 380;
+    const START = 300;
+    const HOLD = 650;
+
+    return new Promise((resolve) => {
+        lights.forEach((light, i) => {
+            setTimeout(() => light.classList.add('is-on'), START + i * STEP);
+        });
+        setTimeout(() => {
+            lights.forEach((light) => light.classList.remove('is-on'));
+            overlay.classList.add('is-out');
+            resolve();
+            setTimeout(() => overlay.remove(), 600);
+        }, START + lights.length * STEP + HOLD);
+    });
+}
+
+/**
  * Pulse físico (spring loop) del puntito rojo del badge.
  * Mantiene el `@keyframes pulse-red` como fallback CSS hasta que Motion entra.
  */

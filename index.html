@@ -358,6 +358,70 @@
             transform: translateY(0);
         }
 
+        /* ——— Lights out (largada F1) ——— */
+        .lights-out {
+            position: fixed;
+            inset: 0;
+            z-index: 20000;
+            background: #000000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 28px;
+            /* Fallback: si el JS no llega a correr, el overlay se va solo a los 5s */
+            animation: lights-vanish 0.4s ease 5s forwards;
+        }
+
+        .lights-out.is-running {
+            animation: none;
+        }
+
+        .lights-out.is-out {
+            opacity: 0;
+            transition: opacity 0.45s ease;
+            pointer-events: none;
+        }
+
+        .lights-out__row {
+            display: flex;
+            gap: clamp(14px, 3vw, 26px);
+        }
+
+        .lights-out__light {
+            width: clamp(22px, 4vw, 34px);
+            height: clamp(22px, 4vw, 34px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            /* Excepción deliberada al DS de esquinas rectas: el semáforo es redondo */
+            border-radius: 50%;
+            background: transparent;
+            transition: background 0.08s ease, border-color 0.08s ease, box-shadow 0.08s ease;
+        }
+
+        .lights-out__light.is-on {
+            background: var(--volt-red);
+            border-color: var(--volt-red);
+            box-shadow: 0 0 26px rgba(193, 18, 31, 0.6);
+        }
+
+        .lights-out__phrase {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: #666666;
+        }
+
+        @keyframes lights-vanish {
+            to { opacity: 0; visibility: hidden; }
+        }
+
+        /* Visitante que ya vio la largada en esta sesión: ni un frame de overlay */
+        .volt-lights-seen .lights-out {
+            display: none;
+        }
+
         /* ——— Hero ——— */
         .hero {
             min-height: 100vh;
@@ -1124,6 +1188,10 @@
                 scroll-behavior: auto;
             }
 
+            .lights-out {
+                display: none;
+            }
+
             .ticker__track {
                 animation: none;
             }
@@ -1142,6 +1210,15 @@
         }
     </style>
 
+    <!-- Pre-paint: si ya vio la largada en esta sesión, el overlay nunca se dibuja -->
+    <script>
+        try {
+            if (sessionStorage.getItem('voltLightsOut') === '1') {
+                document.documentElement.classList.add('volt-lights-seen');
+            }
+        } catch (e) { /* modo privado: se muestra igual */ }
+    </script>
+
     <!-- Google Analytics 4 -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-V8T1VZYLVB"></script>
     <script>
@@ -1152,6 +1229,17 @@
     </script>
 </head>
 <body>
+    <div class="lights-out" id="voltLightsOut" aria-hidden="true">
+        <div class="lights-out__row">
+            <span class="lights-out__light"></span>
+            <span class="lights-out__light"></span>
+            <span class="lights-out__light"></span>
+            <span class="lights-out__light"></span>
+            <span class="lights-out__light"></span>
+        </div>
+        <p class="lights-out__phrase">Lights out and away we go...</p>
+    </div>
+
     <div class="page-grid" aria-hidden="true"></div>
 
     <header class="site-nav" role="banner">
@@ -1448,6 +1536,7 @@
 
     <script type="module">
         import {
+            initLightsOut,
             initHeroEntrance,
             initCartBadge,
             initCartOffcanvas,
@@ -1457,7 +1546,8 @@
             initManifestoReveal,
             initPageTransitions,
         } from '/js/volt-motion.js';
-        initHeroEntrance();
+        // El hero arranca recién cuando se apagan las luces; el resto no espera.
+        initLightsOut().then(() => initHeroEntrance());
         initCartBadge();
         initCartOffcanvas();
         initCartEmptyShake();
