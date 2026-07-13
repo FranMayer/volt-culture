@@ -15,36 +15,35 @@ Diseños únicos para quienes llevan el motor en la sangre.
 ## 🛠️ Stack tecnológico
 
 - **HTML5** semántico, multi-página
-- **CSS3** con variables custom + **Bootstrap** (utilidades puntuales)
-- **JavaScript** vanilla (ES6+)
-- **Mercado Pago** — integración de pagos (Checkout Pro)
-- Sin frameworks frontend · Sin build tools · Deploy estático
+- **CSS3** con variables custom + **Bootstrap 5.3** (grilla + offcanvas del carrito + modales)
+- **JavaScript** vanilla (ES6+) — sin framework ni bundler
+- **Firebase** (compat 9.22) — Auth (Google) + Firestore (productos, órdenes, carritos)
+- **Mercado Pago** (Checkout Pro) + **transferencia** con comprobante
+- **Andreani** — cotización y envíos vía funciones serverless en `/api/`
+- **Vercel** — hosting estático + funciones serverless + build step (páginas de producto SEO)
 
 ---
 
 ## 📁 Estructura del proyecto
 ```
 /
-├── index.html                  # Home — Hero, about snippet, footer
+├── index.html                  # Home — hero, intro F1, identidad, drop, manifiesto
 ├── pages/
-│   ├── catalogo.html           # Shop — productos, carrito, filtros
-│   ├── about.html              # Nosotros — historia de la marca
-│   ├── envios.html             # Política de envíos
-│   └── novedades.html          # Novedades / blog
+│   ├── catalogo.html           # Shop — productos, filtros, carrito offcanvas, quick-view
+│   ├── about.html · envios.html · novedades.html
+│   ├── success · pending · failure.html   # Retornos de pago
+│   └── mis-pedidos.html        # Historial del cliente logueado
+├── producto/                   # Páginas SEO por producto (generadas en build, gitignored)
+├── admin/panel.html            # Panel admin (protegido por claim de Firebase)
 ├── css/
-│   ├── style.css               # Estilos principales + componentes
-│   └── mediaquery.css          # Responsive breakpoints
-├── js/
-│   ├── main.js                 # Carrito, offcanvas, badge bounce
-│   ├── catalog.js              # Renderizado de productos y categorías
-│   └── pagos.js                # Integración Mercado Pago
-├── images-brand/               # Assets de marca
-│   ├── logo-nuevo.png          # Logotipo completo (fondo transparente)
-│   ├── Isotipo color.png       # Isotipo — usado en footer
-│   ├── buzoprincipal.png       # Hero image
-│   ├── colapinto.jpg           # Imagen sección about
-│   └── Verstappen.jpg          # Imagen sección about
-└── README.md
+│   ├── style.css               # Legacy (grande)
+│   ├── volt-ds.css             # Design system (carga última, overrides)
+│   └── mediaquery.css          # Responsive
+├── js/                         # store-auth, cart-sync, catalog, pagos, admin-*, ...
+├── api/                        # Funciones serverless: pagos, webhook, envíos, admin
+├── scripts/                    # gen-product-pages.mjs (build SEO) + helpers
+├── tests/                      # Tests node (sin framework): node tests/<archivo>
+└── images-brand/               # Assets de marca
 ```
 
 ---
@@ -52,9 +51,10 @@ Diseños únicos para quienes llevan el motor en la sangre.
 ## ✨ Features
 
 ### Tienda
-- Catálogo de productos con filtro por categorías (Buzos, Remeras, Gorras)
-- Categoría **Autos a escala** con badge *PRÓXIMAMENTE*
-- Stock disponible por producto
+- Catálogo con filtro por **línea** (Turismo Carretera / Fórmula 1 *PRÓXIMAMENTE*) y por tipo (Remeras, Buzos, Gorras…)
+- Quick-view del producto (galería, talles, colores) enlazado con las páginas SEO `/producto/`
+- Stock por variante (color/talle) y checkout **con o sin cuenta** (invitado, con DNI)
+- **Cupones de descuento** y páginas de producto generadas para SEO (JSON-LD)
 - Botón **Añadir al carrito** con estado ✓ Añadido
 
 ### Carrito
@@ -65,8 +65,9 @@ Diseños únicos para quienes llevan el motor en la sangre.
 - Integración directa con **Mercado Pago Checkout Pro**
 
 ### UI / Marca
-- Paleta: negro `#000` · blanco `#fff` · rojo `#E8192C`
-- Tipografía: **Teko** (titulares) + **Barlow** (cuerpo)
+- Paleta: negro `#000` · blanco `#fff` · rojo `#c1121f` (canónico) + grises de label
+- Tipografía: **Teko** 700 (titulares) · **DM Mono** (labels UI) · **Glacial Indifference** (cuerpo)
+- Esquinas rectas (`border-radius: 0`) en todo el design system (volt-ds)
 - Navbar con underline animado en hover (expand L→R, rojo)
 - Link activo resaltado por página
 - Footer con redes: Instagram · X/Twitter
