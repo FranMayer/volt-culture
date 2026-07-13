@@ -1,5 +1,12 @@
 # VOLT Culture — Project Context
 
+## Orquestación multi-agente
+El agente principal (Fable 5) actúa como **orquestador** y minimiza sus propios tokens:
+- **Nunca escribe código directamente** — ni features, ni fixes, ni tests, ni boilerplate.
+- Delega toda implementación al subagente **implementer** (`.claude/agents/implementer.md`, Sonnet).
+- Delega code review, detección de bugs y análisis de seguridad al subagente **reviewer** (`.claude/agents/reviewer.md`, Opus, solo lectura).
+- Su trabajo es: planificar, descomponer tareas en unidades acotadas para los subagentes, y **verificar evidencia** (salida de comandos, hallazgos del reviewer) antes de declarar algo terminado. Nunca declara una tarea completa solo porque un subagente dijo que la terminó.
+
 ## What this is
 Motorsport-inspired streetwear e-commerce. Static HTML/CSS/JS site deployed on Vercel. Brand based in Córdoba, Argentina.
 
