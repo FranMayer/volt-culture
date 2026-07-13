@@ -448,6 +448,44 @@
             flex-direction: column;
             justify-content: center;
             position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -200px;
+            left: -200px;
+            width: 900px;
+            height: 900px;
+            background: radial-gradient(circle, rgba(193, 18, 31, 0.12) 0%, rgba(193, 18, 31, 0) 70%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .hero__watermark {
+            position: absolute;
+            top: 50%;
+            right: -80px;
+            transform: translateY(-50%);
+            max-width: 60vw;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: clamp(180px, 32vw, 480px);
+            line-height: 1;
+            text-transform: uppercase;
+            white-space: nowrap;
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.05);
+            pointer-events: none;
+            user-select: none;
+            z-index: -1;
+        }
+
+        @supports not (-webkit-text-stroke: 1px rgba(255, 255, 255, 0.05)) {
+            .hero__watermark {
+                color: rgba(255, 255, 255, 0.04);
+            }
         }
 
         .hero__badge {
@@ -1049,6 +1087,12 @@
                 scroll-padding-top: var(--nav-h);
             }
 
+            .hero__watermark {
+                font-size: clamp(120px, 40vw, 220px);
+                right: -40px;
+                opacity: 0.6;
+            }
+
             .site-nav {
                 display: grid;
                 grid-template-columns: 1fr auto;
@@ -1325,6 +1369,7 @@
 
     <main>
         <section class="hero" id="top" aria-label="Principal">
+            <span class="hero__watermark" aria-hidden="true">VOLT</span>
             <div class="hero__badge">
                 <span class="hero__pulse" aria-hidden="true"></span>
                 <span>Córdoba, Argentina · Est. 2025</span>

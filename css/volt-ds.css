@@ -2284,3 +2284,52 @@ main > .shop-page-header {
         border: 1px solid rgba(255, 255, 255, 0.12) !important;
     }
 }
+
+/* ─── Watermark + glow (tratamiento de hero replicado en headers de subpáginas) ───
+   Réplica de .hero__watermark / .hero::before de index.html, a menor escala:
+   los headers de subpágina son franjas de ~120-300px de alto (no un hero de
+   100vh). Con clamp(120px,22vw,320px) el recorte por overflow dejaba una
+   astilla ilegible; el tamaño se dimensiona para la franja y el stroke sube
+   a 0.08 para que sea perceptible a esta escala. */
+.volt-watermark {
+    position: absolute;
+    top: 50%;
+    right: -40px;
+    transform: translateY(-50%);
+    font-family: var(--font-ds-display);
+    font-weight: 700;
+    font-size: clamp(72px, 9vw, 140px);
+    line-height: 1;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.08);
+    pointer-events: none;
+    user-select: none;
+    z-index: -1;
+}
+
+@supports not (-webkit-text-stroke: 1px rgba(255, 255, 255, 0.08)) {
+    .volt-watermark {
+        color: rgba(255, 255, 255, 0.06);
+    }
+}
+
+/* El contenedor que use .volt-glow (y/o .volt-watermark) necesita ser el
+   positioning context y recortar el desborde del watermark/glow. */
+.volt-glow {
+    position: relative;
+    overflow: hidden;
+}
+
+.volt-glow::before {
+    content: '';
+    position: absolute;
+    top: -200px;
+    left: -200px;
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, rgba(193, 18, 31, 0.12) 0%, rgba(193, 18, 31, 0) 70%);
+    pointer-events: none;
+    z-index: -1;
+}

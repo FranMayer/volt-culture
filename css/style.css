@@ -3106,6 +3106,17 @@ body.quickview-open {
     z-index: 1;
 }
 
+/* .shop-page-header no crea stacking context (position:relative sin
+   z-index), así que un z-index:-1 depende de que ningún ancestro pinte fondo
+   encima. Se sube a 0 como en about/news: sobre el fondo, debajo del texto
+   (eyebrow/título/desc ya tienen z-index:1 arriba) y debajo del ornament
+   ::after (mismo z-index 0, pinta después en orden de árbol — superposición
+   sutil aceptable entre dos decoraciones al ~5-8% de opacidad). */
+.shop-page-header .volt-watermark,
+.shop-page-header.volt-glow::before {
+    z-index: 0;
+}
+
 .bigbox {
     position: relative;
 }
@@ -3150,6 +3161,14 @@ body.quickview-open {
     z-index: 2;
 }
 
+/* .about-hero (section-panel) tiene su propio background opaco y no forma
+   stacking context: un z-index:-1 quedaría detrás de ese background. Se
+   sube a 0 para que quede delante del fondo y detrás del contenido (z:2). */
+.about-hero .volt-watermark,
+.about-hero.volt-glow::before {
+    z-index: 0;
+}
+
 .news-page__header {
     position: relative;
 }
@@ -3174,6 +3193,13 @@ body.quickview-open {
 .news-page__header .news-page__header-deco {
     position: relative;
     z-index: 1;
+}
+
+/* Mismo caso que .about-hero: .news-page__header (section-panel) tiene
+   background propio y no forma stacking context. */
+.news-page__header .volt-watermark,
+.news-page__header.volt-glow::before {
+    z-index: 0;
 }
 
 .envios__main {
@@ -3219,6 +3245,16 @@ body.quickview-open {
     width: 100%;
     flex-basis: 100%;
     line-height: 1.5;
+}
+
+/* Wrapper de título+lead para el tratamiento watermark/glow. Ocupa una fila
+   completa dentro de .envios__main .container (flex-wrap). .container ya
+   tiene su propio stacking context (position:relative + z-index:1, ver
+   arriba) que contiene el z-index:-1 del watermark antes de que escale
+   hasta el background de .envios__main — no hace falta subirlo a 0 acá. */
+.envios-page__header {
+    width: 100%;
+    flex-basis: 100%;
 }
 
 .howbuy__main {
