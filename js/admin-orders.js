@@ -330,6 +330,7 @@ async function openOrderDetail(orderId) {
         <p><strong>Cliente:</strong> ${o.customer?.name || '-'}<br>
         <strong>Email:</strong> ${o.customer?.email || '-'}<br>
         <strong>Tel:</strong> ${o.customer?.phone || '-'}<br>
+        <strong>DNI:</strong> ${o.customer?.dni || '-'}<br>
         ${adminShippingHtml(o)}</p>
         ${paymentLine}
         <ul style="padding-left:18px;">${items}</ul>
@@ -416,7 +417,7 @@ function init(deps = {}) {
         if (!selectedOrder) return;
         const o = selectedOrder;
         const items = (o.items || []).map((i) => `- ${i.title || i.name} x${i.quantity}`).join('\n');
-        const text = `Nombre: ${o.customer?.name || '-'}\nTelefono: ${o.customer?.phone || '-'}\nEmail: ${o.customer?.email || '-'}\n${adminShippingPlain(o)}\n\nProductos:\n${items}`;
+        const text = `Nombre: ${o.customer?.name || '-'}\nDNI: ${o.customer?.dni || '-'}\nTelefono: ${o.customer?.phone || '-'}\nEmail: ${o.customer?.email || '-'}\n${adminShippingPlain(o)}\n\nProductos:\n${items}`;
         await navigator.clipboard.writeText(text);
         alert('✅ Datos de envío copiados');
     });
