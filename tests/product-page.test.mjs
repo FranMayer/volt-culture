@@ -54,6 +54,18 @@ assert.ok(html.includes('<link rel="canonical" href="https://voltculture.com.ar/
 assert.ok(html.includes('/pages/catalogo.html?product=x1'), 'CTA deep-link');
 assert.ok(html.includes('firebasejs/9.22.0/firebase-app-compat.js'), 'script hidratación');
 assert.ok(html.includes('data-pp-price'), 'hook de precio para hidratar');
+assert.ok(html.includes('"@type":"BreadcrumbList"'), 'JSON-LD BreadcrumbList');
+assert.ok(html.includes('"item":"https://voltculture.com.ar/pages/catalogo.html"'), 'breadcrumb apunta al catálogo');
+
+// Galería: 1 imagen → sin tira de miniaturas; 2+ → tira con thumb activo.
+assert.ok(!html.includes('<div class="pp-thumbs">'), 'una sola imagen no muestra miniaturas');
+const htmlMulti = renderProductPage({
+    id: 'g1', name: 'Buzo', price: 1000,
+    image: '/multi/front.png', images: ['/multi/front.png', '/multi/back.png']
+}, { siteUrl: SITE });
+assert.ok(htmlMulti.includes('class="pp-thumbs"'), 'varias imágenes muestran miniaturas');
+assert.ok(htmlMulti.includes('data-src="https://voltculture.com.ar/multi/back.png"'), 'thumb con la 2da imagen');
+assert.ok(htmlMulti.includes('pp-thumb is-active'), 'primer thumb activo');
 
 // Fix: el JSON-LD no debe permitir breakout de </script>
 const htmlXss = renderProductPage({

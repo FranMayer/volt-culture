@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Sitemap canónico: https://www.voltculture.com.ar -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.voltculture.com.ar/</loc>
@@ -25,5 +24,90 @@
     <loc>https://www.voltculture.com.ar/pages/novedades.html</loc>
     <changefreq>weekly</changefreq>
     <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://www.voltculture.com.ar/producto/remera-tc-traverso-leyenda-argentina-2xfUTBdfWz7lyXONK31m.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.voltculture.com.ar/producto/hoodie-tc-canapino-86-3I3g9ibFO9VEtWfKIlto.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.voltculture.com.ar/producto/remera-tc-ford-haimovich-racing-7g5DslNOPJirPEMrkhmK.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.voltculture.com.ar/producto/hoodie-tc-werner-campeon-A3YwDz70SgySJWpVmJtR.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.voltculture.com.ar/producto/buzo-max-verstappen-Jb46l6Cdk2e5sd0i60li.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.voltculture.com.ar/producto/buzo-charles-leclerc-16-MZLRJd3OJyUeq6lrIzIO.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.voltculture.com.ar/producto/buzo-lewis-hamilton-PGNpYs8IQDVRg5XiJAKG.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.voltculture.com.ar/producto/remera-tc-canapino-86-T0vpSZatIGqkJVlKhSxZ.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.voltculture.com.ar/producto/hoodie-tc-traverso-leyenda-argentina-XBtzTqa4D2XkvOqNHgkW.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.voltculture.com.ar/producto/hoodie-tc-chevrolet-moro-hidraulick-Y8gsykq0vffDpfVm7Cib.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.voltculture.com.ar/producto/remera-tc-werner-campeon-bm2dVfdFgNwlRCGTAEgY.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.voltculture.com.ar/producto/hoodie-tc-ford-haimovich-racing-cmenDFrUAQR6OB6BknsI.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.voltculture.com.ar/producto/hoodie-stc-dtm-15-promarkt-fdIO0yT77mhMH5DZfa9a.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.voltculture.com.ar/producto/remera-tc-dtm-15-promarkt-kKPDRUCAtWeMQqRNBBjt.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.voltculture.com.ar/producto/buzo-fc43-volt-ke2Fba9DLxQPXXyyPoUh.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.voltculture.com.ar/producto/buzo-fc43-alpine-oxU21KPiglzYWfA1xepr.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.voltculture.com.ar/producto/remera-tc-chevrolet-oxXk5gjthpmHG7EXs0cs.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
 </urlset>

@@ -105,6 +105,23 @@ export function renderProductPage(product, { siteUrl }) {
         }
     };
 
+    const breadcrumbLd = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Inicio', item: `${base}/` },
+            { '@type': 'ListItem', position: 2, name: 'Catálogo', item: `${base}/pages/catalogo.html` },
+            { '@type': 'ListItem', position: 3, name: product.name || 'Producto', item: url }
+        ]
+    };
+
+    // Tira de miniaturas: solo si hay más de una imagen. Click cambia la principal.
+    const thumbs = images.length > 1
+        ? `<div class="pp-thumbs">${images.map((src, i) =>
+            `<button type="button" class="pp-thumb${i === 0 ? ' is-active' : ''}" data-src="${esc(src)}"><img src="${esc(src)}" alt="${esc(product.name)} ${i + 1}" loading="lazy"></button>`
+          ).join('')}</div>`
+        : '';
+
     return `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -124,6 +141,7 @@ export function renderProductPage(product, { siteUrl }) {
 <link href="https://fonts.googleapis.com/css2?family=Teko:wght@700&display=swap" rel="stylesheet">
 <link href="/css/volt-ds.css" rel="stylesheet">
 <script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, '\\u003c')}</script>
+<script type="application/ld+json">${JSON.stringify(breadcrumbLd).replace(/</g, '\\u003c')}</script>
 <style>
   body{background:#000;color:#fff;font-family:'Glacial Indifference',sans-serif;margin:0}
   /* volt-ds pinta su grilla en body::before (fixed, z-index 0): el contenido
@@ -135,6 +153,10 @@ export function renderProductPage(product, { siteUrl }) {
   .pp-wrap{max-width:960px;margin:0 auto;padding:2rem 1.5rem;display:grid;gap:2rem;grid-template-columns:1fr}
   @media(min-width:768px){.pp-wrap{grid-template-columns:1fr 1fr}}
   .pp-img img{width:100%;height:auto;display:block;border:1px solid rgba(255,255,255,.08)}
+  .pp-thumbs{display:flex;gap:.5rem;margin-top:.5rem;flex-wrap:wrap}
+  .pp-thumb{padding:0;width:64px;height:64px;line-height:0;background:none;border:1px solid rgba(255,255,255,.15);cursor:pointer}
+  .pp-thumb.is-active{border-color:#c1121f}
+  .pp-thumb img{width:100%;height:100%;object-fit:cover;display:block;border:0}
   .pp-title{font-family:'Teko',sans-serif;font-size:2.5rem;line-height:1;text-transform:uppercase;margin:0 0 .5rem}
   .pp-price{font-size:1.5rem;color:#c1121f;font-weight:700;margin:0 0 1rem}
   .pp-desc{color:#bbb;line-height:1.6;margin:0 0 1.5rem}
@@ -145,7 +167,7 @@ export function renderProductPage(product, { siteUrl }) {
 <body>
 <nav class="pp-nav"><a href="/" aria-label="VOLT — Inicio"><img src="/images-brand/Logo color y blanco.svg" alt="VOLT — Motorsport Culture"></a></nav>
 <main class="pp-wrap">
-  <div class="pp-img"><img src="${esc(mainImage)}" alt="${esc(product.name)}"></div>
+  <div class="pp-img"><img class="pp-main" src="${esc(mainImage)}" alt="${esc(product.name)}">${thumbs}</div>
   <div class="pp-info">
     <h1 class="pp-title">${esc(product.name)}</h1>
     <p class="pp-price" data-pp-price>$${price.toLocaleString('es-AR')}</p>
@@ -158,6 +180,19 @@ export function renderProductPage(product, { siteUrl }) {
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script src="/js/firebase-config.js"></script>
+<script>
+  (function () {
+    var main = document.querySelector('.pp-main');
+    var thumbs = document.querySelectorAll('.pp-thumb');
+    thumbs.forEach(function (t) {
+      t.addEventListener('click', function () {
+        main.src = t.getAttribute('data-src');
+        thumbs.forEach(function (x) { x.classList.remove('is-active'); });
+        t.classList.add('is-active');
+      });
+    });
+  })();
+</script>
 <script>
   (function () {
     try {
