@@ -204,9 +204,12 @@ export async function initHeroEntrance(rootSelector = '.hero') {
 }
 
 /**
- * Intro "lights out" estilo largada de F1:
- *   - 5 luces rojas encienden en secuencia sobre overlay negro.
- *   - Hold de suspenso, se apagan de golpe y el overlay se desvanece.
+ * Intro "lights out" estilo largada de F1, imitando el gantry FIA real:
+ *   - Panel de 5 columnas x 2 luces rojas (las 2 lentes de arriba de cada
+ *     columna quedan siempre apagadas). Encienden columna por columna,
+ *     izquierda a derecha, cada una con su par de rojas a la vez.
+ *   - Hold aleatorio (como la FIA randomiza el instante del apagado),
+ *     se apagan todas de golpe y el overlay se desvanece.
  *   - Una vez por sesión (sessionStorage) y nunca con reduced-motion.
  * Devuelve una promise que resuelve en el instante del "lights out",
  * para encadenar la entrada del hero.
@@ -227,21 +230,28 @@ export function initLightsOut() {
     try { sessionStorage.setItem('voltLightsOut', '1'); } catch (e) { /* modo privado */ }
 
     overlay.classList.add('is-running'); // cancela el fallback CSS de auto-desvanecido
-    const lights = Array.from(overlay.querySelectorAll('.lights-out__light'));
-    const STEP = 380;
+    const panel = overlay.querySelector('.lights-out__panel');
+    const columns = Array.from(overlay.querySelectorAll('.lights-out__col'));
+    const STEP = 500;
     const START = 300;
-    const HOLD = 650;
+    const HOLD_MIN = 500;
+    const HOLD_RANGE = 1100; // desde la ultima columna encendida pasan STEP + hold = 1000-2100ms hasta el apagado; la FIA randomiza ese instante
 
     return new Promise((resolve) => {
-        lights.forEach((light, i) => {
-            setTimeout(() => light.classList.add('is-on'), START + i * STEP);
+        columns.forEach((column, i) => {
+            setTimeout(() => {
+                column.querySelectorAll('.lights-out__light--red').forEach((light) => light.classList.add('is-on'));
+                if (panel) panel.classList.add('is-lit');
+            }, START + i * STEP);
         });
+        const hold = HOLD_MIN + Math.random() * HOLD_RANGE;
         setTimeout(() => {
-            lights.forEach((light) => light.classList.remove('is-on'));
+            overlay.querySelectorAll('.lights-out__light--red').forEach((light) => light.classList.remove('is-on'));
+            if (panel) panel.classList.remove('is-lit');
             overlay.classList.add('is-out');
             resolve();
             setTimeout(() => overlay.remove(), 600);
-        }, START + lights.length * STEP + HOLD);
+        }, START + columns.length * STEP + hold);
     });
 }
 

@@ -383,21 +383,53 @@
             pointer-events: none;
         }
 
-        /* Panel del semáforo (gantry): caja oscura con marco, como en la grilla real */
-        .lights-out__row {
-            display: flex;
-            gap: clamp(10px, 2vw, 16px);
+        /* Panel del semáforo (gantry): cartel del logo arriba + 5 columnas x 2 luces rojas, caja oscura con marco, como en la grilla FIA real */
+        .lights-out__panel {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: clamp(8px, 1.8vw, 14px);
             padding: clamp(10px, 2vw, 16px);
             background: #050505;
             border: 1px solid rgba(255, 255, 255, 0.16);
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            transition: box-shadow 0.25s ease;
+        }
+
+        /* Resplandor ambiente rojo bajo el panel mientras hay columnas encendidas */
+        .lights-out__panel.is-lit {
+            box-shadow:
+                0 10px 40px rgba(0, 0, 0, 0.8),
+                0 26px 80px rgba(193, 18, 31, 0.35);
+        }
+
+        .lights-out__col {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(6px, 1.2vw, 10px);
+        }
+
+        /* Cartel del logo F1 que tapa las 2 filas superiores del gantry real (solo decorativo, alt vacío) */
+        .lights-out__sign {
+            grid-column: 1 / -1;
+            height: clamp(38px, 6vw, 64px);
+            padding: 6px 12px;
+            box-sizing: border-box;
+            background: #0a0a0a;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .lights-out__sign img {
+            display: block;
+            height: 100%;
+            width: auto;
+            margin: 0 auto;
         }
 
         /* Cada housing es cuadrado (DS); el bulbo redondo vive en el ::before */
         .lights-out__light {
             position: relative;
-            width: clamp(36px, 6vw, 56px);
-            height: clamp(36px, 6vw, 56px);
+            width: clamp(24px, 4.4vw, 42px);
+            height: clamp(24px, 4.4vw, 42px);
             background: #0a0a0a;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
@@ -413,11 +445,11 @@
             transition: background 0.08s ease, box-shadow 0.08s ease;
         }
 
-        .lights-out__light.is-on::before {
-            background: radial-gradient(circle at 35% 30%, #ff8a8a 0%, #d91423 45%, #7f0b13 100%);
+        .lights-out__light--red.is-on::before {
+            background: radial-gradient(circle at 35% 28%, #fff2ee 0%, #ff8a8a 22%, #c1121f 55%, #6f0a12 100%);
             box-shadow:
-                0 0 16px rgba(193, 18, 31, 0.95),
-                0 0 44px rgba(193, 18, 31, 0.5),
+                0 0 18px rgba(255, 138, 138, 0.9),
+                0 0 46px rgba(193, 18, 31, 0.55),
                 inset 0 -2px 6px rgba(0, 0, 0, 0.35);
         }
 
@@ -1351,12 +1383,30 @@
 </head>
 <body>
     <div class="lights-out" id="voltLightsOut" aria-hidden="true">
-        <div class="lights-out__row">
-            <span class="lights-out__light"></span>
-            <span class="lights-out__light"></span>
-            <span class="lights-out__light"></span>
-            <span class="lights-out__light"></span>
-            <span class="lights-out__light"></span>
+        <div class="lights-out__panel">
+            <div class="lights-out__sign">
+                <img src="images-brand/logof1-clean.png" alt="">
+            </div>
+            <div class="lights-out__col">
+                <span class="lights-out__light"></span>
+                <span class="lights-out__light lights-out__light--red"></span>
+            </div>
+            <div class="lights-out__col">
+                <span class="lights-out__light"></span>
+                <span class="lights-out__light lights-out__light--red"></span>
+            </div>
+            <div class="lights-out__col">
+                <span class="lights-out__light"></span>
+                <span class="lights-out__light lights-out__light--red"></span>
+            </div>
+            <div class="lights-out__col">
+                <span class="lights-out__light"></span>
+                <span class="lights-out__light lights-out__light--red"></span>
+            </div>
+            <div class="lights-out__col">
+                <span class="lights-out__light"></span>
+                <span class="lights-out__light lights-out__light--red"></span>
+            </div>
         </div>
         <p class="lights-out__phrase">Lights out and away we go...</p>
     </div>
