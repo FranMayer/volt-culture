@@ -41,6 +41,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let _shippingConfirmado = null;
     /** Cupón aplicado en el paso 3 ({ code, percent }) o null. Se resetea al abrir el modal. */
     let _couponAplicado = null;
+    /** Carrito de la corrida de checkout activa, usado para estimar peso/volumen al cotizar Andreani. */
+    let _cartForQuote = [];
 
     if (!checkoutBtn) return;
 
@@ -236,6 +238,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                     <label class="form-label" for="shippingPostalCode">Código postal</label>
                                     <input type="text" class="form-control" id="shippingPostalCode" required autocomplete="postal-code" inputmode="numeric" style="${CHECKOUT_INPUT_STYLE}">
                                 </div>
+                                <p id="andreaniQuoteBox" class="small mb-0 d-none" style="font-family:Barlow,sans-serif;color:#ccc;line-height:1.45;margin-top:0.6rem;"></p>
                             </div>
                         </div>
 
@@ -279,6 +282,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         document.body.appendChild(modal);
         bindShippingCards(modal);
+        bindAndreaniQuote(modal);
     }
 
     function getSavedCustomerData() {
@@ -355,8 +359,99 @@ document.addEventListener("DOMContentLoaded", () => {
                 btn.classList.add("is-selected");
                 btn.setAttribute("aria-pressed", "true");
                 updateShippingFieldVisibility(modalEl);
+                scheduleAndreaniQuote(modalEl);
             });
         });
+    }
+
+    // ── Cotización de envío Andreani (informativa, no bloquea el checkout) ──
+    /**
+     * Estima peso/volumen del carrito para pedir tarifa. Hoodie/buzo: 0.7kg y
+     * 6000cm3 por unidad; el resto (remeras) 0.3kg y 3000cm3 por unidad.
+     * @param {Array} cart
+     * @returns {{pesoKg:number, volumenCm3:number}}
+     */
+    function estimateCartShipment(cart) {
+        let pesoKg = 0;
+        let volumenCm3 = 0;
+        (cart || []).forEach((item) => {
+            const qty = item.quantity || 1;
+            const name = item.title || item.name || "";
+            const isHoodie = /hoodie|buzo/i.test(name);
+            pesoKg += (isHoodie ? 0.7 : 0.3) * qty;
+            volumenCm3 += (isHoodie ? 6000 : 3000) * qty;
+        });
+        return { pesoKg: Math.round(pesoKg * 100) / 100, volumenCm3 };
+    }
+
+    let _andreaniQuoteTimer = null;
+    let _andreaniQuoteReqId = 0;
+
+    function setAndreaniQuoteBox(modalEl, text, color) {
+        const box = modalEl.querySelector("#andreaniQuoteBox");
+        if (!box) return;
+        box.textContent = text;
+        box.style.color = color || "#ccc";
+        box.classList.toggle("d-none", !text);
+    }
+
+    /** Oculta el box y descarta cualquier cotización pendiente (timer o fetch en vuelo). */
+    function hideAndreaniQuote(modalEl) {
+        if (_andreaniQuoteTimer) {
+            clearTimeout(_andreaniQuoteTimer);
+            _andreaniQuoteTimer = null;
+        }
+        _andreaniQuoteReqId += 1;
+        setAndreaniQuoteBox(modalEl, "", "#ccc");
+    }
+
+    async function fetchAndreaniQuote(modalEl, postalCode) {
+        const myReq = ++_andreaniQuoteReqId;
+        setAndreaniQuoteBox(modalEl, "Cotizando envío…", "#ccc");
+        const { pesoKg, volumenCm3 } = estimateCartShipment(_cartForQuote);
+        try {
+            const url = `/api/cotizar-envio?codigoPostalDestino=${encodeURIComponent(postalCode)}&pesoKg=${pesoKg}&volumenCm3=${volumenCm3}`;
+            const res = await fetch(url);
+            if (myReq !== _andreaniQuoteReqId) return;
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            if (myReq !== _andreaniQuoteReqId) return;
+            const tarifa = Number(data.tarifaConIva);
+            if (!Number.isFinite(tarifa)) throw new Error("tarifa inválida");
+            setAndreaniQuoteBox(
+                modalEl,
+                `Costo estimado de envío (Andreani): ${formatShippingMoney(Math.round(tarifa))} IVA incluido — se coordina el pago del envío por WhatsApp.`,
+                "#ccc"
+            );
+        } catch (e) {
+            if (myReq !== _andreaniQuoteReqId) return;
+            setAndreaniQuoteBox(modalEl, "No pudimos cotizar el envío para ese código postal.", "#e06b6b");
+        }
+    }
+
+    /** Debounce de 600ms sobre CP + selección de andreani; cotiza solo si CP tiene 4 dígitos. */
+    function scheduleAndreaniQuote(modalEl) {
+        if (_andreaniQuoteTimer) {
+            clearTimeout(_andreaniQuoteTimer);
+            _andreaniQuoteTimer = null;
+        }
+        const isAndreani = getSelectedShippingOption(modalEl) === "andreani";
+        const postalCode = modalEl.querySelector("#shippingPostalCode")?.value.trim() || "";
+        if (!isAndreani || !/^\d{4}$/.test(postalCode)) {
+            hideAndreaniQuote(modalEl);
+            return;
+        }
+        _andreaniQuoteTimer = setTimeout(() => {
+            _andreaniQuoteTimer = null;
+            fetchAndreaniQuote(modalEl, postalCode);
+        }, 600);
+    }
+
+    function bindAndreaniQuote(modalEl) {
+        const postalInput = modalEl.querySelector("#shippingPostalCode");
+        if (postalInput) {
+            postalInput.addEventListener("input", () => scheduleAndreaniQuote(modalEl));
+        }
     }
 
     function formatMoney(n) {
@@ -567,6 +662,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         _shippingConfirmado = null;
         _couponAplicado = null;
+        _cartForQuote = cart;
         const couponInputReset = modalEl.querySelector("#checkoutCouponInput");
         const couponFeedbackReset = modalEl.querySelector("#checkoutCouponFeedback");
         const couponRemoveReset = modalEl.querySelector("#checkoutCouponRemove");
@@ -587,6 +683,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         clearAndreaniAddressFields(modalEl);
         updateShippingFieldVisibility(modalEl);
+        hideAndreaniQuote(modalEl);
 
         let currentStep = 1;
         const fillEl = modalEl.querySelector("#checkoutStepperFill");

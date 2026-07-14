@@ -45,6 +45,9 @@ function setupTabs() {
             if (tabId === 'pedidos') {
                 state.deps.AdminOrders.loadOrders();
             }
+            if (tabId === 'despachos') {
+                state.deps.AdminDespachos.loadDespachos();
+            }
             if (tabId === 'cupones') {
                 state.deps.AdminCoupons.loadCoupons();
             }
@@ -114,6 +117,7 @@ async function initAdminPanel() {
     const commonDeps = getCommonDeps();
     state.deps.AdminProducts.init(commonDeps);
     state.deps.AdminOrders.init(commonDeps);
+    state.deps.AdminDespachos.init(commonDeps);
     await state.deps.AdminProducts.loadProducts();
 }
 

@@ -56,7 +56,14 @@
       "Bash(git rm *)",
       "Bash(echo \"node_modules untracked, exit=$?\")",
       "Bash(echo \"pyc untracked, exit=$?\")",
-      "Bash(grep -c '\\\\.pyc$')"
+      "Bash(grep -c '\\\\.pyc$')",
+      "Bash(xargs -0 ls -la)",
+      "Bash(sort -k5 -n -r)",
+      "Bash(node -e \"console.log\\('sharp ready', require\\('sharp'\\).versions.vips\\)\")",
+      "Bash(git *)",
+      "PowerShell(npm ls *)",
+      "Bash(node --check api/create-preference.js)",
+      "Bash(echo \"exit=$?\")"
     ]
   }
 }
