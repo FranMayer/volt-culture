@@ -599,6 +599,51 @@
             border-bottom-color: var(--volt-red);
         }
 
+        /* Wrapper posicionado solo alrededor del grid: las flechas se centran
+           sobre las cards (no sobre .hero-featured, que incluye el head) y el
+           anclaje funciona igual con .hero-featured absolute o relative. */
+        .hero-featured__carousel {
+            position: relative;
+        }
+
+        .hero-featured__arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 2;
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 0;
+            color: var(--volt-white);
+            cursor: pointer;
+            padding: 0;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        /* >1700px: .hero-featured flota con margen a los costados → mitad afuera */
+        #homeFeaturedPrev {
+            left: -20px;
+        }
+
+        #homeFeaturedNext {
+            right: -20px;
+        }
+
+        .hero-featured__arrow:hover:not(:disabled) {
+            border-color: var(--volt-red);
+            background: var(--volt-red);
+        }
+
+        /* Disabled sobre las cards = ocultar, no mostrar apagado tapando producto */
+        .hero-featured__arrow:disabled {
+            visibility: hidden;
+        }
+
         .hero-featured .home-featured__grid--carousel {
             display: grid;
             grid-auto-flow: column;
@@ -1070,6 +1115,15 @@
                 margin: 8px 0 clamp(56px, 10vh, 88px);
             }
 
+            /* Panel a 100% del ancho: sin margen afuera, flechas adentro */
+            #homeFeaturedPrev {
+                left: 8px;
+            }
+
+            #homeFeaturedNext {
+                right: 8px;
+            }
+
             .hero__scroll {
                 position: relative;
                 bottom: auto;
@@ -1091,6 +1145,12 @@
                 font-size: clamp(120px, 40vw, 220px);
                 right: -40px;
                 opacity: 0.6;
+            }
+
+            /* Cards más chicas: flechas reducidas, swipe sigue siendo el gesto principal */
+            .hero-featured__arrow {
+                width: 34px;
+                height: 34px;
             }
 
             .site-nav {
@@ -1389,7 +1449,15 @@
                     <a class="hero-featured__link" href="/pages/catalogo.html">Tienda →</a>
                 </div>
                 <p class="home-featured__status" id="homeFeaturedStatus" hidden></p>
-                <div class="home-featured__grid home-featured__grid--carousel" id="homeFeaturedGrid" data-limit="8"></div>
+                <div class="hero-featured__carousel">
+                    <div class="home-featured__grid home-featured__grid--carousel" id="homeFeaturedGrid" data-limit="8"></div>
+                    <button type="button" class="hero-featured__arrow" id="homeFeaturedPrev" aria-label="Anterior" disabled>
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+                    </button>
+                    <button type="button" class="hero-featured__arrow" id="homeFeaturedNext" aria-label="Siguiente" disabled>
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+                    </button>
+                </div>
             </aside>
             <div class="hero__scroll" aria-hidden="true">
                 <span class="hero__scroll-line"></span>

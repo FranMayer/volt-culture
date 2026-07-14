@@ -37,6 +37,41 @@
             .replace(/'/g, '&#39;');
     }
 
+    /* Flechas prev/next del carrusel (los botones viven en index.html).
+       Se llama después del render: sin cards no hay overflow y ambos
+       botones quedan disabled. */
+    function setupCarouselNav(grid) {
+        const prev = document.getElementById('homeFeaturedPrev');
+        const next = document.getElementById('homeFeaturedNext');
+        if (!prev || !next) return;
+
+        function step() {
+            const card = grid.firstElementChild;
+            if (!card) return 0;
+            const gap = parseFloat(getComputedStyle(grid).columnGap) || 0;
+            return card.getBoundingClientRect().width + gap;
+        }
+
+        function behavior() {
+            return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+        }
+
+        function update() {
+            prev.disabled = grid.scrollLeft <= 0;
+            next.disabled = grid.scrollLeft + grid.clientWidth >= grid.scrollWidth - 1;
+        }
+
+        prev.addEventListener('click', function () {
+            grid.scrollBy({ left: -step(), behavior: behavior() });
+        });
+        next.addEventListener('click', function () {
+            grid.scrollBy({ left: step(), behavior: behavior() });
+        });
+        grid.addEventListener('scroll', update, { passive: true });
+        window.addEventListener('resize', update);
+        update();
+    }
+
     document.addEventListener('DOMContentLoaded', async function () {
         const grid = document.getElementById('homeFeaturedGrid');
         const statusEl = document.getElementById('homeFeaturedStatus');
@@ -87,6 +122,8 @@
                     `;
                 })
                 .join('');
+
+            setupCarouselNav(grid);
         } catch (err) {
             console.error('home-featured:', err);
             grid.innerHTML = '';
