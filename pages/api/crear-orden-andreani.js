@@ -14,22 +14,10 @@
  *   FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
  */
 
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
-import { andreaniFetch } from './_andreani-auth.js';
-import { verifyAdmin } from './_verify-admin.js';
-
-function initAdmin() {
-    const projectId   = (process.env.FIREBASE_PROJECT_ID   || '').replace(/^"|"$/g, '').trim();
-    const clientEmail = (process.env.FIREBASE_CLIENT_EMAIL || '').replace(/^"|"$/g, '').trim();
-    const privateKey  = (process.env.FIREBASE_PRIVATE_KEY  || '')
-        .replace(/\\n/g, '\n').replace(/^"|"$/g, '').trim();
-
-    if (!getApps().length) {
-        initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
-    }
-    return getFirestore();
-}
+import { FieldValue } from 'firebase-admin/firestore';
+import { adminDb } from '@/lib/firebase/admin';
+import { andreaniFetch } from '@/lib/server/andreani-auth';
+import { verifyAdmin } from '@/lib/server/verify-admin';
 
 function buildAndreaniPayload({ contrato, destinatario, destino, bultos }) {
     return {
@@ -105,7 +93,7 @@ export default async function handler(req, res) {
 
         const contrato = String(body.contrato || process.env.ANDREANI_CONTRATO || '400006711').trim();
 
-        const db = initAdmin();
+        const db = adminDb();
         const orderRef = db.collection('orders').doc(orderId);
         const orderSnap = await orderRef.get();
         if (!orderSnap.exists) {

@@ -1,37 +1,23 @@
 import { MercadoPagoConfig, Payment } from 'mercadopago';
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
 import { Resend } from 'resend';
 import { createHmac } from 'crypto';
-import { applyStockDecrement } from './_stock.js';
-import { applyRateLimit } from './_rate-limit.js';
+import { adminDb } from '@/lib/firebase/admin';
+import { applyStockDecrement } from '@/lib/server/stock';
+import { applyRateLimit } from '@/lib/server/rate-limit';
 import {
     formatShippingBlockAdminHtml,
     formatShippingBlockClientHtml,
     formatShippingWhatsAppBlock
-} from './_shipping-email.js';
+} from '@/lib/server/shipping-email';
+
+// NOTA (F2): la verificación de firma HMAC de MercadoPago (verifyMpSignature)
+// usa solo `data.id` (del body ya parseado) + los headers x-signature/x-request-id —
+// NUNCA los bytes crudos del body. El bodyParser default de Next (que parsea a
+// JSON) es seguro acá; no hace falta `export const config = { api: { bodyParser: false } }`.
+// Confirmado contra el original: api/webhook.js tampoco leía el raw body.
 
 const ADMIN_SALE_EMAIL = 'volt.streetcba@gmail.com';
-
-function initAdmin() {
-    const projectId = (process.env.FIREBASE_PROJECT_ID || '').replace(/^"|"$/g, '').trim();
-    const clientEmail = (process.env.FIREBASE_CLIENT_EMAIL || '').replace(/^"|"$/g, '').trim();
-    const privateKey = (process.env.FIREBASE_PRIVATE_KEY || '')
-        .replace(/\\n/g, '\n')
-        .replace(/^"|"$/g, '')
-        .trim();
-
-    if (!getApps().length) {
-        initializeApp({
-            credential: cert({
-                projectId,
-                clientEmail,
-                privateKey
-            })
-        });
-    }
-    return getFirestore();
-}
 
 function isProductionEnv() {
     return process.env.VERCEL_ENV === 'production';
@@ -300,7 +286,7 @@ export default async function handler(req, res) {
             const orderId = paymentInfo.external_reference;
 
             if (orderId) {
-                const db = initAdmin();
+                const db = adminDb();
                 const orderRef = db.collection('orders').doc(orderId);
                 const nextStatus = mapStatus(paymentInfo.status);
 

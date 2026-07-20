@@ -5,8 +5,8 @@
  * sin exponer el token de autenticación de Andreani.
  */
 
-import { andreaniFetch } from './_andreani-auth.js';
-import { verifyAdmin } from './_verify-admin.js';
+import { andreaniFetch } from '@/lib/server/andreani-auth';
+import { verifyAdmin } from '@/lib/server/verify-admin';
 
 const NUMERO_RE = /^[A-Za-z0-9-]+$/;
 

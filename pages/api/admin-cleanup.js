@@ -1,18 +1,5 @@
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
-import { verifyAdmin } from './_verify-admin.js';
-
-function initAdmin() {
-    const projectId   = (process.env.FIREBASE_PROJECT_ID   || '').replace(/^"|"$/g, '').trim();
-    const clientEmail = (process.env.FIREBASE_CLIENT_EMAIL || '').replace(/^"|"$/g, '').trim();
-    const privateKey  = (process.env.FIREBASE_PRIVATE_KEY  || '')
-        .replace(/\\n/g, '\n').replace(/^"|"$/g, '').trim();
-
-    if (!getApps().length) {
-        initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
-    }
-    return getFirestore();
-}
+import { adminDb } from '@/lib/firebase/admin';
+import { verifyAdmin } from '@/lib/server/verify-admin';
 
 async function deleteCollection(db, collectionName) {
     const BATCH_SIZE = 400;
@@ -43,7 +30,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const db = initAdmin();
+        const db = adminDb();
         const result = {};
 
         if (target === 'orders' || target === 'all') {

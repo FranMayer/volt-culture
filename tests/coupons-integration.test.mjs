@@ -22,8 +22,8 @@ inc('rules: coupons list solo admin', rules, 'allow list: if request.auth != nul
 inc('rules: coupons write admin', rules, 'request.auth.token.admin == true');
 
 // ── create-transfer-order ──
-const transferApi = read('api/create-transfer-order.js');
-inc('transfer importa _coupons', transferApi, "from './_coupons.js'");
+const transferApi = read('pages/api/create-transfer-order.js');
+inc('transfer importa lib/server/coupons', transferApi, "from '@/lib/server/coupons'");
 inc('transfer lee body.couponCode', transferApi, 'body.couponCode');
 inc('transfer setea discountSource coupon', transferApi, "discountSource = 'coupon'");
 inc('transfer persiste coupon en orden', transferApi, 'coupon,');
@@ -31,8 +31,8 @@ inc('transfer persiste discountSource en orden', transferApi, 'discountSource,')
 inc('transfer devuelve discountSource', transferApi, 'discountSource,');
 
 // ── create-preference ──
-const prefApi = read('api/create-preference.js');
-inc('preference importa _coupons', prefApi, "from './_coupons.js'");
+const prefApi = read('pages/api/create-preference.js');
+inc('preference importa lib/server/coupons', prefApi, "from '@/lib/server/coupons'");
 inc('preference lee body.couponCode', prefApi, 'body.couponCode');
 inc('preference persiste discountSource', prefApi, 'discountSource');
 inc('preference descuenta unit_price', prefApi, 'unitPrice');

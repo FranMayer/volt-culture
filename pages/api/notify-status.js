@@ -1,21 +1,9 @@
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
 import { Resend } from 'resend';
-import { formatShippingBlockClientHtml } from './_shipping-email.js';
-import { verifyAdmin } from './_verify-admin.js';
-import { applyStockDecrement, applyStockIncrement } from './_stock.js';
-
-function initAdmin() {
-    const projectId   = (process.env.FIREBASE_PROJECT_ID   || '').replace(/^"|"$/g, '').trim();
-    const clientEmail = (process.env.FIREBASE_CLIENT_EMAIL || '').replace(/^"|"$/g, '').trim();
-    const privateKey  = (process.env.FIREBASE_PRIVATE_KEY  || '')
-        .replace(/\\n/g, '\n').replace(/^"|"$/g, '').trim();
-
-    if (!getApps().length) {
-        initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
-    }
-    return getFirestore();
-}
+import { adminDb } from '@/lib/firebase/admin';
+import { formatShippingBlockClientHtml } from '@/lib/server/shipping-email';
+import { verifyAdmin } from '@/lib/server/verify-admin';
+import { applyStockDecrement, applyStockIncrement } from '@/lib/server/stock';
 
 const STATUS_SUBJECTS = {
     paid:            'Tu pedido VOLT fue confirmado ✅',
@@ -202,7 +190,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const db = initAdmin();
+        const db = adminDb();
         const orderRef = db.collection('orders').doc(orderId);
         const snap = await orderRef.get();
         if (!snap.exists) return res.status(404).json({ error: 'Orden no encontrada' });

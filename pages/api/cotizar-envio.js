@@ -5,11 +5,11 @@
  *
  * Variables de entorno:
  *   ANDREANI_CONTRATO (default '400006711', contrato de prueba)
- *   (ver api/_andreani-auth.js para credenciales y base URL)
+ *   (ver lib/server/andreani-auth.ts para credenciales y base URL)
  */
 
-import { andreaniFetch } from './_andreani-auth.js';
-import { applyRateLimit } from './_rate-limit.js';
+import { andreaniFetch } from '@/lib/server/andreani-auth';
+import { applyRateLimit } from '@/lib/server/rate-limit';
 
 const ALLOWED_ORIGINS = new Set([
     'https://voltculture.com.ar',

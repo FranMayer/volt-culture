@@ -5,8 +5,8 @@
  * pueda seguir su pedido.
  */
 
-import { andreaniFetch } from './_andreani-auth.js';
-import { applyRateLimit } from './_rate-limit.js';
+import { andreaniFetch } from '@/lib/server/andreani-auth';
+import { applyRateLimit } from '@/lib/server/rate-limit';
 
 const ALLOWED_ORIGINS = new Set([
     'https://voltculture.com.ar',

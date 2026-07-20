@@ -1,5 +1,5 @@
 import { createHash } from 'crypto';
-import { verifyAdmin } from './_verify-admin.js';
+import { verifyAdmin } from '@/lib/server/verify-admin';
 
 /**
  * Firma Cloudinary: todos los params del upload (excepto file, api_key, signature)

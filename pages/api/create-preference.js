@@ -1,47 +1,10 @@
-/**
- * VOLT Store — Orden por transferencia bancaria.
- *
- * Crea una orden en Firestore con status `pending_transfer` y valida stock
- * server-side (sin descontar). El descuento real de inventario y la
- * confirmación se disparan cuando el admin marca la orden como `paid`
- * desde el panel (ver api/notify-status.js).
- *
- * No integra Mercado Pago ni envía notificaciones al admin al crear.
- *
- * Variables de entorno (Vercel / hosting):
- *   FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
- */
-
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
-import { computeAvailableStock } from './_stock.js';
-import { applyRateLimit } from './_rate-limit.js';
-import { SHIPPING_CONFIG } from '../js/shipping-config.js';
-import { normalizeCouponCode, isCouponValid, computeCouponDiscount } from './_coupons.js';
-
-const TRANSFER_DISCOUNT_RATE = 0.10;
-
-function initAdmin() {
-    if (!process.env.FIREBASE_PRIVATE_KEY) {
-        throw new Error('FIREBASE_PRIVATE_KEY no configurada en entorno');
-    }
-    const projectId = (process.env.FIREBASE_PROJECT_ID || '').replace(/^"|"$/g, '').trim();
-    const clientEmail = (process.env.FIREBASE_CLIENT_EMAIL || '').replace(/^"|"$/g, '').trim();
-    const privateKey = (process.env.FIREBASE_PRIVATE_KEY || '')
-        .replace(/\\n/g, '\n')
-        .replace(/^"|"$/g, '')
-        .trim();
-    if (!projectId || !clientEmail || !privateKey) {
-        throw new Error('Credenciales Firebase incompletas: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL o FIREBASE_PRIVATE_KEY');
-    }
-
-    if (!getApps().length) {
-        initializeApp({
-            credential: cert({ projectId, clientEmail, privateKey })
-        });
-    }
-    return getFirestore();
-}
+import { MercadoPagoConfig, Preference } from 'mercadopago';
+import { FieldValue } from 'firebase-admin/firestore';
+import { adminDb } from '@/lib/firebase/admin';
+import { computeAvailableStock } from '@/lib/server/stock';
+import { applyRateLimit } from '@/lib/server/rate-limit';
+import { SHIPPING_CONFIG } from '@/lib/shipping-config';
+import { normalizeCouponCode, isCouponValid } from '@/lib/server/coupons';
 
 function generateOrderId() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -79,8 +42,7 @@ function resolveShippingOption(shippingOption) {
             cost: SHIPPING_CONFIG.andreani.cost,
             note: SHIPPING_CONFIG.andreani.note
         },
-        // Andreani: el costo real se coordina por WhatsApp. No sumamos al total.
-        shippingCost: 0
+        shippingCost: SHIPPING_CONFIG.andreani.cost
     };
 }
 
@@ -103,12 +65,27 @@ function normalizeAndreaniAddress(address) {
     };
 }
 
+/** Una línea para metadata de Mercado Pago (límite práctico de caracteres). */
+function shippingSummaryLine(shipping) {
+    if (shipping.type === 'cordoba') {
+        return `cordoba: Envío ${SHIPPING_CONFIG.cordoba.label} $${SHIPPING_CONFIG.cordoba.cost}`;
+    }
+    return `andreani: ${SHIPPING_CONFIG.andreani.note} por WhatsApp`;
+}
+
 const ALLOWED_ORIGINS = new Set([
     'https://voltculture.com.ar',
     'https://www.voltculture.com.ar',
-    'http://localhost:3000'
+    'http://localhost:3000',
+    // ponytail: URL estable de preview de next-migration, agregada en F2 para
+    // que el checkout funcione en el preview deploy. Quitar en el cutover (F10).
+    'https://voltculture-git-next-migration-fran-mayers-projects.vercel.app'
 ]);
 
+/**
+ * Valida Origin y setea headers CORS. Devuelve false si el origin no está permitido.
+ * @returns {boolean}
+ */
 function applyCors(req, res) {
     const origin = req.headers.origin;
     if (!origin || !ALLOWED_ORIGINS.has(origin)) {
@@ -128,13 +105,23 @@ export default async function handler(req, res) {
 
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
-    // Reutilizamos el bucket de create-preference: ambos crean órdenes, mismo perfil de abuso.
     if (!(await applyRateLimit(req, res, 'create-preference'))) return;
 
     try {
+        if (!process.env.MP_ACCESS_TOKEN) {
+            return res.status(500).json({
+                error: 'MP_ACCESS_TOKEN no configurado',
+                details: 'Definí MP_ACCESS_TOKEN en Vercel Project Settings > Environment Variables'
+            });
+        }
+
         let body = req.body;
         if (typeof body === 'string') {
-            try { body = JSON.parse(body); } catch { body = {}; }
+            try {
+                body = JSON.parse(body);
+            } catch {
+                body = {};
+            }
         }
         if (!body || typeof body !== 'object' || Array.isArray(body)) {
             body = {};
@@ -143,7 +130,6 @@ export default async function handler(req, res) {
         const items = body.items;
         const customer = body.customer;
         const shippingOption = body.shippingOption ?? body.shipping?.type;
-
         if (!items || !Array.isArray(items) || items.length === 0) {
             return res.status(400).json({ error: 'El carrito está vacío' });
         }
@@ -154,7 +140,6 @@ export default async function handler(req, res) {
         if (!/^\d{7,8}$/.test(dni)) {
             return res.status(400).json({ error: 'DNI inválido: debe tener 7 u 8 dígitos, sin puntos ni espacios.' });
         }
-
         const shipNorm = resolveShippingOption(shippingOption);
         if (shipNorm.error) {
             return res.status(400).json({ error: shipNorm.error });
@@ -171,7 +156,7 @@ export default async function handler(req, res) {
             shipping.address = addrNorm.address;
         }
 
-        const normalizedItems = items.map((item) => ({
+        const normalizedItems = items.map(item => ({
             id: String(item.id || item.productId || '').trim(),
             title: String(item.title || 'Producto'),
             quantity: Math.max(1, Number(item.quantity) || 1),
@@ -188,7 +173,7 @@ export default async function handler(req, res) {
             }
         }
 
-        const db = initAdmin();
+        const db = adminDb();
 
         try {
             await db.runTransaction(async (t) => {
@@ -228,16 +213,12 @@ export default async function handler(req, res) {
             throw e;
         }
 
-        const productsTotal = normalizedItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
-        const subtotal = productsTotal + shippingCost;
+        const productsTotal = normalizedItems.reduce((sum, i) => sum + (i.price * i.quantity), 0);
 
-        // Default: descuento por transferencia (−10% sobre subtotal).
+        // Cupón válido: baja el unit_price de cada producto en su %.
         let coupon = null;
-        let discountSource = 'transfer';
-        let discountPercent = Math.round(TRANSFER_DISCOUNT_RATE * 100);
-        let discountAmount = Math.round(subtotal * TRANSFER_DISCOUNT_RATE);
-
-        // Cupón válido REEMPLAZA al −10% (descuento solo sobre productos).
+        let discountSource = null;
+        let discountPercent = 0;
         const couponCode = normalizeCouponCode(body.couponCode);
         if (couponCode) {
             const couponSnap = await db.collection('coupons').doc(couponCode).get();
@@ -246,20 +227,24 @@ export default async function handler(req, res) {
                 coupon = couponData.code || couponCode;
                 discountSource = 'coupon';
                 discountPercent = Number(couponData.percent);
-                discountAmount = computeCouponDiscount(productsTotal, discountPercent);
             }
         }
 
-        const total = subtotal - discountAmount;
-
+        const discountedItems = normalizedItems.map((i) => ({
+            ...i,
+            unitPrice: discountPercent ? Math.round(i.price * (100 - discountPercent) / 100) : i.price
+        }));
+        const discountedProductsTotal = discountedItems.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
+        const discountAmount = productsTotal - discountedProductsTotal;
+        const subtotal = productsTotal + shippingCost;
+        const total = discountedProductsTotal + shippingCost;
         const orderId = generateOrderId();
         const orderRef = db.collection('orders').doc(orderId);
 
         try {
             await orderRef.set({
                 orderId,
-                status: 'pending_transfer',
-                paymentMethod: 'transfer',
+                status: 'pending',
                 createdAt: FieldValue.serverTimestamp(),
                 customer: {
                     name: String(customer.name).trim(),
@@ -270,14 +255,13 @@ export default async function handler(req, res) {
                 shipping,
                 items: normalizedItems,
                 subtotal,
-                coupon,
-                discountSource,
                 discountPercent,
                 discountAmount,
+                coupon,
+                discountSource,
                 total,
                 paymentId: null,
                 paidAt: null,
-                inventoryAdjusted: false,
                 updatedAt: FieldValue.serverTimestamp()
             });
         } catch (firestoreError) {
@@ -293,19 +277,75 @@ export default async function handler(req, res) {
             try {
                 await db.collection('coupons').doc(couponCode).update({ usedCount: FieldValue.increment(1) });
             } catch (e) {
-                console.warn('[create-transfer-order] No se pudo incrementar usedCount del cupón:', e.message);
+                console.warn('[create-preference] No se pudo incrementar usedCount del cupón:', e.message);
             }
         }
 
-        return res.status(200).json({
-            orderId,
-            total,
-            subtotal,
-            discountAmount,
-            discountPercent,
-            discountSource,
-            coupon
-        });
+        const mpItems = discountedItems.map((item, index) => ({
+            id: `${item.id}-${index}`,
+            title: item.title,
+            description: [item.title, item.variantColor, item.variantSize].filter(Boolean).join(' · ') || item.title,
+            category_id: 'fashion',
+            quantity: item.quantity,
+            currency_id: 'ARS',
+            unit_price: item.unitPrice
+        }));
+
+        if (shipping.type === 'cordoba') {
+            mpItems.push({
+                id: 'shipping-cordoba',
+                title: `Envío ${SHIPPING_CONFIG.cordoba.label}`,
+                description: `Envío ${SHIPPING_CONFIG.cordoba.label} (dentro de circunvalación)`,
+                category_id: 'others',
+                quantity: 1,
+                currency_id: 'ARS',
+                unit_price: SHIPPING_CONFIG.cordoba.cost
+            });
+        }
+
+        const siteUrl = process.env.SITE_URL || 'https://www.voltculture.com.ar';
+        const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
+        const preference = new Preference(client);
+
+        try {
+            const result = await preference.create({
+                body: {
+                    items: mpItems,
+                    statement_descriptor: 'VOLT Store',
+                    external_reference: orderId,
+                    back_urls: {
+                        success: `${siteUrl}/pages/success.html?order=${orderId}`,
+                        failure: `${siteUrl}/pages/failure.html?order=${orderId}`,
+                        pending: `${siteUrl}/pages/pending.html?order=${orderId}`
+                    },
+                    auto_return: 'approved',
+                    notification_url: `${siteUrl}/api/webhook`,
+                    metadata: {
+                        order_id: orderId,
+                        customer_name: String(customer.name).trim(),
+                        customer_phone: String(customer.phone).trim(),
+                        customer_email: String(customer.email).trim(),
+                        shipping_option: shipping.type,
+                        shipping_summary: shippingSummaryLine(shipping)
+                    }
+                }
+            });
+
+            return res.status(200).json({
+                init_point: result.init_point || result.sandbox_init_point,
+                orderId
+            });
+        } catch (mpError) {
+            await orderRef.update({
+                status: 'mp_error',
+                updatedAt: FieldValue.serverTimestamp(),
+                mpError: mpError.message
+            });
+            return res.status(500).json({
+                error: 'Error al crear preferencia en Mercado Pago',
+                details: mpError.message
+            });
+        }
     } catch (error) {
         if (error.message?.includes('Invalid PEM formatted message')) {
             return res.status(500).json({

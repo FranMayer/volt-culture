@@ -1,23 +1,6 @@
 import { Resend } from 'resend';
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
-import { applyRateLimit } from './_rate-limit.js';
-
-function initAdminAuth() {
-    const projectId = (process.env.FIREBASE_PROJECT_ID || '').replace(/^"|"$/g, '').trim();
-    const clientEmail = (process.env.FIREBASE_CLIENT_EMAIL || '').replace(/^"|"$/g, '').trim();
-    const privateKey = (process.env.FIREBASE_PRIVATE_KEY || '')
-        .replace(/\\n/g, '\n')
-        .replace(/^"|"$/g, '')
-        .trim();
-
-    if (!getApps().length) {
-        initializeApp({
-            credential: cert({ projectId, clientEmail, privateKey })
-        });
-    }
-    return getAuth();
-}
+import { adminAuth } from '@/lib/firebase/admin';
+import { applyRateLimit } from '@/lib/server/rate-limit';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -33,8 +16,7 @@ export default async function handler(req, res) {
 
     let decoded;
     try {
-        const auth = initAdminAuth();
-        decoded = await auth.verifyIdToken(token);
+        decoded = await adminAuth().verifyIdToken(token);
     } catch {
         return res.status(401).json({ error: 'Token inválido o expirado' });
     }
