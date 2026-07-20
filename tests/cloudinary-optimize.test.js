@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const assert = require('node:assert');
 
-const src = fs.readFileSync(path.join(__dirname, '..', 'js/products-service.js'), 'utf8');
+const src = fs.readFileSync(path.join(__dirname, '..', 'legacy/js/products-service.js'), 'utf8');
 const m = src.match(/function optimizeCloudinary\([\s\S]*?\n\}/);
 assert.ok(m, 'optimizeCloudinary debe existir en products-service.js');
 const optimizeCloudinary = new Function(`${m[0]}; return optimizeCloudinary;`)();
