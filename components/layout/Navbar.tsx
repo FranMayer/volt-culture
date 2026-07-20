@@ -3,16 +3,18 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useCartOffcanvas } from "./CartOffcanvasContext";
+import { useCartStore, cartCount } from "@/lib/cart/store";
 
 // Ported from legacy/pages/catalogo.html (nav + floating cart button) and
 // legacy/js/animations.js (hamburger menu open/close semantics — that file
 // itself is NOT migrated per CLAUDE.md "Qué NO migrar", but its behavior is
 // re-implemented here as React state since the navbar still needs a working
-// mobile menu). Auth (`#voltSignInBtn`) and the cart badge count are static
-// placeholders — wired in F3.
+// mobile menu). Auth (`#voltSignInBtn`) is still a static placeholder — F3
+// auth wiring lands in a later task. The cart badge count is reactive (F3).
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { toggle: toggleCart } = useCartOffcanvas();
+  const count = useCartStore((s) => cartCount(s.items));
 
   const closeMenu = () => setMenuOpen(false);
   const toggleMenu = () => setMenuOpen((v) => !v);
@@ -111,9 +113,14 @@ export default function Navbar() {
           <circle cx="9" cy="20" r="1" />
           <circle cx="18" cy="20" r="1" />
         </svg>
-        {/* Static badge (0) — F3 connects this to the Zustand cart store. */}
-        <span className="cart-badge" id="cartBadge" style={{ display: "none" }}>
-          0
+        {/* Same semantics as legacy/js/main.js#updateBadge(): "99+" past 99,
+            hidden at 0. */}
+        <span
+          className="cart-badge"
+          id="cartBadge"
+          style={{ display: count > 0 ? "flex" : "none" }}
+        >
+          {count > 99 ? "99+" : count}
         </span>
       </button>
     </>
