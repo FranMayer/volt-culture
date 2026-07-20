@@ -1,0 +1,65 @@
+/**
+ * VOLT theme — canonical CSS variables + alias bridge to the 3 legacy var sets.
+ *
+ * IMPORTANT: this file does NOT change any rendered color. `volt-ds.css`,
+ * `style.css` and `mediaquery.css` are ported verbatim and keep fully
+ * self-contained `:root` blocks with their OWN real values — those always
+ * win the cascade (they load after this file). The aliases below are a
+ * forward-looking single source of truth for NEW code (components built in
+ * F1b+) and for the eventual post-migration CSS cleanup; they do not need
+ * to "win" against the legacy files to satisfy visual parity today.
+ *
+ * Canonical set mirrors volt-ds.css's own documented palette (see its
+ * header comment): pure #000000 / #FFFFFF / #c1121f + label grays #666/#888.
+ */
+
+:root {
+  /* ---- Canonical VOLT palette (volt-ds.css's pure identity colors) ---- */
+  --volt-red: #c1121f;
+  --volt-black: #000000;
+  --volt-white: #ffffff;
+  --volt-gray-label: #666666; /* volt-ds --volt-ds-label */
+  --volt-gray-body: #888888; /* volt-ds --volt-ds-body */
+  --volt-border-subtle: rgba(255, 255, 255, 0.07);
+  --volt-border-control: rgba(255, 255, 255, 0.22);
+
+  /* ---- Legacy-only tones: real values genuinely differ from the pure
+     canonical ones above (pre-existing design nuance in style.css, not a
+     migration drift) — kept as distinct canonical tokens so the alias
+     below is accurate instead of silently overwriting the color. ---- */
+  --volt-black-soft: #0b0b0b; /* style.css --color-dark / --volt-black */
+  --volt-white-off: #f2f2f2; /* style.css --color-white / --volt-white */
+  --volt-gray-dark: #44464c; /* style.css --color-gray */
+  --volt-gray-border: #1a1a1a; /* style.css --color-border */
+  --volt-gray-muted: #555555; /* style.css --color-muted */
+
+  /* ================= Alias: --color-* (style.css) ================= */
+  --color-red: var(--volt-red);
+  --color-dark: var(--volt-black-soft);
+  --color-black: var(--volt-black);
+  --color-gray: var(--volt-gray-dark);
+  --color-white: var(--volt-white-off);
+  --color-border: var(--volt-gray-border);
+  --color-muted: var(--volt-gray-muted);
+
+  /* ================= Alias: --volt-ds-* (volt-ds.css) ================= */
+  --volt-ds-black: var(--volt-black);
+  --volt-ds-white: var(--volt-white);
+  --volt-ds-red: var(--volt-red);
+  --volt-ds-border: var(--volt-border-subtle);
+  --volt-ds-border-control: var(--volt-border-control);
+  --volt-ds-grid-line: var(--volt-border-subtle);
+  --volt-ds-label: var(--volt-gray-label);
+  --volt-ds-body: var(--volt-gray-body);
+
+  /* ========= --volt-black/white/red (style.css's own set) =========
+     No separate alias line here on purpose: style.css defines these EXACT
+     same names itself (real values: near-black #0b0b0b, off-white #f2f2f2,
+     red #c1121f — see --volt-black-soft/--volt-white-off above) and loads
+     after this file, so its own definitions always win the cascade and
+     keep resolving to today's colors unchanged. Re-declaring --volt-black
+     here would only self-shadow the pure canonical value above without
+     changing anything rendered (style.css still wins downstream). The
+     canonical --volt-red/--volt-black/--volt-white declared above double
+     as this set's value wherever style.css isn't loaded. */
+}
