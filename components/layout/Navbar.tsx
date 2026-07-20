@@ -4,17 +4,22 @@ import { useState } from "react";
 import Link from "next/link";
 import { useCartOffcanvas } from "./CartOffcanvasContext";
 import { useCartStore, cartCount } from "@/lib/cart/store";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { displayName, signOutUser } from "@/lib/auth";
 
 // Ported from legacy/pages/catalogo.html (nav + floating cart button) and
 // legacy/js/animations.js (hamburger menu open/close semantics — that file
 // itself is NOT migrated per CLAUDE.md "Qué NO migrar", but its behavior is
 // re-implemented here as React state since the navbar still needs a working
-// mobile menu). Auth (`#voltSignInBtn`) is still a static placeholder — F3
-// auth wiring lands in a later task. The cart badge count is reactive (F3).
+// mobile menu). Auth nav (`#authNav`) mirrors legacy/js/store-auth.js
+// `_updateNavbar()` — logged-out shows #voltSignInBtn (opens AuthModal),
+// logged-in shows greeting + mis-pedidos + logout, admin claim prepends the
+// panel link (F3). The cart badge count is reactive (F3).
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { toggle: toggleCart } = useCartOffcanvas();
   const count = useCartStore((s) => cartCount(s.items));
+  const { user, loading, isAdmin, openModal } = useAuth();
 
   const closeMenu = () => setMenuOpen(false);
   const toggleMenu = () => setMenuOpen((v) => !v);
@@ -62,11 +67,52 @@ export default function Navbar() {
         </ul>
 
         <div className="header-actions">
-          <div id="authNav" className="auth-nav">
-            {/* Static placeholder — F3 wires up Firebase Auth state here. */}
-            <button type="button" className="auth-btn auth-btn--in" id="voltSignInBtn">
-              Ingresar
-            </button>
+          {/* legacy store-auth.js:130-163 `_updateNavbar` — `.loaded` gates
+              the CSS fade-in until auth state resolves (avoids a flash of
+              the wrong state on first paint). */}
+          <div id="authNav" className={`auth-nav${!loading ? " loaded" : ""}`}>
+            {isAdmin && (
+              <a href="/admin" className="auth-btn auth-btn--admin">
+                <svg
+                  width={14}
+                  height={14}
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                  style={{ verticalAlign: "-0.12em", marginRight: "0.3em" }}
+                >
+                  <path d="M13 2 4.5 13.5H11l-1 8.5L19.5 10H13z" />
+                </svg>
+                Panel
+              </a>
+            )}
+            {user ? (
+              <>
+                <span className="auth-greeting">
+                  Hola, <strong>{displayName(user)}</strong>
+                </span>
+                <Link href="/mis-pedidos" className="auth-btn auth-btn--link">
+                  Mis pedidos
+                </Link>
+                <button
+                  type="button"
+                  className="auth-btn auth-btn--out"
+                  id="voltSignOutBtn"
+                  onClick={() => signOutUser()}
+                >
+                  Salir
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="auth-btn auth-btn--in"
+                id="voltSignInBtn"
+                onClick={() => openModal("login")}
+              >
+                Ingresar
+              </button>
+            )}
           </div>
           <div
             className={`menu-toggle${menuOpen ? " active" : ""}`}

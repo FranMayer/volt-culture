@@ -11,12 +11,16 @@ import "./styles/style.css";
 import "./styles/mediaquery.css";
 import "./styles/volt-ds.css";
 import "./styles/offcanvas.css";
+import "./styles/modal.css";
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFloat from "@/components/layout/WhatsAppFloat";
 import CartOffcanvas from "@/components/layout/CartOffcanvas";
 import { CartOffcanvasProvider } from "@/components/layout/CartOffcanvasContext";
+import { AuthProvider } from "@/components/auth/AuthProvider";
+import AuthModal from "@/components/auth/AuthModal";
+import AdminAccessEasterEgg from "@/components/auth/AdminAccessEasterEgg";
 
 // Self-hosted, no external font CDN (replaces the old Google Fonts <link>
 // and eliminates fonts.googleapis.com/fonts.gstatic.com from the CSP).
@@ -58,13 +62,17 @@ export default function RootLayout({
       className={`${teko.variable} ${dmMono.variable}`}
     >
       <body>
-        <CartOffcanvasProvider>
-          <Navbar />
-          {children}
-          <Footer />
-          <WhatsAppFloat />
-          <CartOffcanvas />
-        </CartOffcanvasProvider>
+        <AuthProvider>
+          <CartOffcanvasProvider>
+            <Navbar />
+            {children}
+            <Footer />
+            <WhatsAppFloat />
+            <CartOffcanvas />
+            <AuthModal />
+            <AdminAccessEasterEgg />
+          </CartOffcanvasProvider>
+        </AuthProvider>
       </body>
     </html>
   );
