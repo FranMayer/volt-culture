@@ -62,8 +62,8 @@ tests/          node scripts sin framework (smoke HTTP + unit de stock/cupones)
 
 | Fase | Alcance | Estado |
 |---|---|---|
-| F0 | Baseline visual + scaffold Next+TS + reorganización repo + CLAUDE.md | ⬜ Pendiente |
-| F1 | Theme CSS unificado + layout compartido (navbar/footer/cart/WhatsApp) | ⬜ Pendiente |
+| F0 | Baseline visual + scaffold Next+TS + reorganización repo + CLAUDE.md | ✅ Hecha (2026-07-20) |
+| F1 | Theme CSS unificado + layout compartido (navbar/footer/cart/WhatsApp) | ✅ Hecha (2026-07-20) |
 | F2 | Firebase modular + tipos + backend a `pages/api` + aislamiento de entornos | ⬜ Pendiente |
 | F3 | Carrito (Zustand + sync Firestore) + Auth | ⬜ Pendiente |
 | F4 | Catálogo | ⬜ Pendiente |
