@@ -11,6 +11,13 @@ import "./styles/bs-shim.css";
 import "./styles/style.css";
 import "./styles/mediaquery.css";
 import "./styles/volt-ds.css";
+import "./styles/offcanvas.css";
+
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+import WhatsAppFloat from "@/components/layout/WhatsAppFloat";
+import CartOffcanvas from "@/components/layout/CartOffcanvas";
+import { CartOffcanvasProvider } from "@/components/layout/CartOffcanvasContext";
 
 // Self-hosted, no external font CDN (replaces the old Google Fonts <link>
 // and eliminates fonts.googleapis.com/fonts.gstatic.com from the CSP).
@@ -69,7 +76,15 @@ export default function RootLayout({
       lang="es"
       className={`${teko.variable} ${dmMono.variable} ${glacialIndifference.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        <CartOffcanvasProvider>
+          <Navbar />
+          {children}
+          <Footer />
+          <WhatsAppFloat />
+          <CartOffcanvas />
+        </CartOffcanvasProvider>
+      </body>
     </html>
   );
 }
