@@ -14,7 +14,10 @@ import { applyRateLimit } from '@/lib/server/rate-limit';
 const ALLOWED_ORIGINS = new Set([
     'https://voltculture.com.ar',
     'https://www.voltculture.com.ar',
-    'http://localhost:3000'
+    'http://localhost:3000',
+    // ponytail: URL estable de preview de next-migration, agregada en F2 para
+    // que el checkout funcione en el preview deploy. Quitar en el cutover (F10).
+    'https://voltculture-git-next-migration-fran-mayers-projects.vercel.app'
 ]);
 
 /**
