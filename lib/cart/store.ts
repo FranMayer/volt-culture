@@ -75,6 +75,15 @@ export const useCartStore = create<CartState>()(
             name: 'cart',
             storage: legacyCompatStorage,
             partialize: (state) => ({ items: state.items }),
+            // SSR renders items:[] (no localStorage on the server). Auto-
+            // rehydration on import would run client-side before React's
+            // first client render, making that render diverge from the SSR
+            // HTML for any visitor with a saved cart → hydration mismatch on
+            // every page (badge, offcanvas). skipHydration defers loading
+            // from storage until an explicit `.persist.rehydrate()` call
+            // made post-mount (see AuthProvider), so the first client render
+            // matches SSR and the cart fills in right after.
+            skipHydration: true,
         }
     )
 );

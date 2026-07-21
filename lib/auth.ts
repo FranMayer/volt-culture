@@ -20,6 +20,7 @@ import {
 } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/client";
+import { clearLocal } from "@/lib/cart/sync";
 
 // ── Mensajes de error — transcripción literal de store-auth.js ────────────
 
@@ -121,6 +122,22 @@ export async function signInGoogle(): Promise<void> {
 }
 
 export async function signOutUser(): Promise<void> {
+    // legacy store-auth.js:84 clearLocal() on logout — DECISION (revert of
+    // an earlier deviation): local cart must be cleared on explicit logout,
+    // not preserved. On a shared device, keeping the local cart let the next
+    // user's login-merge (loadAndMerge, lib/cart/sync.ts) absorb the
+    // previous user's items into their OWN Firestore cart — real data
+    // contamination. The signed-out user's cart is not lost: it lives in
+    // their Firestore doc and returns via loadAndMerge on next login.
+    //
+    // Called here (not in AuthProvider's onAuthStateChanged(null) branch)
+    // because that branch also fires for an anonymous visitor's initial
+    // page load with no prior session — clearing there would wipe the
+    // anonymous cart on every visit. This function is the single explicit
+    // "Salir" entry point (components/layout/Navbar.tsx), matching legacy's
+    // separation between the logout handler and the generic auth-state
+    // listener.
+    clearLocal();
     await signOut(auth); // legacy store-auth.js:125
 }
 

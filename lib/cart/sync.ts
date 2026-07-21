@@ -102,10 +102,13 @@ export async function clearFirestore(uid: string): Promise<void> {
 
 /**
  * Transcripción de legacy cart-sync.js:143-147 `clearLocal` (limpia el
- * carrito local y cancela el debounce pendiente). NO se invoca en logout —
- * decisión explícita de la tarea F3b (distinta de legacy, que sí borra el
- * carrito local al cerrar sesión): el carrito local debe sobrevivir el
- * logout. Se conserva acá por fidelidad de API; sin caller en F3b.
+ * carrito local y cancela el debounce pendiente). Invocada desde el logout
+ * explícito (signOutUser(), lib/auth.ts) — misma semántica que legacy
+ * store-auth.js:84, que también llama clearLocal() al cerrar sesión. Evita
+ * que, en un dispositivo compartido, el carrito del usuario A quede local y
+ * el loadAndMerge del usuario B lo absorba y persista en el Firestore de B.
+ * El carrito del usuario que cierra sesión no se pierde: vive en su propio
+ * Firestore y vuelve con loadAndMerge en su próximo login.
  */
 export function clearLocal(): void {
     if (debounceTimer) clearTimeout(debounceTimer); // legacy:144

@@ -6,6 +6,7 @@ import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import { checkAdminClaim } from "@/lib/auth";
 import { loadAndMerge, startCartSync } from "@/lib/cart/sync";
+import { useCartStore } from "@/lib/cart/store";
 
 type AuthTab = "login" | "register";
 
@@ -47,6 +48,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const wasLoggedOut = useRef(true);
 
     useEffect(() => {
+        // Rehydrate the cart store from localStorage post-mount (store.ts
+        // has skipHydration:true so the first client render matches SSR's
+        // empty items:[] — see lib/cart/store.ts). Safe to call once here
+        // since AuthProvider mounts a single time wrapping the whole app.
+        useCartStore.persist.rehydrate();
+
         const unsubscribeCart = startCartSync();
 
         const unsubscribeAuth = onAuthStateChanged(auth, (nextUser) => {
@@ -69,10 +76,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
                 wasLoggedOut.current = false;
             } else {
-                // legacy store-auth.js:78-84 limpia los guards de merge Y el
-                // carrito local. Acá se conserva el carrito local a propósito
-                // (deviación pedida por la tarea F3b) — solo se limpian los
-                // guards, así un login posterior vuelve a mergear.
+                // legacy store-auth.js:78-84 también llama clearLocal() acá,
+                // en la rama pasiva de onAuthStateChanged(null) — pero esa
+                // rama dispara tanto en logout explícito como en la carga
+                // inicial de un visitante anónimo (nunca logueado). Vaciar
+                // el carrito local acá borraría el carrito anónimo en cada
+                // page load. clearLocal() se llama en cambio desde el logout
+                // explícito (signOutUser(), lib/auth.ts) — ver ese archivo
+                // para el motivo (evitar contaminación entre usuarios en
+                // dispositivo compartido). Acá solo se limpian los guards de
+                // merge, así un login posterior vuelve a mergear.
                 try {
                     Object.keys(sessionStorage)
                         .filter((k) => k.startsWith(MERGE_KEY_PREFIX))
