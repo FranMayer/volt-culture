@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { useCartOffcanvas } from "./CartOffcanvasContext";
 import { useCartStore, cartCount } from "@/lib/cart/store";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { displayName, signOutUser } from "@/lib/auth";
+import { useFlipBadge } from "@/lib/motion/useFlipBadge";
 
 // Ported from legacy/pages/catalogo.html (nav + floating cart button) and
 // legacy/js/animations.js (hamburger menu open/close semantics — that file
@@ -20,6 +21,8 @@ export default function Navbar() {
   const { toggle: toggleCart } = useCartOffcanvas();
   const count = useCartStore((s) => cartCount(s.items));
   const { user, loading, isAdmin, openModal } = useAuth();
+  const badgeRef = useRef<HTMLSpanElement>(null);
+  useFlipBadge(badgeRef);
 
   const closeMenu = () => setMenuOpen(false);
   const toggleMenu = () => setMenuOpen((v) => !v);
@@ -160,11 +163,15 @@ export default function Navbar() {
           <circle cx="18" cy="20" r="1" />
         </svg>
         {/* Same semantics as legacy/js/main.js#updateBadge(): "99+" past 99,
-            hidden at 0. */}
+            hidden at 0. transformOrigin matches legacy volt-motion.js
+            initCartBadge (lib/motion/useFlipBadge.ts pulses this ref on
+            count increase — see hook for why MutationObserver isn't used
+            here). */}
         <span
+          ref={badgeRef}
           className="cart-badge"
           id="cartBadge"
-          style={{ display: count > 0 ? "flex" : "none" }}
+          style={{ display: count > 0 ? "flex" : "none", transformOrigin: "center" }}
         >
           {count > 99 ? "99+" : count}
         </span>

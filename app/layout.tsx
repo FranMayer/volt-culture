@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Teko, DM_Mono } from "next/font/google";
 
 // Cascade order replicates legacy exactly (see legacy/pages/catalogo.html):
@@ -62,6 +63,24 @@ export default function RootLayout({
       className={`${teko.variable} ${dmMono.variable}`}
     >
       <body>
+        {/* GA4 — ported from legacy/index.html's inline gtag snippet (also
+            present, identically, on every other legacy page's <head>).
+            afterInteractive: loads after hydration, doesn't block first
+            paint. Fires a page_view on load same as the inline `gtag('js',
+            ...); gtag('config', ...)` pair did; SPA route-change page_view
+            tracking (e.g. a usePathname() effect calling gtag('event',
+            'page_view', ...)) is a nice-to-have not present in the legacy
+            site either (it had no client router) — left as a future
+            enhancement, not required for parity. */}
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-V8T1VZYLVB" strategy="afterInteractive" />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-V8T1VZYLVB');
+          `}
+        </Script>
         <AuthProvider>
           <CartOffcanvasProvider>
             <Navbar />
