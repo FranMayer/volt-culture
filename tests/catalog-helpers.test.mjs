@@ -13,6 +13,8 @@ import {
     slugify,
     productPath,
     matchFilterFromQuery,
+    buildImageArray,
+    totalStock,
 } from '../lib/catalog-helpers.js';
 
 // ── computeAvailableStock: color+talle, solo color, solo talle, ninguno ────
@@ -95,5 +97,31 @@ assert.deepEqual(
     'sin line, cat sola matchea la primera línea (F1) con esa categoría, igual que el DOM order de applyCategoryFromQuery'
 );
 assert.equal(matchFilterFromQuery('xx', 'remeras'), null, 'línea inexistente -> sin match');
+
+// ── buildImageArray: dedupe + absolutiza + varias fuentes (F5, mismo caso
+//    que tests/product-page.test.mjs para la versión legacy de esta función) ─
+const SITE = 'https://voltculture.com.ar';
+assert.deepEqual(
+    buildImageArray({
+        image: '/multi/front.png',
+        images: ['/multi/front.png', { url: '/multi/back.png' }],
+        variantImages: { Rojo: '/multi/rojo.png' },
+        imagesByColor: { Negro: { src: 'https://cdn.x/negro.png' } },
+    }, SITE),
+    [
+        'https://voltculture.com.ar/multi/front.png',
+        'https://voltculture.com.ar/multi/back.png',
+        'https://voltculture.com.ar/multi/rojo.png',
+        'https://cdn.x/negro.png',
+    ],
+    'buildImageArray dedupe + absolutiza'
+);
+assert.deepEqual(buildImageArray({}, SITE), [], 'buildImageArray sin imágenes -> vacío');
+
+// ── totalStock: variantes > talles > stock plano ───────────────────────────
+assert.equal(totalStock({ variants: [{ stock: 3 }, { stock: 2 }], sizes: [{ stock: 9 }], stock: 1 }), 5, 'suma variantes');
+assert.equal(totalStock({ sizes: [{ stock: 4 }, { stock: 1 }], stock: 1 }), 5, 'sin variantes -> suma talles');
+assert.equal(totalStock({ stock: 7 }), 7, 'sin variantes/talles -> stock plano');
+assert.equal(totalStock({}), 0);
 
 console.log('catalog-helpers.test.mjs OK');

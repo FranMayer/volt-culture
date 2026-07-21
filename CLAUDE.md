@@ -67,7 +67,7 @@ tests/          node scripts sin framework (smoke HTTP + unit de stock/cupones)
 | F2 | Firebase modular + tipos + backend a `pages/api` + aislamiento de entornos | ⬜ Pendiente |
 | F3 | Carrito (Zustand + sync Firestore) + Auth | ⬜ Pendiente |
 | F4 | Catálogo | ✅ Hecha (2026-07-21) — reviewer PASS; QA visual diferido |
-| F5 | `producto/[slug]` con ISR + revalidate + sitemap/robots | ⬜ Pendiente |
+| F5 | `producto/[slug]` con ISR + revalidate + sitemap/robots | ✅ Hecha (2026-07-21) — reviewer PASS; QA visual/preview diferido |
 | F6 | Home + volt-motion + GA | ⬜ Pendiente |
 | F7 | Checkout + retorno MP (success/pending/failure) | ⬜ Pendiente |
 | F8 | Páginas estáticas + mis-pedidos | ⬜ Pendiente |

@@ -16,6 +16,16 @@ const nextConfig: NextConfig = {
         destination: "/catalogo",
         permanent: true,
       },
+      {
+        source: "/producto/:slug.html",
+        destination: "/producto/:slug",
+        permanent: true,
+      },
+      {
+        source: "/index.html",
+        destination: "/",
+        permanent: true,
+      },
     ];
   },
 };
