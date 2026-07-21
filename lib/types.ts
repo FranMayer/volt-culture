@@ -26,15 +26,26 @@ export interface Product {
     image: string;
     imageUrl?: string;
     images?: string[];
-    /** Imágenes alternativas por color — dos nombres legados coexisten en el código. */
-    variantImages?: Record<string, string[]>;
-    imagesByColor?: Record<string, string[]>;
+    /**
+     * Imágenes alternativas por color — dos nombres legados coexisten en el
+     * código (`variantImages` u `imagesByColor`, se usa el que exista).
+     * Corregido a `Record<string, string>` (F4): legacy/js/catalog.js:305
+     * (`byColor[color]`) usa el valor directo como URL, no como array —
+     * la declaración previa (`string[]`) no coincidía con products-service.js
+     * (sanitizeImageMap trata cada valor como string único).
+     */
+    variantImages?: Record<string, string>;
+    imagesByColor?: Record<string, string>;
     variants?: ProductVariant[];
     sizes?: ProductSize[];
     active: boolean;
+    /** Sello "Edición limitada" en la card (F4, legacy/js/catalog.js:113-116). */
+    limited?: boolean;
     featured?: boolean;
     /** Orden en la home cuando featured === true (1 = primero). */
     featuredOrder?: number;
+    /** Línea de producción (TC, F1, etc). Productos viejos sin este campo → 'TC' (ver normalizeProduct). */
+    line?: string;
     createdAt?: unknown;
     updatedAt?: unknown;
 }

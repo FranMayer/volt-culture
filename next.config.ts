@@ -9,6 +9,15 @@ const nextConfig: NextConfig = {
   // Silences the "multiple lockfiles" warning caused by a stray
   // package-lock.json in the user's home dir outside this repo.
   outputFileTracingRoot: path.join(__dirname),
+  async redirects() {
+    return [
+      {
+        source: "/pages/catalogo.html",
+        destination: "/catalogo",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
