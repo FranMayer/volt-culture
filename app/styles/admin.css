@@ -40,6 +40,13 @@
     background: var(--admin-black);
     color: var(--admin-white);
     font-family: "Glacial Indifference", sans-serif;
+    /* volt-ds pinta su grilla en body::before (fixed, z-index:0, negro sólido),
+       un pseudo posicionado que tapa el contenido en flujo normal. Sin esto la
+       grilla se filtra sobre los paneles del admin (se ven negros con líneas) y
+       tapa el texto de las celdas en Cupones. Mismo patrón que .orders-page
+       (mis-pedidos.css) y .order-result-page (order-result.css). */
+    position: relative;
+    z-index: 1;
 }
 
 /* ============================================
