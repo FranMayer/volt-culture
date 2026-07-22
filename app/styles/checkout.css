@@ -1,0 +1,95 @@
+/**
+ * Checkout modal (components/checkout/CheckoutModal.tsx) + orden por
+ * transferencia (components/checkout/TransferSuccessModal.tsx).
+ *
+ * Port de legacy/js/pagos.js#injectCheckoutStyles() (líneas 89-154): esa
+ * función inyectaba un <style id="voltCheckoutModalStyles"> con estas mismas
+ * reglas en runtime porque pagos.js corría sobre páginas que no cargaban un
+ * dark theme global. Acá el theme (volt-ds.css) SÍ se carga en todo
+ * app/layout.tsx, así que la piel genérica del modal (fondo, bordes,
+ * .modal-title, .form-control, .btn-danger/.btn-outline-light, .btn-close)
+ * ya la dan volt-ds.css/bs-shim.css/modal.css — ver esos archivos. Este
+ * archivo solo trae las reglas verdaderamente específicas del checkout que
+ * no existen en ningún lado más (selectores idénticos a los de pagos.js).
+ */
+
+#customerDataModal .volt-stepper { display:flex; gap:0; margin-bottom:1rem; padding-bottom:0.75rem; border-bottom:1px solid #44464c; }
+#customerDataModal .volt-stepper__item { flex:1; text-align:center; font-family:Barlow,sans-serif; font-size:0.7rem; letter-spacing:0.06em; text-transform:uppercase; color:#888; position:relative; }
+#customerDataModal .volt-stepper__item strong { display:block; font-family:Teko,sans-serif; font-size:1.15rem; letter-spacing:0.06em; margin-bottom:2px; }
+#customerDataModal .volt-stepper__item.is-active { color:#f2f2f2; }
+#customerDataModal .volt-stepper__item.is-active strong { color:#c1121f; }
+#customerDataModal .volt-stepper__item.is-done strong { color:#f2f2f2; }
+#customerDataModal .volt-stepper__bar { height:3px; background:#333; border-radius:2px; margin-bottom:0.85rem; overflow:hidden; }
+#customerDataModal .volt-stepper__fill { height:100%; background:#c1121f; width:0%; transition:width 0.25s ease; }
+#customerDataModal .volt-step-panel { display:none; }
+#customerDataModal .volt-step-panel.is-visible { display:block; background:#1a1a1a; border:1px solid #2c2c2c; padding:0.875rem; }
+#customerDataModal .volt-ship-grid { display:grid; grid-template-columns:1fr; gap:0.6rem; }
+@media (min-width:576px) {
+    #customerDataModal .volt-ship-grid { grid-template-columns:1fr 1fr; }
+}
+#customerDataModal .volt-ship-card {
+    border:1px solid #44464c; border-radius:4px; padding:0.65rem 0.75rem; cursor:pointer;
+    background:#222; text-align:left; transition:border-color 0.15s, background 0.15s;
+    font-family:Barlow,sans-serif; font-size:0.875rem; color:#e8e8e8;
+}
+#customerDataModal .volt-ship-card:hover { border-color:#666; }
+#customerDataModal .volt-ship-card.is-selected { border-color:#c1121f; background:rgba(193,18,31,0.12); }
+#customerDataModal .volt-ship-card__title { font-family:Teko,sans-serif; font-size:1.25rem; letter-spacing:0.05em; margin:0 0 0.35rem 0; color:#fff; }
+#customerDataModal .volt-ship-card__meta { font-size:0.78rem; color:#aaa; line-height:1.35; margin:0; }
+#customerDataModal .volt-summary-list { list-style:none; padding:0; margin:0 0 1rem 0; font-size:0.9rem; }
+#customerDataModal .volt-summary-list li { padding:0.45rem 0; border-bottom:1px solid #333; display:flex; justify-content:space-between; gap:0.5rem; flex-wrap:wrap; }
+#customerDataModal .volt-summary-ship { font-size:0.85rem; color:#ccc; line-height:1.5; white-space:pre-wrap; }
+#customerDataModal #andreaniAddressForm { border-top:1px solid #333; padding-top:0.85rem; margin-top:0.25rem; }
+#customerDataModal .form-label { font-size:0.82rem; color:#ccc; margin-bottom:0.25rem; }
+#customerDataModal .volt-field-hint { font-size:0.72rem; color:#888; margin-top:0.2rem; }
+#customerDataModal .volt-bank-panel { background:#111; border:1px solid #2c4a2c; padding:0.75rem; margin-top:0.75rem; }
+#customerDataModal .volt-bank-panel__title { font-family:Teko,sans-serif; font-size:1.05rem; letter-spacing:0.08em; color:#6daa6d; margin-bottom:0.5rem; }
+#customerDataModal .volt-bank-panel__row { display:flex; justify-content:space-between; align-items:baseline; gap:0.5rem; padding:0.2rem 0; border-bottom:1px solid #222; font-size:0.8rem; flex-wrap:wrap; }
+#customerDataModal .volt-bank-panel__row:last-of-type { border-bottom:none; }
+#customerDataModal .volt-bank-panel__key { color:#888; flex-shrink:0; }
+#customerDataModal .volt-bank-panel__val { color:#f2f2f2; font-family:var(--font-ds-mono,monospace); word-break:break-all; text-align:right; }
+#customerDataModal .volt-bank-panel__alias { color:#6daa6d; font-size:1.1rem; font-family:Teko,sans-serif; letter-spacing:0.06em; }
+#customerDataModal .volt-bank-panel__note { font-size:0.75rem; color:#888; line-height:1.4; margin-top:0.6rem; margin-bottom:0; }
+#customerDataModal .volt-mp-trust { font-size:0.72rem; color:#888; line-height:1.45; margin:0.75rem 0 0; text-align:center; }
+#customerDataModal .volt-summary-discount { color:#6daa6d; }
+#customerDataModal .volt-summary-total-transfer { color:#6daa6d; font-weight:700; }
+#customerDataModal .volt-coupon { margin:0.25rem 0 1rem; }
+#customerDataModal .volt-coupon__row { display:flex; gap:0.4rem; flex-wrap:wrap; }
+#customerDataModal .volt-coupon__row .form-control { flex:1 1 auto; min-width:0; text-transform:uppercase; }
+#customerDataModal .volt-coupon__feedback { font-size:0.78rem; margin-top:0.35rem; min-height:1em; }
+#customerDataModal .volt-coupon__feedback.is-ok { color:#6daa6d; }
+#customerDataModal .volt-coupon__feedback.is-error { color:#e06b6b; }
+@media (max-width:575px) {
+    #customerDataModal .modal-body { padding:0.75rem; }
+    #customerDataModal .modal-footer { padding:0.5rem 0.75rem; flex-wrap:wrap; gap:0.4rem; }
+    #customerDataModal .modal-footer .ms-auto { width:100%; justify-content:flex-end; gap:0.4rem !important; }
+    #customerDataModal .volt-stepper { margin-bottom:0.75rem; }
+    #customerDataModal .volt-stepper__item { font-size:0.58rem; }
+    #customerDataModal .volt-stepper__item strong { font-size:1rem; }
+    #customerDataModal .volt-step-panel.is-visible { padding:0.625rem; }
+    #customerDataModal #customerDataConfirm { font-size:0.75rem; letter-spacing:0.03em; padding:0.375rem 0.7rem; }
+    #customerDataModal .volt-ship-card { padding:0.5rem 0.65rem; }
+    #customerDataModal .volt-ship-card__title { font-size:1.1rem; }
+}
+
+/* Banners de error inline (paso 1/2 bloqueado, error del pago) — reemplazan
+   los alert() de legacy pagos.js por texto en el modal (ver CheckoutModal.tsx). */
+#customerDataModal .volt-checkout-error {
+    color:#e06b6b; font-size:0.8rem; line-height:1.4; margin:0 0 0.75rem;
+}
+
+/* btn-close-white ya trae el icono claro; el invert() global de volt-ds.css
+   (pensado para modales sobre fondo claro) lo oscurece de nuevo — mismo caso
+   que #voltAuthModal en volt-ds.css. */
+#customerDataModal .btn-close,
+#transferSuccessModal .btn-close {
+    filter: none !important;
+    opacity: 1 !important;
+}
+
+/* ── Modal de éxito de transferencia (legacy pagos.js#showTransferSuccessModal) ── */
+#transferSuccessModal .volt-transfer-success__text { margin-bottom:0.5rem; }
+#transferSuccessModal .volt-transfer-success__id { color:#c1121f; }
+#transferSuccessModal .volt-transfer-success__hint { font-size:0.9rem; color:#ccc; margin-bottom:1.25rem; }
+#transferSuccessModal .volt-transfer-success__wa-btn { font-family:Teko,sans-serif; letter-spacing:0.06em; font-size:1.15rem; }
+#transferSuccessModal .volt-transfer-success__note { font-size:0.75rem; color:#888; margin:0.75rem 0 0; text-align:center; }

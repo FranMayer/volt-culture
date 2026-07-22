@@ -1,6 +1,10 @@
 # Dependencies
 node_modules/
 
+# Next.js
+.next/
+next-env.d.ts
+
 # Vercel
 .vercel
 
@@ -12,5 +16,10 @@ scripts/serviceAccountKey.json
 __pycache__/
 *.pyc
 
-# Páginas de producto generadas en build (SEO)
-producto/
+# Páginas de producto generadas en build (SEO) — legacy en la raíz del repo.
+# Anclado a la raíz (/producto/) para no matchear también app/producto/[slug]
+# (la ruta Next.js de F5, que sí se versiona).
+/producto/
+
+# TS incremental build cache
+*.tsbuildinfo

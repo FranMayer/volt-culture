@@ -3,7 +3,7 @@
  * Foco: decremento y reposición (round-trip) por variante/talle y clamp en 0.
  */
 import assert from 'node:assert';
-import { applyStockDecrement, applyStockIncrement } from '../api/_stock.js';
+import { applyStockDecrement, applyStockIncrement } from '../lib/server/stock.js';
 
 // Producto con variantes (color) y talles.
 const product = {

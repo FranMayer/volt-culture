@@ -1,0 +1,74 @@
+/**
+ * Bootstrap 5.3.3 offcanvas + backdrop mechanics.
+ *
+ * bs-shim.css deliberately excludes `.offcanvas*`/`.modal*` (see its header
+ * comment): their static box CSS ships together with the component that
+ * gives them backdrop/scroll-lock/open-close behavior, since VOLT no longer
+ * loads Bootstrap's JS. This file pairs 1:1 with
+ * components/layout/CartOffcanvas.tsx, which toggles the same `.show` class
+ * Bootstrap's JS used to. Declarations below are copied verbatim from
+ * bootstrap@5.3.3's compiled CSS for the offcanvas/backdrop selectors that
+ * legacy/**\/*.html actually uses (the rest — background, border, width —
+ * is already ported in style.css/volt-ds.css with !important, targeting
+ * `#offcanvasRight.cart-offcanvas` directly).
+ */
+
+.offcanvas-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 1rem 1rem;
+}
+
+.offcanvas-title {
+    margin-bottom: 0;
+    line-height: 1.5;
+}
+
+.offcanvas-body {
+    flex-grow: 1;
+    padding: 1rem 1rem;
+    overflow-y: auto;
+}
+
+#offcanvasRight.cart-offcanvas {
+    position: fixed;
+    z-index: 1045;
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+    visibility: hidden;
+    outline: 0;
+    transition: transform 0.3s ease-in-out, visibility 0.3s ease-in-out;
+    transform: translateX(100%);
+}
+
+#offcanvasRight.cart-offcanvas.show {
+    visibility: visible;
+    transform: translateX(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #offcanvasRight.cart-offcanvas {
+        transition: none;
+    }
+}
+
+.offcanvas-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    background-color: #000;
+    opacity: 0;
+    transition: opacity 0.15s linear;
+}
+
+.offcanvas-backdrop.show {
+    opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .offcanvas-backdrop {
+        transition: none;
+    }
+}
