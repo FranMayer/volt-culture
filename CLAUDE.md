@@ -72,7 +72,7 @@ tests/          node scripts sin framework (smoke HTTP + unit de stock/cupones)
 | F7 | Checkout + retorno MP (success/pending/failure) | ✅ Hecha (2026-07-21) — reviewer PASS (math del dinero reconciliado); Andreani sin credenciales (cotización degrada); QA MP sandbox diferido |
 | F8 | Páginas estáticas + mis-pedidos | ✅ Hecha (2026-07-21) — reviewer FAIL→fix (reveal invisible en estáticas) verificado con screenshot; mis-pedidos arregla el bug de prod del anónimo colgado |
 | F9 | Admin panel | ✅ Hecha (2026-07-21) — reviewer PASS; gate por claim + backend re-verifica + reglas Firestore admin-only (seguridad end-to-end); XSS del legacy eliminado; despachos degradan sin Andreani |
-| F10 | QA end-to-end + limpieza + cutover | ⬜ Pendiente |
+| F10 | QA end-to-end + limpieza + cutover | ✅ Hecha (2026-07-22) — cutover completo: merge a `main` (`f60c6d9`), prod sirve Next, verificado en incógnito. QA visual desktop + checkout UI OK; producto blackout arreglado. Pendiente: test de pago real en prod (usuario) + monitoreo 24-48h. Rollback = Instant Rollback de Vercel (no git-revert, por el Framework Preset=Next.js). |
 
 Al cerrar una fase verificada, actualizar su estado acá (⬜ Pendiente → ✅ Hecha, con fecha).
 
