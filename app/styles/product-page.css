@@ -5,14 +5,18 @@
  * estática que generaba gen-product-pages.mjs, ninguno de los dos se migra —
  * ver CLAUDE.md "Qué NO migrar"). Se omiten a propósito las reglas de esa
  * página que ya no aplican acá: `.pp-nav`/`.pp-foot` (el navbar/footer real
- * ya vienen del layout global) y el hack de z-index para pisar el
- * `body::before` de volt-ds (el resto de las páginas portadas, p. ej.
- * `#main-content` en app/catalogo, ya conviven con ese fondo sin necesitarlo).
+ * ya vienen del layout global). El hack de z-index del template SÍ se conserva:
+ * volt-ds pinta su grilla en `body::before` (fixed, z-index 0, fondo negro
+ * sólido), un pseudo posicionado que tapa el contenido en flujo normal no
+ * posicionado — sin `position:relative; z-index:1` la ficha entera queda
+ * invisible bajo la grilla (verificado en preview).
  * El resto (grid de la ficha, tira de miniaturas, título/precio/descripción)
  * es el mismo valor, solo movido de un template string a un archivo real.
  */
 
 .pp-wrap {
+    position: relative;
+    z-index: 1;
     max-width: 960px;
     margin: 0 auto;
     padding: 2rem 1.5rem;
