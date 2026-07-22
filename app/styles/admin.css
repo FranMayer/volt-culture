@@ -709,3 +709,204 @@
     margin: 0;
     font-size: 1.5rem;
 }
+
+/* =====================================================================
+   TEMA CLARO DEL PANEL — redesign 2026-07-22 (ui-ux-pro-max: data-dense
+   dashboard en versión clara, alta legibilidad). El panel autenticado
+   (.admin-panel) usa fondo claro; la pantalla de login (.login-screen) y la
+   barra superior (.admin-header) quedan OSCURAS a propósito (chrome de marca,
+   logo blanco visible). Scopeado bajo .admin-panel / #productModal /
+   #orderDetailModal para no tocar el login; `!important` donde hay que pisar
+   el skin oscuro global de volt-ds (.table/.form-control/.modal-content) que
+   se filtra en /admin. Paleta slate + acento rojo VOLT, esquinas rectas.
+   ===================================================================== */
+.admin-page {
+    --adm-surface: #ffffff;
+    --adm-surface-2: #f1f5f9;
+    --adm-ink: #0f172a;
+    --adm-muted: #64748b;
+    --adm-line: #e2e8f0;
+    --adm-line-strong: #cbd5e1;
+    background: #eef1f5;
+}
+
+.admin-panel {
+    color: var(--adm-ink);
+}
+
+/* Tabs */
+.admin-panel .admin-tab {
+    background: var(--adm-surface);
+    border: 1px solid var(--adm-line);
+    border-bottom: none;
+    color: var(--adm-muted);
+}
+.admin-panel .admin-tab:hover {
+    background: #fdeaec;
+    color: var(--admin-red);
+}
+.admin-panel .admin-tab.active {
+    background: var(--admin-red);
+    color: #fff;
+    border-color: var(--admin-red);
+}
+
+/* Paneles / cards / stats */
+.admin-panel .card {
+    background: var(--adm-surface);
+    border-color: var(--adm-line);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+.admin-panel .card:hover {
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+.admin-panel .card-header {
+    background: var(--adm-surface-2);
+    color: var(--adm-ink);
+    border-bottom-color: var(--admin-red);
+}
+.admin-panel .stats-card {
+    background: var(--adm-surface);
+    border-color: var(--adm-line);
+}
+.admin-panel .stats-card p {
+    color: var(--adm-muted);
+}
+
+/* Tablas — pisa el skin oscuro global de volt-ds */
+.admin-panel .table {
+    color: var(--adm-ink) !important;
+    background: transparent !important;
+}
+.admin-panel .table thead th {
+    background: var(--adm-surface-2) !important;
+    color: var(--adm-muted) !important;
+    border-bottom: 2px solid var(--adm-line-strong) !important;
+}
+.admin-panel .table td,
+.admin-panel .table th {
+    border-color: var(--adm-line) !important;
+}
+.admin-panel .table tbody tr {
+    background: transparent !important;
+    color: var(--adm-ink) !important;
+}
+.admin-panel .table-hover tbody tr:hover {
+    background: var(--adm-surface-2) !important;
+}
+
+/* Formularios — pisa el skin oscuro global */
+.admin-panel .form-control,
+.admin-panel .form-select,
+#productModal .form-control,
+#productModal .form-select {
+    background: var(--adm-surface) !important;
+    color: var(--adm-ink) !important;
+    border: 1px solid var(--adm-line-strong) !important;
+}
+.admin-panel .form-control::placeholder,
+#productModal .form-control::placeholder {
+    color: #94a3b8 !important;
+}
+.admin-panel .form-control:focus,
+.admin-panel .form-select:focus,
+#productModal .form-control:focus,
+#productModal .form-select:focus {
+    border-color: var(--admin-red) !important;
+    box-shadow: 0 0 0 3px rgba(193, 18, 31, 0.15) !important;
+    outline: none !important;
+}
+.admin-panel .form-label,
+#productModal .form-label {
+    color: var(--adm-muted) !important;
+}
+
+/* Botones secundarios / íconos de acción del workspace claro
+   (NO .btn-outline-volt: ese vive en el header oscuro y conserva su estilo) */
+.admin-panel .btn-detail,
+.admin-panel .refresh-btn,
+.admin-panel .admin-icon-btn {
+    background: var(--adm-surface);
+    border-color: var(--adm-line-strong);
+    color: var(--adm-ink);
+}
+.admin-panel .refresh-btn {
+    color: var(--adm-muted);
+}
+.admin-panel .btn-detail:hover,
+.admin-panel .refresh-btn:hover,
+.admin-panel .admin-icon-btn:hover {
+    border-color: var(--admin-red);
+    color: var(--admin-red);
+}
+
+/* Miniaturas y textos secundarios */
+.admin-panel .product-thumb {
+    border-color: var(--adm-line);
+}
+.admin-panel .order-items,
+.admin-panel .orders-empty {
+    color: var(--adm-muted);
+}
+.admin-panel .order-amount {
+    color: #15803d;
+}
+.admin-panel .field-error {
+    color: #dc2626;
+}
+
+/* Badges de estado — texto más oscuro para contraste sobre fondo claro
+   (el fondo translúcido rgba(...,.2) ya funciona como tinte claro) */
+.admin-panel .status-pending,
+.admin-panel .status-pending-payment,
+.admin-panel .status-pending-transfer {
+    color: #b45309;
+}
+.admin-panel .status-paid,
+.admin-panel .status-delivered,
+.admin-panel .status-active {
+    color: #15803d;
+}
+.admin-panel .status-shipped {
+    color: #1d4ed8;
+}
+.admin-panel .status-cancelled {
+    color: #475569;
+}
+
+/* Modal de producto / detalle de orden → claro (pisa .modal-content negro
+   global de volt-ds:1106 con !important) */
+#productModal .modal-content,
+#orderDetailModal .modal-content {
+    background: var(--adm-surface) !important;
+    color: var(--adm-ink) !important;
+    border: 1px solid var(--adm-line) !important;
+}
+#productModal .modal-header,
+#productModal .modal-footer,
+#orderDetailModal .modal-header,
+#orderDetailModal .modal-footer {
+    border-color: var(--adm-line) !important;
+}
+#productModal .admin-subsection {
+    background: var(--adm-surface-2);
+    border-color: var(--adm-line);
+}
+#productModal .admin-subsection__title {
+    color: var(--adm-ink);
+}
+#productModal .icon-btn,
+#productModal .chip-btn,
+#productModal .dropzone,
+#productModal .image-card,
+#productModal .image-card__remove {
+    background: var(--adm-surface);
+    border-color: var(--adm-line-strong);
+    color: var(--adm-ink);
+}
+#productModal .dropzone {
+    color: var(--adm-muted);
+}
+#productModal .swatch-preview {
+    border-color: var(--adm-line-strong);
+}
