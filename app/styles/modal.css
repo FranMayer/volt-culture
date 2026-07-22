@@ -109,3 +109,24 @@
         transition: none;
     }
 }
+
+/* Added for components/checkout/CheckoutModal.tsx (modal-lg + scrollable
+   body) — same verbatim-from-bootstrap approach as the rest of this file. */
+.modal-dialog-scrollable {
+    height: calc(100% - 1rem);
+}
+
+.modal-dialog-scrollable .modal-content {
+    max-height: 100%;
+    overflow: hidden;
+}
+
+.modal-dialog-scrollable .modal-body {
+    overflow-y: auto;
+}
+
+@media (min-width: 992px) {
+    .modal-lg {
+        max-width: 800px;
+    }
+}

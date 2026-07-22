@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useCartOffcanvas } from "./CartOffcanvasContext";
 import { useCartStore, cartSubtotal } from "@/lib/cart/store";
 import { cartLineKey } from "@/lib/types";
+import { useCheckout } from "@/components/checkout/CheckoutContext";
 
 // Ported from legacy/pages/catalogo.html (markup) — Bootstrap's own JS
 // (data-bs-toggle/data-bs-dismiss) drove open/close/backdrop/scroll-lock in
@@ -19,6 +20,7 @@ function formatARS(n: number) {
 
 export default function CartOffcanvas() {
   const { isOpen, close } = useCartOffcanvas();
+  const { open: openCheckout } = useCheckout();
   const items = useCartStore((s) => s.items);
   const setQty = useCartStore((s) => s.setQty);
   const removeItem = useCartStore((s) => s.removeItem);
@@ -171,6 +173,7 @@ export default function CartOffcanvas() {
             className="btn cart-checkout-btn w-100 mt-3"
             style={displayStyle}
             disabled={!hasItems}
+            onClick={() => openCheckout("mp")}
           >
             Pagar con Mercado Pago
           </button>
@@ -184,6 +187,7 @@ export default function CartOffcanvas() {
             className="btn cart-transfer-btn w-100"
             style={displayStyle}
             disabled={!hasItems}
+            onClick={() => openCheckout("transfer")}
           >
             Transferencia — 10% OFF
           </button>

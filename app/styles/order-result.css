@@ -1,0 +1,153 @@
+/**
+ * app/styles/order-result.css — port de los <style> inline de
+ * legacy/pages/{success,pending,failure}.html. Los tres bloques originales
+ * definían las mismas clases con los mismos valores, solo cambiaba el color
+ * de acento; acá se factorizan en un set de reglas base + un modificador de
+ * color por página (.result-success/.result-pending/.result-failure) — mismo
+ * resultado visual, sin triplicar el CSS.
+ *
+ * `.accent` ya existe global en volt-ds.css (`color: var(--volt-ds-red)
+ * !important`, usado en el resto del sitio); acá se sobreescribe por página
+ * con un selector más específico (misma especificidad de !important, gana
+ * por selector más largo) para permitir verde/naranja en success/pending sin
+ * tocar esa regla global.
+ */
+
+.result-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.result-box {
+    width: 100%;
+    max-width: 440px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    padding: 3rem 2.5rem;
+    text-align: center;
+}
+
+.result-icon {
+    margin-bottom: 1.5rem;
+    display: block;
+}
+
+.result-icon svg {
+    width: 3rem;
+    height: 3rem;
+}
+
+.result-heading {
+    font-family: "Teko", sans-serif;
+    font-size: clamp(2rem, 6vw, 2.8rem);
+    font-weight: 700;
+    text-transform: uppercase;
+    line-height: 0.95;
+    letter-spacing: 0.02em;
+    color: #fff;
+    margin-bottom: 0.75rem;
+}
+
+.result-order {
+    font-family: "DM Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+.result-order span {
+    color: #888;
+}
+
+.result-body {
+    font-family: "Glacial Indifference", "DM Sans", sans-serif;
+    font-size: 14px;
+    color: #888;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+}
+
+.result-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.btn-result-primary {
+    font-family: "DM Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: #fff;
+    color: #000;
+    border: 1px solid #fff;
+    padding: 0.75rem 1.5rem;
+    text-decoration: none;
+    display: block;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.btn-result-primary:hover {
+    background: #c1121f;
+    border-color: #c1121f;
+    color: #fff;
+}
+
+.btn-result-ghost {
+    font-family: "DM Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: transparent;
+    color: #666;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    padding: 0.75rem 1.5rem;
+    text-decoration: none;
+    display: block;
+    transition: border-color 0.2s, color 0.2s;
+}
+
+.btn-result-ghost:hover {
+    border-color: #c1121f;
+    color: #fff;
+}
+
+.result-divider {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    margin: 2rem 0;
+}
+
+/* Modificadores por página — legacy success=#2dc653, pending=#f0a500, failure=#c1121f */
+.result-success .result-icon {
+    color: #2dc653;
+}
+.result-success .accent {
+    color: #2dc653 !important;
+}
+
+.result-pending {
+    border-color: rgba(240, 165, 0, 0.25);
+}
+.result-pending .result-icon {
+    color: #f0a500;
+}
+.result-pending .accent {
+    color: #f0a500 !important;
+}
+
+.result-failure {
+    border-color: rgba(193, 18, 31, 0.25);
+}
+.result-failure .result-icon {
+    color: #c1121f;
+}
+.result-failure .accent {
+    color: #c1121f !important;
+}

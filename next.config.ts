@@ -26,6 +26,25 @@ const nextConfig: NextConfig = {
         destination: "/",
         permanent: true,
       },
+      // F7 — back_urls exactas que manda pages/api/create-preference.js
+      // (sin tocar ese endpoint): /pages/{success,pending,failure}.html.
+      // Cubre preferencias de MP creadas antes Y después de este redirect,
+      // ya que create-preference.js sigue emitiendo el path .html tal cual.
+      {
+        source: "/pages/success.html",
+        destination: "/success",
+        permanent: true,
+      },
+      {
+        source: "/pages/pending.html",
+        destination: "/pending",
+        permanent: true,
+      },
+      {
+        source: "/pages/failure.html",
+        destination: "/failure",
+        permanent: true,
+      },
     ];
   },
 };

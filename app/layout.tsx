@@ -13,6 +13,8 @@ import "./styles/mediaquery.css";
 import "./styles/volt-ds.css";
 import "./styles/offcanvas.css";
 import "./styles/modal.css";
+import "./styles/checkout.css";
+import "./styles/order-result.css";
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -22,6 +24,9 @@ import { CartOffcanvasProvider } from "@/components/layout/CartOffcanvasContext"
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import AuthModal from "@/components/auth/AuthModal";
 import AdminAccessEasterEgg from "@/components/auth/AdminAccessEasterEgg";
+import { CheckoutProvider } from "@/components/checkout/CheckoutContext";
+import CheckoutModal from "@/components/checkout/CheckoutModal";
+import TransferSuccessModal from "@/components/checkout/TransferSuccessModal";
 
 // Self-hosted, no external font CDN (replaces the old Google Fonts <link>
 // and eliminates fonts.googleapis.com/fonts.gstatic.com from the CSP).
@@ -83,13 +88,17 @@ export default function RootLayout({
         </Script>
         <AuthProvider>
           <CartOffcanvasProvider>
-            <Navbar />
-            {children}
-            <Footer />
-            <WhatsAppFloat />
-            <CartOffcanvas />
-            <AuthModal />
-            <AdminAccessEasterEgg />
+            <CheckoutProvider>
+              <Navbar />
+              {children}
+              <Footer />
+              <WhatsAppFloat />
+              <CartOffcanvas />
+              <AuthModal />
+              <AdminAccessEasterEgg />
+              <CheckoutModal />
+              <TransferSuccessModal />
+            </CheckoutProvider>
           </CartOffcanvasProvider>
         </AuthProvider>
       </body>

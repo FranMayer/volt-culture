@@ -69,7 +69,7 @@ tests/          node scripts sin framework (smoke HTTP + unit de stock/cupones)
 | F4 | Catálogo | ✅ Hecha (2026-07-21) — reviewer PASS; QA visual diferido |
 | F5 | `producto/[slug]` con ISR + revalidate + sitemap/robots | ✅ Hecha (2026-07-21) — reviewer PASS; QA visual/preview diferido |
 | F6 | Home + volt-motion + GA | ✅ Hecha (2026-07-21) — reviewer PASS; navbar único (home sin `.site-nav` por decisión); flourishes de motion (hero split-words/tilt/magnetic) omitidos; QA visual diferido |
-| F7 | Checkout + retorno MP (success/pending/failure) | ⬜ Pendiente |
+| F7 | Checkout + retorno MP (success/pending/failure) | ✅ Hecha (2026-07-21) — reviewer PASS (math del dinero reconciliado); Andreani sin credenciales (cotización degrada); QA MP sandbox diferido |
 | F8 | Páginas estáticas + mis-pedidos | ⬜ Pendiente |
 | F9 | Admin panel | ⬜ Pendiente |
 | F10 | QA end-to-end + limpieza + cutover | ⬜ Pendiente |

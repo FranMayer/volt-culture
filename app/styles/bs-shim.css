@@ -152,6 +152,13 @@
 .w-100 {
   width: 100% !important;
 }
+/* Added for components/checkout/CheckoutModal.tsx (modal footer layout). */
+.flex-wrap {
+  flex-wrap: wrap !important;
+}
+.ms-auto {
+  margin-left: auto !important;
+}
 
 /* ----------------------------------------------------------------- Spacing */
 .mt-2 {
@@ -168,6 +175,13 @@
 }
 .mb-4 {
   margin-bottom: 1.5rem !important;
+}
+/* Added for components/checkout/CheckoutModal.tsx. */
+.mb-0 {
+  margin-bottom: 0 !important;
+}
+.pt-2 {
+  padding-top: 0.5rem !important;
 }
 .me-2 {
   margin-right: 0.5rem !important;
@@ -191,6 +205,11 @@
 .text-danger {
   --bs-text-opacity: 1;
   color: rgba(var(--bs-danger-rgb), var(--bs-text-opacity)) !important;
+}
+/* Added for components/checkout/CheckoutModal.tsx (`<p class="small">`). */
+small,
+.small {
+  font-size: 0.875em;
 }
 
 /* --------------------------------------------------------- Border/rounded */
@@ -317,6 +336,19 @@ fieldset:disabled .btn {
   --bs-btn-disabled-color: #fff;
   --bs-btn-disabled-bg: #dc3545;
   --bs-btn-disabled-border-color: #dc3545;
+}
+
+/* Added for components/checkout/TransferSuccessModal.tsx (WhatsApp link button). */
+.btn-success {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: #198754;
+  --bs-btn-border-color: #198754;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: #157347;
+  --bs-btn-hover-border-color: #146c43;
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: #198754;
+  --bs-btn-disabled-border-color: #198754;
 }
 
 .btn-close {
