@@ -721,12 +721,12 @@
    clara anterior.
    ===================================================================== */
 .admin-page {
-    --sx-bg: #09090b;
-    --sx-card: #141417;
-    --sx-muted: #1d1d21;
+    --sx-bg: #0a0a0c;
+    --sx-card: #18181b;
+    --sx-muted: #26262a;
     --sx-fg: #fafafa;
     --sx-muted-fg: #a1a1aa;
-    --sx-border: #27272a;
+    --sx-border: #2e2e33;
     --sx-border-strong: #3f3f46;
     --sx-primary: #c1121f;
     --sx-primary-hover: #e11d2a;
@@ -747,7 +747,7 @@
 .admin-panel .admin-tab {
     font-family: var(--sx-font) !important;
     letter-spacing: -0.01em !important;
-    text-transform: none;
+    text-transform: none !important;
 }
 .admin-panel h2 {
     font-size: 1.05rem;
@@ -858,6 +858,7 @@
 .admin-panel .table thead th {
     background: transparent !important;
     color: var(--sx-muted-fg) !important;
+    font-family: var(--sx-font) !important;
     font-weight: 500 !important;
     font-size: 12.5px !important;
     text-transform: none !important;

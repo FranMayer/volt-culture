@@ -263,7 +263,8 @@ function ProductRow({
                     {p.active !== false ? "● Activo" : "○ Inactivo"}
                 </span>
             </td>
-            <td className="d-flex align-items-center gap-2 flex-wrap">
+            <td>
+              <div className="d-flex align-items-center gap-2 flex-wrap">
                 <button
                     type="button"
                     className="admin-icon-btn"
@@ -317,6 +318,7 @@ function ProductRow({
                         <line x1="14" x2="14" y1="11" y2="17" />
                     </svg>
                 </button>
+              </div>
             </td>
         </tr>
     );
