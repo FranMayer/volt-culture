@@ -70,7 +70,7 @@ tests/          node scripts sin framework (smoke HTTP + unit de stock/cupones)
 | F5 | `producto/[slug]` con ISR + revalidate + sitemap/robots | ✅ Hecha (2026-07-21) — reviewer PASS; QA visual/preview diferido |
 | F6 | Home + volt-motion + GA | ✅ Hecha (2026-07-21) — reviewer PASS; navbar único (home sin `.site-nav` por decisión); flourishes de motion (hero split-words/tilt/magnetic) omitidos; QA visual diferido |
 | F7 | Checkout + retorno MP (success/pending/failure) | ✅ Hecha (2026-07-21) — reviewer PASS (math del dinero reconciliado); Andreani sin credenciales (cotización degrada); QA MP sandbox diferido |
-| F8 | Páginas estáticas + mis-pedidos | ⬜ Pendiente |
+| F8 | Páginas estáticas + mis-pedidos | ✅ Hecha (2026-07-21) — reviewer FAIL→fix (reveal invisible en estáticas) verificado con screenshot; mis-pedidos arregla el bug de prod del anónimo colgado |
 | F9 | Admin panel | ⬜ Pendiente |
 | F10 | QA end-to-end + limpieza + cutover | ⬜ Pendiente |
 

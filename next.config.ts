@@ -45,6 +45,27 @@ const nextConfig: NextConfig = {
         destination: "/failure",
         permanent: true,
       },
+      // F8 — páginas estáticas
+      {
+        source: "/pages/about.html",
+        destination: "/about",
+        permanent: true,
+      },
+      {
+        source: "/pages/envios.html",
+        destination: "/envios",
+        permanent: true,
+      },
+      {
+        source: "/pages/novedades.html",
+        destination: "/novedades",
+        permanent: true,
+      },
+      {
+        source: "/pages/mis-pedidos.html",
+        destination: "/mis-pedidos",
+        permanent: true,
+      },
     ];
   },
 };

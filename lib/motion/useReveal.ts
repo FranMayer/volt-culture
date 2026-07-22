@@ -18,17 +18,27 @@ import { prefersReducedMotion } from "./prefersReducedMotion";
  * CLAUDE.md). Home's own toggle class is `is-visible`, so home.css adds a
  * `.home-page .reveal.is-visible` rule (3 classes of specificity, beats the
  * 1-class `!important` base rule regardless of source order) — see home.css.
+ *
+ * Generalized (F8 fix) with a `toggleClass` param so non-home pages
+ * (about/envios/novedades — server components with no motion wiring of
+ * their own, see components/RevealOnScroll.tsx) can reuse this same
+ * observer with the CSS's OWN global counterpart class, `.active`
+ * (`.reveal.active`/`.reveal-left.active`/`.reveal-right.active`, already
+ * ported un-scoped in style.css/volt-ds.css — no CSS changes needed).
+ * Home keeps calling `useReveal()` with defaults, unaffected.
  */
-export function useReveal(rootSelector = ".home-page") {
+export function useReveal(rootSelector = ".home-page", toggleClass = "is-visible") {
   useEffect(() => {
     const root = document.querySelector(rootSelector);
     if (!root) return;
 
-    const nodes = Array.from(root.querySelectorAll<HTMLElement>(".reveal"));
+    const nodes = Array.from(
+      root.querySelectorAll<HTMLElement>(".reveal, .reveal-left, .reveal-right")
+    );
     if (!nodes.length) return;
 
     if (prefersReducedMotion() || !("IntersectionObserver" in window)) {
-      nodes.forEach((el) => el.classList.add("is-visible"));
+      nodes.forEach((el) => el.classList.add(toggleClass));
       return;
     }
 
@@ -36,7 +46,7 @@ export function useReveal(rootSelector = ".home-page") {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
+            entry.target.classList.add(toggleClass);
             io.unobserve(entry.target);
           }
         });
@@ -46,5 +56,5 @@ export function useReveal(rootSelector = ".home-page") {
     nodes.forEach((el) => io.observe(el));
 
     return () => io.disconnect();
-  }, [rootSelector]);
+  }, [rootSelector, toggleClass]);
 }

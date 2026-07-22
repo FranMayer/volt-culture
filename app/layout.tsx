@@ -15,6 +15,7 @@ import "./styles/offcanvas.css";
 import "./styles/modal.css";
 import "./styles/checkout.css";
 import "./styles/order-result.css";
+import "./styles/mis-pedidos.css";
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
