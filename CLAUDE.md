@@ -64,8 +64,8 @@ tests/          node scripts sin framework (smoke HTTP + unit de stock/cupones)
 |---|---|---|
 | F0 | Baseline visual + scaffold Next+TS + reorganización repo + CLAUDE.md | ✅ Hecha (2026-07-20) |
 | F1 | Theme CSS unificado + layout compartido (navbar/footer/cart/WhatsApp) | ✅ Hecha (2026-07-20) |
-| F2 | Firebase modular + tipos + backend a `pages/api` + aislamiento de entornos | ⬜ Pendiente |
-| F3 | Carrito (Zustand + sync Firestore) + Auth | ⬜ Pendiente |
+| F2 | Firebase modular + tipos + backend a `pages/api` + aislamiento de entornos | ✅ Hecha (2026-07-21) — reviewer PASS; QA en vivo de endpoints diferido a F10 |
+| F3 | Carrito (Zustand + sync Firestore) + Auth | ✅ Hecha (2026-07-21) — reviewer FAIL→2 fixes (hidratación + logout vacía carrito); 6 unit tests verdes; QA en vivo diferido a F10 |
 | F4 | Catálogo | ✅ Hecha (2026-07-21) — reviewer PASS; QA visual diferido |
 | F5 | `producto/[slug]` con ISR + revalidate + sitemap/robots | ✅ Hecha (2026-07-21) — reviewer PASS; QA visual/preview diferido |
 | F6 | Home + volt-motion + GA | ✅ Hecha (2026-07-21) — reviewer PASS; navbar único (home sin `.site-nav` por decisión); flourishes de motion (hero split-words/tilt/magnetic) omitidos; QA visual diferido |
