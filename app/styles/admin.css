@@ -276,9 +276,31 @@
 /* ============================================
    CARDS / STATS
 ============================================ */
-.card {
+/* `.admin-page .card` (no `.card` pelada) para ganarle en especificidad a la
+   `.card` global de la tienda (style.css:1829: width:320px, text-align:center,
+   display:flex, padding:2rem, min-height:280px, border-radius, ::before rojo y
+   hover translateY). Esa página vieja del admin no cargaba ese CSS; ahora /admin
+   sí, y esas props se filtraban rompiendo el layout de TODAS las solapas (la
+   lista quedaba apretada a 320px). Acá `.card` es un panel full-width. */
+.admin-page .card {
     background: var(--admin-gray);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+    width: auto;
+    min-height: 0;
+    padding: 0;
+    text-align: left;
+    border-radius: 0;
+    overflow: visible;
+    display: block;
+}
+
+.admin-page .card::before {
+    content: none;
+}
+
+.admin-page .card:hover {
+    transform: none;
     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
 }
 
