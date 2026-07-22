@@ -2414,7 +2414,7 @@ body.quickview-open {
     transition: opacity 0.25s ease;
 }
 
-.home-featured-card__link:hover .home-featured-card__overlay,
+/* ponytail: overlay solo en focus por teclado (accesibilidad); hover solo agranda la foto, sin oscurecer */
 .home-featured-card__link:focus-visible .home-featured-card__overlay {
     opacity: 1;
 }
