@@ -137,15 +137,13 @@ export default function ProductsTab() {
                 </div>
             </div>
 
-            <div className="d-flex justify-content-between align-items-center mb-3">
-                <h2>Productos</h2>
-                <button type="button" className="btn btn-volt" onClick={() => setEditing("new")}>
-                    + Nuevo Producto
-                </button>
-            </div>
-
             <div className="card">
-                <div className="card-header">LISTA DE PRODUCTOS</div>
+                <div className="card-header admin-card-head">
+                    <span>Lista de productos</span>
+                    <button type="button" className="btn btn-volt" onClick={() => setEditing("new")}>
+                        + Nuevo producto
+                    </button>
+                </div>
                 <div className="card-body">
                     <div className="table-responsive">
                         <table className="table table-hover">
@@ -259,9 +257,15 @@ function ProductRow({
                 </span>
             </td>
             <td>
-                <span className={p.active !== false ? "status-active" : "status-inactive"}>
-                    {p.active !== false ? "● Activo" : "○ Inactivo"}
-                </span>
+                {p.active === false ? (
+                    <span className="admin-badge admin-badge--muted">Inactivo</span>
+                ) : p.stock === 0 ? (
+                    <span className="admin-badge admin-badge--muted">Sin stock</span>
+                ) : p.stock <= 3 ? (
+                    <span className="admin-badge admin-badge--warn">Stock bajo</span>
+                ) : (
+                    <span className="admin-badge admin-badge--ok">Activo</span>
+                )}
             </td>
             <td>
               <div className="d-flex align-items-center gap-2 flex-wrap">
