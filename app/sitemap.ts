@@ -6,16 +6,19 @@ function siteUrl(): string {
     return (process.env.SITE_URL || 'https://www.voltculture.com.ar').replace(/\/$/, '');
 }
 
-// Reemplaza legacy/sitemap.xml (estático). Las páginas de about/envios/novedades
-// del legacy (`legacy/sitemap.xml`) todavía no tienen ruta en el App Router —
-// migran en F8 — así que no se listan acá para no linkear URLs que hoy 404 en
-// este sitio; se agregan cuando existan.
+// Reemplaza legacy/sitemap.xml (estático). about/envios/novedades ya existen
+// como rutas del App Router (F8) y se listan acá. mis-pedidos/success/pending/
+// failure/admin se omiten a propósito: son privadas o transitorias, no páginas
+// para indexar.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const base = siteUrl();
 
     const staticEntries: MetadataRoute.Sitemap = [
         { url: `${base}/`, changeFrequency: 'weekly', priority: 1.0 },
         { url: `${base}/catalogo`, changeFrequency: 'daily', priority: 0.95 },
+        { url: `${base}/novedades`, changeFrequency: 'weekly', priority: 0.7 },
+        { url: `${base}/about`, changeFrequency: 'monthly', priority: 0.5 },
+        { url: `${base}/envios`, changeFrequency: 'monthly', priority: 0.5 },
     ];
 
     // Degradar sin romper: build/request sin FIREBASE_* (mismo criterio que
