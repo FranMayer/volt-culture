@@ -130,3 +130,11 @@
         max-width: 800px;
     }
 }
+
+/* Added for components/admin/OrderDetailModal.tsx (F9) — bootstrap@5.3.3's
+   verbatim .modal-xl breakpoint/width, same approach as .modal-lg above. */
+@media (min-width: 1200px) {
+    .modal-xl {
+        max-width: 1140px;
+    }
+}

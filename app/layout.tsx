@@ -17,17 +17,10 @@ import "./styles/checkout.css";
 import "./styles/order-result.css";
 import "./styles/mis-pedidos.css";
 
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-import WhatsAppFloat from "@/components/layout/WhatsAppFloat";
-import CartOffcanvas from "@/components/layout/CartOffcanvas";
+import SiteChrome from "@/components/layout/SiteChrome";
 import { CartOffcanvasProvider } from "@/components/layout/CartOffcanvasContext";
 import { AuthProvider } from "@/components/auth/AuthProvider";
-import AuthModal from "@/components/auth/AuthModal";
-import AdminAccessEasterEgg from "@/components/auth/AdminAccessEasterEgg";
 import { CheckoutProvider } from "@/components/checkout/CheckoutContext";
-import CheckoutModal from "@/components/checkout/CheckoutModal";
-import TransferSuccessModal from "@/components/checkout/TransferSuccessModal";
 
 // Self-hosted, no external font CDN (replaces the old Google Fonts <link>
 // and eliminates fonts.googleapis.com/fonts.gstatic.com from the CSP).
@@ -90,15 +83,7 @@ export default function RootLayout({
         <AuthProvider>
           <CartOffcanvasProvider>
             <CheckoutProvider>
-              <Navbar />
-              {children}
-              <Footer />
-              <WhatsAppFloat />
-              <CartOffcanvas />
-              <AuthModal />
-              <AdminAccessEasterEgg />
-              <CheckoutModal />
-              <TransferSuccessModal />
+              <SiteChrome>{children}</SiteChrome>
             </CheckoutProvider>
           </CartOffcanvasProvider>
         </AuthProvider>

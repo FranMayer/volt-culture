@@ -1,0 +1,682 @@
+/**
+ * app/styles/admin.css — port del <style> inline de legacy/admin/panel.html
+ * (F9, Tarea 1: gate + shell + tab Productos). Verbatim donde es posible;
+ * desvíos deliberados:
+ *
+ *  - Todo bajo `.admin-page` en vez de `body{...}` global — el root layout
+ *    (app/layout.tsx) ya define background/color/font en `body` para el
+ *    resto del sitio; `.admin-page` es el wrapper que app/admin/page.tsx
+ *    monta y que sustituye ese fondo solo dentro de /admin (mismo patrón que
+ *    order-result.css/mis-pedidos.css evitando redeclarar `body`, pero acá
+ *    hace falta un contenedor porque SÍ hay que pisar el fondo claro/oscuro
+ *    del resto del sitio dentro de esta ruta).
+ *  - Variables `--admin-*` en vez de `--volt-black/gray/white/red`: esos
+ *    nombres ya existen en theme.css con OTROS valores (alias del set de
+ *    volt-ds/style.css para el resto del sitio) — redeclararlos acá los
+ *    pisaría globalmente. legacy/admin/panel.html podía declarar su propio
+ *    `:root { --volt-black: #0a0a0a; ... }` porque esa página no cargaba
+ *    theme.css; acá si literalmente reusáramos esos nombres, cualquier
+ *    componente montado además de /admin (no hay ninguno, pero es una CSS
+ *    global cargada en toda la app) heredaría un valor distinto al de
+ *    theme.css.
+ *  - Sin `.firebase-status`/`configAlert`/`configModal`/zona de peligro
+ *    (admin-cleanup): la app ya siempre tiene Firebase configurado por env
+ *    vars (no hay estado "sin configurar" que mostrar) y `admin-cleanup` está
+ *    fuera de alcance de esta fase (CLAUDE.md, "No ejercer admin-cleanup").
+ *  - `.table`/`.table-hover`/`.table-responsive` base viven en bs-shim.css
+ *    (extendido para esta fase); el skin oscuro (`.table`, `.table thead th`,
+ *    `.table tbody tr`) ya es global vía volt-ds.css. `.form-control`/
+ *    `.form-select`/`.form-label`/`.modal-content` ídem — no se redeclaran acá.
+ */
+
+.admin-page {
+    --admin-black: #0a0a0a;
+    --admin-gray: #1a1a1a;
+    --admin-white: #ffffff;
+    --admin-red: #c1121f;
+    --admin-red-dark: #780000;
+
+    min-height: 100vh;
+    background: var(--admin-black);
+    color: var(--admin-white);
+    font-family: "Glacial Indifference", sans-serif;
+}
+
+/* ============================================
+   AUTH LOADER / LOGIN SCREEN
+============================================ */
+.admin-loader {
+    position: fixed;
+    inset: 0;
+    background: var(--admin-black);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100000;
+}
+
+.admin-loader__spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(193, 18, 31, 0.2);
+    border-top-color: var(--admin-red);
+    border-radius: 50%;
+    animation: adminSpin 0.7s linear infinite;
+}
+
+@keyframes adminSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+        radial-gradient(ellipse at center, rgba(193, 18, 31, 0.15) 0%, transparent 70%),
+        var(--admin-black);
+}
+
+.login-box {
+    background: var(--admin-gray);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 3rem;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+}
+
+.login-logo {
+    display: block;
+    margin: 0 auto 0.75rem;
+    height: 5.25rem;
+    width: auto;
+    max-width: 340px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 12px rgba(193, 18, 31, 0.35));
+}
+
+.login-subtitle {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+}
+
+.login-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    background: var(--admin-red);
+    color: white;
+    border: none;
+    padding: 1rem;
+    font-family: var(--font-teko), sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+}
+
+.login-btn:hover:not(:disabled) {
+    background: var(--admin-red-dark);
+    transform: translateY(-2px);
+}
+
+.login-btn:disabled {
+    opacity: 0.7;
+    cursor: default;
+}
+
+.login-error {
+    background: rgba(193, 18, 31, 0.2);
+    border: 1px solid var(--admin-red);
+    color: var(--admin-white);
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-5px);
+    }
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+/* ============================================
+   ADMIN SHELL
+============================================ */
+.admin-header {
+    background: var(--admin-gray);
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--admin-red);
+}
+
+.admin-header h1 {
+    font-family: var(--font-teko), sans-serif;
+    font-size: 1.5rem;
+    margin: 0;
+    letter-spacing: 0.1em;
+}
+
+.admin-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.admin-logo {
+    height: 34px;
+    width: auto;
+    display: block;
+}
+
+.admin-brand__tag {
+    font-family: var(--font-dm-mono), monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    color: var(--admin-red);
+    padding-left: 0.75rem;
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.admin-container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.logout-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.7);
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+    border-color: var(--admin-red);
+    color: var(--admin-red);
+}
+
+.admin-page h2 {
+    font-family: var(--font-teko), sans-serif;
+    letter-spacing: 0.1em;
+}
+
+/* ============================================
+   TABS
+============================================ */
+.admin-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--admin-red);
+    flex-wrap: wrap;
+}
+
+.admin-tab {
+    padding: 1rem 2rem;
+    background: var(--admin-gray);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-family: var(--font-teko), sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    top: 2px;
+}
+
+.admin-tab:hover {
+    color: var(--admin-white);
+    background: rgba(193, 18, 31, 0.2);
+}
+
+.admin-tab.active {
+    background: var(--admin-red);
+    color: var(--admin-white);
+    border-color: var(--admin-red);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* ============================================
+   CARDS / STATS
+============================================ */
+.card {
+    background: var(--admin-gray);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+}
+
+.card-header {
+    background: var(--admin-black);
+    color: white;
+    font-family: var(--font-teko), sans-serif;
+    letter-spacing: 0.1em;
+    border-bottom: 2px solid var(--admin-red);
+    padding: 0.75rem 1rem;
+}
+
+.card-body {
+    padding: 1rem;
+}
+
+.stats-card {
+    background: var(--admin-gray);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.stats-card h3 {
+    font-family: var(--font-teko), sans-serif;
+    font-size: 2.5rem;
+    color: var(--admin-red);
+    margin: 0;
+}
+
+.stats-card p {
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.85rem;
+}
+
+/* ============================================
+   BUTTONS
+============================================ */
+.btn-volt {
+    background: var(--admin-red);
+    border: none;
+    color: white;
+    font-family: var(--font-teko), sans-serif;
+    letter-spacing: 0.05em;
+    padding: 0.5rem 1.5rem;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
+    transition: all 0.3s ease;
+}
+
+.btn-volt:hover:not(:disabled) {
+    background: var(--admin-red-dark);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-volt:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.btn-outline-volt {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: var(--admin-white);
+}
+
+.btn-outline-volt:hover {
+    border-color: var(--admin-red);
+    color: var(--admin-red);
+}
+
+/* ============================================
+   PRODUCTS TABLE
+============================================ */
+.product-thumb {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.status-active {
+    color: #28a745;
+}
+
+.status-inactive {
+    color: #dc3545;
+}
+
+.admin-icon-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.85);
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-icon-btn:hover {
+    border-color: var(--admin-red);
+    color: var(--admin-red);
+}
+
+.admin-icon-btn--danger:hover {
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+.admin-featured-order {
+    width: 3.5em;
+    vertical-align: middle;
+}
+
+/* ============================================
+   PRODUCT FORM MODAL — variantes/talles/imágenes
+============================================ */
+#productModal .modal-header,
+#productModal .modal-footer {
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+#productModal .modal-body {
+    padding: 1.5rem;
+}
+
+#productModal .modal-title {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.admin-subsection {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: rgba(11, 11, 11, 0.55);
+}
+
+.admin-subsection__title {
+    margin: 0 0 0.75rem;
+    font-family: var(--font-teko), sans-serif;
+    letter-spacing: 0.08em;
+    color: #f2f2f2;
+}
+
+.list-editor-row {
+    display: grid;
+    grid-template-columns: 1.2fr 90px 110px auto;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.list-editor-row--sizes {
+    grid-template-columns: 1fr 120px auto;
+}
+
+.swatch-preview {
+    width: 30px;
+    height: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: #44464c;
+    flex: none;
+}
+
+.icon-btn {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: #0b0b0b;
+    color: #f2f2f2;
+    min-width: 30px;
+    height: 30px;
+    cursor: pointer;
+}
+
+.icon-btn:hover:not(:disabled) {
+    border-color: var(--admin-red);
+    color: var(--admin-red);
+}
+
+.icon-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.chip-btn {
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: transparent;
+    color: #f2f2f2;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.82rem;
+    margin-right: 0.25rem;
+    margin-bottom: 0.35rem;
+    cursor: pointer;
+}
+
+.chip-btn:hover {
+    border-color: var(--admin-red);
+    color: var(--admin-red);
+}
+
+.dropzone {
+    border: 2px dashed rgba(255, 255, 255, 0.24);
+    padding: 1rem;
+    text-align: center;
+    background: #0b0b0b;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.dropzone.is-dragover {
+    border-color: var(--admin-red);
+    background: rgba(193, 18, 31, 0.12);
+}
+
+.images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.6rem;
+    margin-top: 0.8rem;
+}
+
+.image-card {
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: #0b0b0b;
+    padding: 0.25rem;
+    cursor: grab;
+}
+
+.image-card.dragging {
+    opacity: 0.45;
+    cursor: grabbing;
+}
+
+.image-card img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    display: block;
+}
+
+.image-card__badge {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    font-size: 0.7rem;
+    background: rgba(193, 18, 31, 0.9);
+    color: #fff;
+    padding: 1px 6px;
+}
+
+.image-card__remove {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 26px;
+    height: 26px;
+    border: 0;
+    background: rgba(11, 11, 11, 0.85);
+    color: #f2f2f2;
+    cursor: pointer;
+}
+
+.image-card__loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    background: rgba(0, 0, 0, 0.6);
+    color: #f2f2f2;
+    font-size: 0.78rem;
+}
+
+.admin-spinner-sm {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-top-color: var(--admin-white);
+    border-radius: 50%;
+    animation: adminSpin 0.6s linear infinite;
+    flex: none;
+}
+
+.field-error {
+    color: #ff6b6b;
+    font-size: 0.82rem;
+    margin-top: 0.35rem;
+}
+
+/* ============================================
+   PEDIDOS / DESPACHOS — status badges, tabla, botones
+   (F9, Tarea 2). Port literal de legacy/admin/panel.html líneas 313-321,
+   416-421, 533-608 — mismos valores hex, sin var() porque legacy tampoco
+   los usaba para estos (son colores semánticos fijos, no de marca).
+============================================ */
+.btn-detail {
+    background: var(--admin-gray);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: var(--admin-white);
+}
+
+.btn-detail:hover {
+    border-color: var(--admin-red);
+    color: var(--admin-red);
+}
+
+.refresh-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.7);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    /* legacy usaba `.ico { margin-right: 0.45em }` sobre un <svg class="ico">;
+       acá el ícono va sizeado inline (mismo patrón que ProductsTab), así que
+       el espaciado sale de flex+gap en vez de esa clase. */
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+}
+
+.refresh-btn:hover {
+    border-color: var(--admin-red);
+    color: var(--admin-red);
+}
+
+.order-status {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.status-pending { background: rgba(251, 191, 36, .2); color: #fbbf24; border: 1px solid #fbbf24; }
+.status-paid { background: rgba(34, 197, 94, .2); color: #22c55e; border: 1px solid #22c55e; }
+.status-pending-payment { background: rgba(245, 166, 35, .2); color: #f5a623; border: 1px solid #f5a623; }
+.status-pending-transfer { background: rgba(245, 166, 35, .2); color: #f5a623; border: 1px solid #f5a623; }
+.status-shipped { background: rgba(59, 130, 246, .2); color: #3b82f6; border: 1px solid #3b82f6; }
+.status-delivered { background: rgba(22, 163, 74, .2); color: #16a34a; border: 1px solid #16a34a; }
+.status-failed { background: rgba(193, 18, 31, .2); color: #c1121f; border: 1px solid #c1121f; }
+.status-mp-error { background: rgba(193, 18, 31, .2); color: #c1121f; border: 1px solid #c1121f; }
+.status-cancelled { background: rgba(68, 70, 76, .35); color: #c7c7c7; border: 1px solid #44464c; }
+
+.order-items {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.order-amount {
+    font-family: var(--font-teko), sans-serif;
+    font-size: 1.3rem;
+    color: #22c55e;
+}
+
+.orders-empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.shipped-tracking-panel {
+    padding: 0.85rem 1rem;
+    border: 1px solid rgba(193, 18, 31, 0.45);
+    border-radius: 4px;
+    background: rgba(193, 18, 31, 0.08);
+}
+
+/* Detalle de orden (components/admin/OrderDetailModal.tsx) — mismo patrón
+   que #productModal más arriba: sin esto el header/footer no tienen padding
+   ni layout (bs-shim.css deliberadamente no trae `.modal-header`/
+   `.modal-footer` con caja, ver su comentario). */
+#orderDetailModal .modal-header,
+#orderDetailModal .modal-footer {
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+#orderDetailModal .modal-body {
+    padding: 1.5rem;
+}
+
+#orderDetailModal .modal-title {
+    margin: 0;
+    font-size: 1.5rem;
+}

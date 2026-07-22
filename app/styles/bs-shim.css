@@ -532,3 +532,28 @@ fieldset:disabled .btn {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
+
+/* ----------------------------------------------------------------- Tables */
+/* Added for components/admin/* (F9, admin/panel.html's product/order
+   tables) — base box model only; colors/dark skin come from volt-ds.css's
+   global `.table`/`.table thead th`/`.table tbody tr` (!important) rules. */
+.table {
+  width: 100%;
+  margin-bottom: 1rem;
+  vertical-align: top;
+}
+.table > :not(caption) > * > * {
+  padding: 0.5rem 0.5rem;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+}
+.table > tbody {
+  vertical-align: inherit;
+}
+.table-hover > tbody > tr:hover > * {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}

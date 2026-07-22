@@ -102,6 +102,17 @@ export interface OrderShipping {
     /** Pedidos legados (pre checkout actual): cadete | andreani | correo | coordinar. */
     method?: string;
     notes?: string;
+    /** Nota libre mostrada en el detalle admin (legacy/js/admin-orders.js#adminShippingHtml). */
+    note?: string;
+    /** Seteados por pages/api/notify-status.js al pasar a `shipped` (F9). */
+    carrier?: string;
+    trackingNumber?: string;
+    /** Seteado por pages/api/crear-orden-andreani.js al generar el despacho (F9). */
+    andreani?: {
+        numeroDeEnvio: string;
+        bultos?: unknown[];
+        createdAt?: unknown;
+    };
 }
 
 export interface OrderItem {

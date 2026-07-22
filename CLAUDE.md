@@ -71,7 +71,7 @@ tests/          node scripts sin framework (smoke HTTP + unit de stock/cupones)
 | F6 | Home + volt-motion + GA | ✅ Hecha (2026-07-21) — reviewer PASS; navbar único (home sin `.site-nav` por decisión); flourishes de motion (hero split-words/tilt/magnetic) omitidos; QA visual diferido |
 | F7 | Checkout + retorno MP (success/pending/failure) | ✅ Hecha (2026-07-21) — reviewer PASS (math del dinero reconciliado); Andreani sin credenciales (cotización degrada); QA MP sandbox diferido |
 | F8 | Páginas estáticas + mis-pedidos | ✅ Hecha (2026-07-21) — reviewer FAIL→fix (reveal invisible en estáticas) verificado con screenshot; mis-pedidos arregla el bug de prod del anónimo colgado |
-| F9 | Admin panel | ⬜ Pendiente |
+| F9 | Admin panel | ✅ Hecha (2026-07-21) — reviewer PASS; gate por claim + backend re-verifica + reglas Firestore admin-only (seguridad end-to-end); XSS del legacy eliminado; despachos degradan sin Andreani |
 | F10 | QA end-to-end + limpieza + cutover | ⬜ Pendiente |
 
 Al cerrar una fase verificada, actualizar su estado acá (⬜ Pendiente → ✅ Hecha, con fecha).
