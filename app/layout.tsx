@@ -49,6 +49,8 @@ const dmMono = DM_Mono({
 // it; registering it too would just duplicate the font download.
 export const metadata: Metadata = {
   title: "VOLT Culture",
+  // Mismo favicon que el sitio viejo (<link rel="icon"> en index.html).
+  icons: { icon: "/images-brand/Isotipo color.png" },
 };
 
 export default function RootLayout({
