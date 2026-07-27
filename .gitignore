@@ -23,3 +23,9 @@ __pycache__/
 
 # TS incremental build cache
 *.tsbuildinfo
+
+# Playwright E2E
+playwright-report/
+test-results/
+/blob-report/
+.playwright/

@@ -5,7 +5,8 @@
     "start": "next start",
     "dev:api": "vercel dev",
     "test:smoke": "node tests/smoke.test.js",
-    "test:smoke:prod": "BASE_URL=https://www.voltculture.com.ar node tests/smoke.test.js"
+    "test:smoke:prod": "BASE_URL=https://www.voltculture.com.ar node tests/smoke.test.js",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@mercadopago/sdk-js": "^0.0.3",
@@ -21,6 +22,7 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.0",
     "@types/node": "^22.10.5",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
