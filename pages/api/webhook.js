@@ -10,6 +10,7 @@ import {
     formatShippingBlockClientHtml,
     formatShippingWhatsAppBlock
 } from '@/lib/server/shipping-email';
+import { sendWhatsAppNotification } from '@/lib/server/whatsapp';
 
 // NOTA (F2): la verificación de firma HMAC de MercadoPago (verifyMpSignature)
 // usa solo `data.id` (del body ya parseado) + los headers x-signature/x-request-id —
@@ -398,6 +399,13 @@ export default async function handler(req, res) {
                     } catch (waError) {
                         console.error('Error enviando WhatsApp al admin:', waError.message);
                     }
+
+                    // WhatsApp de confirmación al comprador (WAHA). Va último a
+                    // propósito: si WAHA está caído o inalcanzable, su timeout no
+                    // demora los mails, que son el canal crítico. La función no
+                    // lanza nunca (devuelve false), así que no puede convertir un
+                    // pago ya procesado en un 500 con reintento de MP.
+                    await sendWhatsAppNotification(orderSnapAfterPaid.data());
                 } else {
                     const currentSnap = await orderRef.get();
                     const currentStatus = currentSnap.exists ? currentSnap.data().status : null;
