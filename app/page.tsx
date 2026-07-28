@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "@/app/styles/home.css";
 import FeaturedCarousel from "@/components/home/FeaturedCarousel";
+import HeroVideo from "@/components/home/HeroVideo";
 import HomeMotion from "@/components/home/HomeMotion";
 
 // Ported from legacy/index.html <head> (title/description only — OG/canonical
@@ -43,6 +44,7 @@ export default function Home() {
       <div className="page-shell">
         <main>
           <section className="hero" id="top" aria-label="Principal">
+            <HeroVideo />
             <span className="hero__watermark" aria-hidden="true">
               VOLT
             </span>

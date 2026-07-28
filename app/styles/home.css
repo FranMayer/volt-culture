@@ -360,6 +360,40 @@
   z-index: -1;
 }
 
+/* Hero background loop (components/home/HeroVideo.tsx).
+   z-index -2 sits below .hero::before and .hero__watermark (both -1) and below
+   the in-flow hero content. It is still ABOVE the black .page-grid (z-index 0)
+   because <main> carries `z-index: 1` and therefore its own stacking context —
+   the negative-z descendants sort inside it, not against the grid. */
+.home-page .hero__bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* NOT `inset: 0`. .hero is ~1497px tall (it wraps the featured carousel), so
+     covering the whole section put a 16:9 video inside a portrait box and
+     `object-fit: cover` cropped ~690px off EACH side — enough to swallow the
+     telemetry in the right band entirely. One viewport is what a hero
+     background is actually for, and it keeps the crop small. */
+  height: 100vh;
+  z-index: -2;
+  overflow: hidden;
+  pointer-events: none;
+  background-image: url('/video/hero-poster.jpg');
+  background-size: cover;
+  background-position: center;
+  /* soften the hand-off to the plain black section below */
+  -webkit-mask-image: linear-gradient(180deg, #000 82%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 82%, transparent 100%);
+}
+
+.home-page .hero__bg-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .home-page .hero__watermark {
   position: absolute;
   top: 50%;
@@ -389,6 +423,14 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  /* volt-ds.css:2104 forces `background:#000 !important` here ("opaque text
+     surfaces — grid bleed-through"). As a flex item of the column-flex .hero
+     it stretched to full width, so that black painted a full-width bar across
+     the hero background loop. It was invisible while the hero was black-on-
+     black; HeroVideo exposed it. Shrinking the item to its content is enough —
+     the opaque chip still does its original bleed-through job. */
+  align-self: flex-start;
+  padding-right: 14px;
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 400;
