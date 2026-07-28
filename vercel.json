@@ -1,8 +1,5 @@
 {
   "version": 2,
-  "functions": {
-    "pages/api/webhook.js": { "maxDuration": 30 }
-  },
   "headers": [
     {
       "source": "/(.*)",

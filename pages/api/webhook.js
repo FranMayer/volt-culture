@@ -18,6 +18,17 @@ import { sendWhatsAppNotification } from '@/lib/server/whatsapp';
 // JSON) es seguro acá; no hace falta `export const config = { api: { bodyParser: false } }`.
 // Confirmado contra el original: api/webhook.js tampoco leía el raw body.
 
+// maxDuration se declara ACÁ y no en `functions` de vercel.json. En un proyecto
+// Next.js ese patrón no resuelve rutas de pages/api — Vercel busca funciones
+// dentro de un directorio `api/` en la raíz (comportamiento zero-config) y el
+// build muere con:
+//   "The pattern "pages/api/webhook.js" defined in `functions` doesn't match
+//    any Serverless Functions inside the `api` directory."
+// El export de config del route sí lo lee Next y lo propaga a Vercel.
+export const config = {
+    maxDuration: 30
+};
+
 const ADMIN_SALE_EMAIL = 'volt.streetcba@gmail.com';
 
 // Presupuesto por llamada de aviso. La función tiene 10s y el camino de pago ya
