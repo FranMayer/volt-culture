@@ -99,6 +99,46 @@ check('sin WAHA_URL devuelve false', (await sendWhatsAppNotification(baseOrder))
 process.env.WAHA_URL = 'http://127.0.0.1:9'; // puerto muerto: connection refused
 check('WAHA caído devuelve false sin lanzar', (await sendWhatsAppNotification(baseOrder)) === false);
 
+// Contrato del request contra WAHA, verificado a mano contra una instancia real
+// (WAHA 2026.7.1, engine WEBJS) antes de fijarlo acá.
+//
+// El bug que esto previene: la sesión NO siempre se llama 'default'. WAHA le pone
+// un id autogenerado (session_01kymv84...) cuando la creás desde el dashboard sin
+// nombrarla, y mandar un nombre inexistente falla con 404 en CADA venta.
+const captured = [];
+const captureServer = createServer((req, res) => {
+    let body = '';
+    req.on('data', (c) => { body += c; });
+    req.on('end', () => {
+        captured.push({ url: req.url, apiKey: req.headers['x-api-key'], body: JSON.parse(body || '{}') });
+        res.writeHead(201, { 'Content-Type': 'application/json' });
+        res.end('{"id":"fake"}');
+    });
+});
+await new Promise((resolve) => captureServer.listen(0, '127.0.0.1', resolve));
+
+const prevSession = process.env.WAHA_SESSION;
+process.env.WAHA_URL = `http://127.0.0.1:${captureServer.address().port}`;
+process.env.WAHA_API_KEY = 'test-key-123';
+
+// WAHA_SESSION se lee al cargar el módulo, así que reimportamos con cache-bust
+// para ejercitar el valor configurado en vez del que quedó fijado al inicio.
+process.env.WAHA_SESSION = 'session_abc123';
+const fresh = await import(`../lib/server/whatsapp.js?session-test=${Date.now()}`);
+const sent = await fresh.sendWhatsAppNotification(baseOrder);
+
+captureServer.close();
+if (prevSession === undefined) delete process.env.WAHA_SESSION;
+else process.env.WAHA_SESSION = prevSession;
+delete process.env.WAHA_API_KEY;
+
+check('envío OK contra WAHA simulado', sent === true);
+check('pega a /api/sendText', captured[0]?.url === '/api/sendText');
+check('manda X-Api-Key', captured[0]?.apiKey === 'test-key-123');
+check('usa la sesión configurada, no "default"', captured[0]?.body.session === 'session_abc123');
+check('chatId con formato @c.us', captured[0]?.body.chatId === '5493511234567@c.us');
+check('manda el texto del mensaje', typeof captured[0]?.body.text === 'string' && captured[0].body.text.includes('VOLT-ABC123'));
+
 // El incidente de prod no fue un WAHA que rechaza (eso corta al instante) sino
 // uno que ACEPTA y no contesta nunca: con el timeout viejo de 8s se comía el
 // presupuesto de 10s de la función y el webhook timeouteaba. Este check falla
