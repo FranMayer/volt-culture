@@ -20,6 +20,12 @@ import { sendWhatsAppNotification } from '@/lib/server/whatsapp';
 
 const ADMIN_SALE_EMAIL = 'volt.streetcba@gmail.com';
 
+// Presupuesto por llamada de aviso. La función tiene 10s y el camino de pago ya
+// encadena MP + Firestore + transacción + 2 mails antes de llegar acá; una
+// llamada de notificación sin límite puede colgar el webhook entero y provocar
+// que MP reintente un pago que ya se procesó bien.
+const NOTIFY_TIMEOUT_MS = 2500;
+
 function isProductionEnv() {
     return process.env.VERCEL_ENV === 'production';
 }
@@ -157,7 +163,9 @@ async function sendAdminWhatsApp(orderData) {
     const apikey = plainWhatsApp(apikeyRaw);
     const text = buildAdminWhatsAppMessage(orderData);
     const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(text)}&apikey=${encodeURIComponent(apikey)}`;
-    const waRes = await fetch(url, { method: 'GET' });
+    // Antes iba sin AbortSignal: un CallMeBot colgado bloqueaba el webhook sin
+    // techo, independientemente de lo que se hiciera con WAHA.
+    const waRes = await fetch(url, { method: 'GET', signal: AbortSignal.timeout(NOTIFY_TIMEOUT_MS) });
     if (!waRes.ok) {
         const body = await waRes.text().catch(() => '');
         throw new Error(`CallMeBot HTTP ${waRes.status}: ${body}`);
@@ -394,18 +402,22 @@ export default async function handler(req, res) {
                         console.error('Error enviando email de venta al admin:', adminMailError.message);
                     }
 
-                    try {
-                        await sendAdminWhatsApp(orderSnapAfterPaid.data());
-                    } catch (waError) {
-                        console.error('Error enviando WhatsApp al admin:', waError.message);
+                    // Los dos WhatsApp (admin vía CallMeBot, comprador vía WAHA)
+                    // son independientes entre sí: en paralelo su peor caso es un
+                    // solo timeout en vez de la suma.
+                    //
+                    // Van con await a propósito. En Vercel el entorno se congela
+                    // al devolver la respuesta, así que soltar la promesa sin
+                    // await no la manda "en background": se descarta y el aviso
+                    // no sale nunca, en silencio. Lo que evita el timeout es el
+                    // techo de NOTIFY_TIMEOUT_MS, no sacar el await.
+                    const [adminWa] = await Promise.allSettled([
+                        sendAdminWhatsApp(orderSnapAfterPaid.data()),
+                        sendWhatsAppNotification(orderSnapAfterPaid.data())
+                    ]);
+                    if (adminWa.status === 'rejected') {
+                        console.error('Error enviando WhatsApp al admin:', adminWa.reason?.message);
                     }
-
-                    // WhatsApp de confirmación al comprador (WAHA). Va último a
-                    // propósito: si WAHA está caído o inalcanzable, su timeout no
-                    // demora los mails, que son el canal crítico. La función no
-                    // lanza nunca (devuelve false), así que no puede convertir un
-                    // pago ya procesado en un 500 con reintento de MP.
-                    await sendWhatsAppNotification(orderSnapAfterPaid.data());
                 } else {
                     const currentSnap = await orderRef.get();
                     const currentStatus = currentSnap.exists ? currentSnap.data().status : null;

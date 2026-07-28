@@ -7,6 +7,7 @@
  *  - las líneas de pago/descuento (informarle mal el monto al cliente)
  * y que sendWhatsAppNotification jamás lance, que es su contrato con el webhook.
  */
+import { createServer } from 'node:http';
 import {
     toWhatsAppChatId,
     buildCustomerWhatsAppMessage,
@@ -98,6 +99,23 @@ check('sin WAHA_URL devuelve false', (await sendWhatsAppNotification(baseOrder))
 process.env.WAHA_URL = 'http://127.0.0.1:9'; // puerto muerto: connection refused
 check('WAHA caído devuelve false sin lanzar', (await sendWhatsAppNotification(baseOrder)) === false);
 
+// El incidente de prod no fue un WAHA que rechaza (eso corta al instante) sino
+// uno que ACEPTA y no contesta nunca: con el timeout viejo de 8s se comía el
+// presupuesto de 10s de la función y el webhook timeouteaba. Este check falla
+// si alguien vuelve a subir WAHA_TIMEOUT_MS.
+const hangingServer = createServer(() => { /* nunca responde */ });
+await new Promise((resolve) => hangingServer.listen(0, '127.0.0.1', resolve));
+process.env.WAHA_URL = `http://127.0.0.1:${hangingServer.address().port}`;
+
+const startedAt = Date.now();
+const hangResult = await sendWhatsAppNotification(baseOrder);
+const elapsed = Date.now() - startedAt;
+hangingServer.close();
+
+check('WAHA que cuelga devuelve false', hangResult === false);
+check(`WAHA que cuelga corta antes de 4s (tardó ${elapsed}ms)`, elapsed < 4000);
+
+process.env.WAHA_URL = 'http://127.0.0.1:9';
 check('pedido null devuelve false', (await sendWhatsAppNotification(null)) === false);
 check(
     'teléfono inservible devuelve false',
