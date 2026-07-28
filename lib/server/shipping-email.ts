@@ -150,7 +150,7 @@ export function formatShippingBlockAdminHtml(orderData: any): string {
     `;
 }
 
-/** Bloque ENVÍO en texto plano para CallMeBot. */
+/** Bloque ENVÍO en texto plano para el WhatsApp al admin. */
 export function formatShippingWhatsAppBlock(orderData: any): string {
     const s = orderData.shipping;
     const type = resolveShippingType(s);

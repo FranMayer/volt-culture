@@ -1,18 +1,17 @@
 /**
- * Tests unitarios del helper de WhatsApp al comprador (WAHA).
+ * Tests unitarios del helper de WhatsApp al admin (WAHA).
  * Uso: node tests/whatsapp.test.mjs
  *
- * Cubre las dos partes que pueden fallar en silencio y caro:
+ * Cubre las dos cosas que pueden fallar en silencio y caro:
  *  - el parser de teléfono (un chatId mal armado le escribe a un desconocido)
- *  - las líneas de pago/descuento (informarle mal el monto al cliente)
- * y que sendWhatsAppNotification jamás lance, que es su contrato con el webhook.
+ *  - el contrato del request contra WAHA (sesión, api key, path)
+ * y que sendAdminWhatsApp jamás lance, que es su contrato con el webhook.
+ *
+ * El formato del mensaje NO se testea acá: lo arma buildAdminWhatsAppMessage
+ * en pages/api/webhook.js, este módulo es solo transporte.
  */
 import { createServer } from 'node:http';
-import {
-    toWhatsAppChatId,
-    buildCustomerWhatsAppMessage,
-    sendWhatsAppNotification
-} from '../lib/server/whatsapp.js';
+import { toWhatsAppChatId, sendAdminWhatsApp } from '../lib/server/whatsapp.js';
 
 let failed = 0;
 function check(label, cond) {
@@ -35,69 +34,18 @@ check('sin dígitos -> null', toWhatsAppChatId('no tengo') === null);
 check('demasiado corto -> null', toWhatsAppChatId('1234') === null);
 check('otro país se respeta', toWhatsAppChatId('+34 612 345 678') === '34612345678@c.us');
 
-// ── buildCustomerWhatsAppMessage ────────────────────────────────────────────
-const baseOrder = {
-    orderId: 'VOLT-ABC123',
-    customer: { name: 'Franco', phone: '3511234567' },
-    items: [
-        { title: 'Remera Paddock', variantSize: 'M', quantity: 2 },
-        { title: 'Buzo Pitlane', variantSize: 'L', quantity: 1 }
-    ],
-    total: 85000
-};
-
-const card = buildCustomerWhatsAppMessage(baseOrder);
-check('incluye el nombre', card.includes('Franco'));
-check('incluye el id de orden', card.includes('VOLT-ABC123'));
-check('incluye producto + talle + cantidad', card.includes('Remera Paddock | Talle M | x2'));
-check('incluye el segundo producto', card.includes('Buzo Pitlane | Talle L | x1'));
-check('incluye total formateado', card.includes('85.000'));
-check('tarjeta cuando no hay paymentMethod', card.includes('Tarjeta'));
-check('tarjeta NO promete transferencia', !card.includes('Transferencia confirmada'));
-check('firma de marca', card.includes('VOLT — MotorSport Culture'));
-
-const transfer = buildCustomerWhatsAppMessage({
-    ...baseOrder,
-    paymentMethod: 'transfer',
-    discountSource: 'transfer',
-    discountPercent: 10
-});
-check('transferencia confirmada', transfer.includes('Transferencia confirmada'));
-check('transferencia anuncia 10% OFF', transfer.includes('10% OFF'));
-
-// El cupón REEMPLAZA al 10% (create-transfer-order.js): anunciar 10% acá
-// sería informarle mal el descuento al cliente.
-const withCoupon = buildCustomerWhatsAppMessage({
-    ...baseOrder,
-    paymentMethod: 'transfer',
-    discountSource: 'coupon',
-    coupon: 'VOLT20',
-    discountPercent: 20
-});
-check('cupón nombrado', withCoupon.includes('VOLT20'));
-check('cupón usa su propio porcentaje', withCoupon.includes('20% OFF'));
-check('cupón NO miente con el 10%', !withCoupon.includes('10% OFF'));
-
-// Pedido degradado: no debe explotar ni imprimir "undefined"
-const bare = buildCustomerWhatsAppMessage({ orderId: 'X1', customer: {}, items: [], total: 0 });
-check('sin items no rompe', bare.includes('(sin detalle)'));
-check('sin datos no imprime undefined', !bare.includes('undefined'));
-
-// Ítem sin talle (producto sin variantes)
-const noSize = buildCustomerWhatsAppMessage({
-    ...baseOrder,
-    items: [{ title: 'Gorra Box', quantity: 1 }]
-});
-check('ítem sin talle omite el campo', noSize.includes('- Gorra Box | x1'));
-
-// ── sendWhatsAppNotification: el contrato es "nunca lanza" ──────────────────
+// ── sendAdminWhatsApp: el contrato es "nunca lanza" ─────────────────────────
 const prevUrl = process.env.WAHA_URL;
+const prevAdmin = process.env.ADMIN_WHATSAPP_NUMBER;
+const TEXT = 'NUEVA VENTA VOLT\nOrden: #VOLT-ABC123';
+
+process.env.ADMIN_WHATSAPP_NUMBER = '3511234567';
 
 process.env.WAHA_URL = '';
-check('sin WAHA_URL devuelve false', (await sendWhatsAppNotification(baseOrder)) === false);
+check('sin WAHA_URL devuelve false', (await sendAdminWhatsApp(TEXT)) === false);
 
 process.env.WAHA_URL = 'http://127.0.0.1:9'; // puerto muerto: connection refused
-check('WAHA caído devuelve false sin lanzar', (await sendWhatsAppNotification(baseOrder)) === false);
+check('WAHA caído devuelve false sin lanzar', (await sendAdminWhatsApp(TEXT)) === false);
 
 // Contrato del request contra WAHA, verificado a mano contra una instancia real
 // (WAHA 2026.7.1, engine WEBJS) antes de fijarlo acá.
@@ -125,7 +73,7 @@ process.env.WAHA_API_KEY = 'test-key-123';
 // para ejercitar el valor configurado en vez del que quedó fijado al inicio.
 process.env.WAHA_SESSION = 'session_abc123';
 const fresh = await import(`../lib/server/whatsapp.js?session-test=${Date.now()}`);
-const sent = await fresh.sendWhatsAppNotification(baseOrder);
+const sent = await fresh.sendAdminWhatsApp(TEXT);
 
 captureServer.close();
 if (prevSession === undefined) delete process.env.WAHA_SESSION;
@@ -136,19 +84,21 @@ check('envío OK contra WAHA simulado', sent === true);
 check('pega a /api/sendText', captured[0]?.url === '/api/sendText');
 check('manda X-Api-Key', captured[0]?.apiKey === 'test-key-123');
 check('usa la sesión configurada, no "default"', captured[0]?.body.session === 'session_abc123');
-check('chatId con formato @c.us', captured[0]?.body.chatId === '5493511234567@c.us');
-check('manda el texto del mensaje', typeof captured[0]?.body.text === 'string' && captured[0].body.text.includes('VOLT-ABC123'));
+// El destino es el admin, NO el comprador: esta línea es la que atrapa una
+// regresión que le mandaría el detalle de la venta al cliente.
+check('chatId del admin', captured[0]?.body.chatId === '5493511234567@c.us');
+check('manda el texto tal cual', captured[0]?.body.text === TEXT);
 
 // El incidente de prod no fue un WAHA que rechaza (eso corta al instante) sino
 // uno que ACEPTA y no contesta nunca: con el timeout viejo de 8s se comía el
-// presupuesto de 10s de la función y el webhook timeouteaba. Este check falla
-// si alguien vuelve a subir WAHA_TIMEOUT_MS.
+// presupuesto de la función y el webhook timeouteaba. Este check falla si
+// alguien vuelve a subir WAHA_TIMEOUT_MS.
 const hangingServer = createServer(() => { /* nunca responde */ });
 await new Promise((resolve) => hangingServer.listen(0, '127.0.0.1', resolve));
 process.env.WAHA_URL = `http://127.0.0.1:${hangingServer.address().port}`;
 
 const startedAt = Date.now();
-const hangResult = await sendWhatsAppNotification(baseOrder);
+const hangResult = await sendAdminWhatsApp(TEXT);
 const elapsed = Date.now() - startedAt;
 hangingServer.close();
 
@@ -156,14 +106,16 @@ check('WAHA que cuelga devuelve false', hangResult === false);
 check(`WAHA que cuelga corta antes de 4s (tardó ${elapsed}ms)`, elapsed < 4000);
 
 process.env.WAHA_URL = 'http://127.0.0.1:9';
-check('pedido null devuelve false', (await sendWhatsAppNotification(null)) === false);
-check(
-    'teléfono inservible devuelve false',
-    (await sendWhatsAppNotification({ ...baseOrder, customer: { name: 'X', phone: 'nope' } })) === false
-);
+check('texto vacío devuelve false', (await sendAdminWhatsApp('')) === false);
+check('texto null devuelve false', (await sendAdminWhatsApp(null)) === false);
+
+process.env.ADMIN_WHATSAPP_NUMBER = 'nope';
+check('ADMIN_WHATSAPP_NUMBER inservible devuelve false', (await sendAdminWhatsApp(TEXT)) === false);
 
 if (prevUrl === undefined) delete process.env.WAHA_URL;
 else process.env.WAHA_URL = prevUrl;
+if (prevAdmin === undefined) delete process.env.ADMIN_WHATSAPP_NUMBER;
+else process.env.ADMIN_WHATSAPP_NUMBER = prevAdmin;
 
 if (failed > 0) { console.error(`\n❌ ${failed} whatsapp helper checks failed`); process.exit(1); }
 console.log('✅ whatsapp helper checks passed');

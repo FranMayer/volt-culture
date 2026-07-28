@@ -10,7 +10,7 @@ import {
     formatShippingBlockClientHtml,
     formatShippingWhatsAppBlock
 } from '@/lib/server/shipping-email';
-import { sendWhatsAppNotification } from '@/lib/server/whatsapp';
+import { sendAdminWhatsApp } from '@/lib/server/whatsapp';
 
 // NOTA (F2): la verificación de firma HMAC de MercadoPago (verifyMpSignature)
 // usa solo `data.id` (del body ya parseado) + los headers x-signature/x-request-id —
@@ -30,12 +30,6 @@ export const config = {
 };
 
 const ADMIN_SALE_EMAIL = 'volt.streetcba@gmail.com';
-
-// Presupuesto por llamada de aviso. La función tiene 10s y el camino de pago ya
-// encadena MP + Firestore + transacción + 2 mails antes de llegar acá; una
-// llamada de notificación sin límite puede colgar el webhook entero y provocar
-// que MP reintente un pago que ya se procesó bien.
-const NOTIFY_TIMEOUT_MS = 2500;
 
 function isProductionEnv() {
     return process.env.VERCEL_ENV === 'production';
@@ -156,31 +150,6 @@ function buildAdminWhatsAppMessage(orderData) {
         '',
         `TOTAL: $${total.toLocaleString('es-AR')}`
     ].join('\n');
-}
-
-/**
- * Notificación al admin vía CallMeBot (WhatsApp). Requiere ADMIN_WHATSAPP_NUMBER y ADMIN_WHATSAPP_APIKEY.
- */
-async function sendAdminWhatsApp(orderData) {
-    const phoneRaw = process.env.ADMIN_WHATSAPP_NUMBER;
-    const apikeyRaw = process.env.ADMIN_WHATSAPP_APIKEY;
-    if (!plainWhatsApp(phoneRaw) || !plainWhatsApp(apikeyRaw)) {
-        console.warn(
-            '[Webhook] ADMIN_WHATSAPP_NUMBER o ADMIN_WHATSAPP_APIKEY no definidos — skip notificación WhatsApp al admin'
-        );
-        return;
-    }
-    const phone = plainWhatsApp(phoneRaw).replace(/\s/g, '').replace(/^\+/, '');
-    const apikey = plainWhatsApp(apikeyRaw);
-    const text = buildAdminWhatsAppMessage(orderData);
-    const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(text)}&apikey=${encodeURIComponent(apikey)}`;
-    // Antes iba sin AbortSignal: un CallMeBot colgado bloqueaba el webhook sin
-    // techo, independientemente de lo que se hiciera con WAHA.
-    const waRes = await fetch(url, { method: 'GET', signal: AbortSignal.timeout(NOTIFY_TIMEOUT_MS) });
-    if (!waRes.ok) {
-        const body = await waRes.text().catch(() => '');
-        throw new Error(`CallMeBot HTTP ${waRes.status}: ${body}`);
-    }
 }
 
 /**
@@ -413,22 +382,13 @@ export default async function handler(req, res) {
                         console.error('Error enviando email de venta al admin:', adminMailError.message);
                     }
 
-                    // Los dos WhatsApp (admin vía CallMeBot, comprador vía WAHA)
-                    // son independientes entre sí: en paralelo su peor caso es un
-                    // solo timeout en vez de la suma.
-                    //
-                    // Van con await a propósito. En Vercel el entorno se congela
+                    // Va con await a propósito. En Vercel el entorno se congela
                     // al devolver la respuesta, así que soltar la promesa sin
                     // await no la manda "en background": se descarta y el aviso
                     // no sale nunca, en silencio. Lo que evita el timeout es el
-                    // techo de NOTIFY_TIMEOUT_MS, no sacar el await.
-                    const [adminWa] = await Promise.allSettled([
-                        sendAdminWhatsApp(orderSnapAfterPaid.data()),
-                        sendWhatsAppNotification(orderSnapAfterPaid.data())
-                    ]);
-                    if (adminWa.status === 'rejected') {
-                        console.error('Error enviando WhatsApp al admin:', adminWa.reason?.message);
-                    }
+                    // techo interno de WAHA_TIMEOUT_MS, no sacar el await.
+                    // sendAdminWhatsApp nunca lanza: loguea y devuelve false.
+                    await sendAdminWhatsApp(buildAdminWhatsAppMessage(orderSnapAfterPaid.data()));
                 } else {
                     const currentSnap = await orderRef.get();
                     const currentStatus = currentSnap.exists ? currentSnap.data().status : null;
