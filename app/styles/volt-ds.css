@@ -889,26 +889,26 @@ body.page-leaving {
     margin-right: auto !important;
 }
 
-/* DEF-001: la card era #000 puro mientras sus propios inputs son #161616 —
-   se leía como un parche negro irregular dentro del modal. Gris oscuro
-   homogéneo en card/header/body; el overlay lo sigue dando .modal-backdrop
-   (negro al 50%). */
+/* Mismo lenguaje de superficie que el modal de checkout (checkout.css):
+   una sola card con degradado vertical continuo en vez de bandas planas de
+   un gris, y separadores hairline translúcidos. El overlay lo sigue dando
+   .modal-backdrop (negro al 50%). */
 #voltAuthModal .modal-content.auth-modal-content,
 .auth-modal-content {
-    background: #1a1a1a !important;
-    border: 1px solid var(--volt-ds-border) !important;
+    background: linear-gradient(180deg, #1e1e1e 0%, #141414 45%, #0c0c0c 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
     color: var(--volt-ds-white) !important;
 }
 
 .auth-modal-header {
     padding: 1.75rem 2.5rem 1.25rem !important;
-    background: #1a1a1a !important;
-    border-bottom: 1px solid var(--volt-ds-border) !important;
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 
 .auth-modal-body {
     padding: 2.25rem 2.5rem 2.5rem !important;
-    background: #1a1a1a !important;
+    background: transparent !important;
 }
 
 .auth-modal-subtitle {

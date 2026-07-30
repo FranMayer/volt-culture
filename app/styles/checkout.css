@@ -13,36 +13,50 @@
  * no existen en ningún lado más (selectores idénticos a los de pagos.js).
  */
 
-#customerDataModal .volt-stepper { display:flex; gap:0; margin-bottom:1rem; padding-bottom:0.75rem; border-bottom:1px solid #44464c; }
+#customerDataModal .volt-stepper { display:flex; gap:0; margin-bottom:0.5rem; padding-bottom:0.85rem; border-bottom:1px solid rgba(255,255,255,0.06); }
 #customerDataModal .volt-stepper__item { flex:1; text-align:center; font-family:Barlow,sans-serif; font-size:0.7rem; letter-spacing:0.06em; text-transform:uppercase; color:#888; position:relative; }
 #customerDataModal .volt-stepper__item strong { display:block; font-family:Teko,sans-serif; font-size:1.15rem; letter-spacing:0.06em; margin-bottom:2px; }
 #customerDataModal .volt-stepper__item.is-active { color:#f2f2f2; }
 #customerDataModal .volt-stepper__item.is-active strong { color:#c1121f; }
 #customerDataModal .volt-stepper__item.is-done strong { color:#f2f2f2; }
-#customerDataModal .volt-stepper__bar { height:3px; background:#333; border-radius:2px; margin-bottom:0.85rem; overflow:hidden; }
-#customerDataModal .volt-stepper__fill { height:100%; background:#c1121f; width:0%; transition:width 0.25s ease; }
+#customerDataModal .volt-stepper__bar { height:2px; background:rgba(255,255,255,0.08); border-radius:2px; margin-bottom:0.9rem; overflow:hidden; }
+#customerDataModal .volt-stepper__fill { height:100%; background:linear-gradient(90deg, rgba(193,18,31,0.55), #c1121f); width:0%; transition:width 0.3s ease; }
 #customerDataModal .volt-step-panel { display:none; }
-#customerDataModal .volt-step-panel.is-visible { display:block; background:#1a1a1a; border:1px solid #2c2c2c; padding:0.875rem; }
+/* Sin caja gris con borde: el panel se funde con el degradado del modal (ver
+   "Superficie del modal" abajo). El corte duro gris-sobre-negro era lo que
+   partía el modal en bandas. */
+#customerDataModal .volt-step-panel.is-visible { display:block; background:transparent; border:0; padding:1rem 0.25rem; }
 #customerDataModal .volt-ship-grid { display:grid; grid-template-columns:1fr; gap:0.6rem; }
 @media (min-width:576px) {
     #customerDataModal .volt-ship-grid { grid-template-columns:1fr 1fr; }
 }
+/* Superficies translúcidas en vez de grises opacos: se apoyan sobre el
+   degradado del modal y suben apenas, sin cortar el fondo. */
 #customerDataModal .volt-ship-card {
-    border:1px solid #44464c; border-radius:4px; padding:0.65rem 0.75rem; cursor:pointer;
-    background:#222; text-align:left; transition:border-color 0.15s, background 0.15s;
+    border:1px solid rgba(255,255,255,0.09); border-radius:4px; padding:0.7rem 0.8rem; cursor:pointer;
+    background:linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.02));
+    text-align:left; transition:border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
     font-family:Barlow,sans-serif; font-size:0.875rem; color:#e8e8e8;
 }
-#customerDataModal .volt-ship-card:hover { border-color:#666; }
-#customerDataModal .volt-ship-card.is-selected { border-color:#c1121f; background:rgba(193,18,31,0.12); }
+#customerDataModal .volt-ship-card:hover {
+    border-color:rgba(255,255,255,0.18);
+    background:linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+}
+#customerDataModal .volt-ship-card.is-selected {
+    border-color:rgba(193,18,31,0.75);
+    background:linear-gradient(180deg, rgba(193,18,31,0.16), rgba(193,18,31,0.05));
+    box-shadow:0 0 0 1px rgba(193,18,31,0.25), 0 8px 24px -12px rgba(193,18,31,0.5);
+}
 #customerDataModal .volt-ship-card__title { font-family:Teko,sans-serif; font-size:1.25rem; letter-spacing:0.05em; margin:0 0 0.35rem 0; color:#fff; }
 #customerDataModal .volt-ship-card__meta { font-size:0.78rem; color:#aaa; line-height:1.35; margin:0; }
 #customerDataModal .volt-summary-list { list-style:none; padding:0; margin:0 0 1rem 0; font-size:0.9rem; }
-#customerDataModal .volt-summary-list li { padding:0.45rem 0; border-bottom:1px solid #333; display:flex; justify-content:space-between; gap:0.5rem; flex-wrap:wrap; }
+#customerDataModal .volt-summary-list li { padding:0.5rem 0; border-bottom:1px solid rgba(255,255,255,0.07); display:flex; justify-content:space-between; gap:0.5rem; flex-wrap:wrap; }
+#customerDataModal .volt-summary-list li:last-child { border-bottom:0; }
 #customerDataModal .volt-summary-ship { font-size:0.85rem; color:#ccc; line-height:1.5; white-space:pre-wrap; }
-#customerDataModal #andreaniAddressForm { border-top:1px solid #333; padding-top:0.85rem; margin-top:0.25rem; }
+#customerDataModal #andreaniAddressForm { border-top:1px solid rgba(255,255,255,0.07); padding-top:0.85rem; margin-top:0.5rem; }
 #customerDataModal .form-label { font-size:0.82rem; color:#ccc; margin-bottom:0.25rem; }
 #customerDataModal .volt-field-hint { font-size:0.72rem; color:#888; margin-top:0.2rem; }
-#customerDataModal .volt-bank-panel { background:#111; border:1px solid #2c4a2c; padding:0.75rem; margin-top:0.75rem; }
+#customerDataModal .volt-bank-panel { background:linear-gradient(180deg, rgba(109,170,109,0.09), rgba(109,170,109,0.02)); border:1px solid rgba(109,170,109,0.28); padding:0.85rem; margin-top:0.85rem; }
 #customerDataModal .volt-bank-panel__title { font-family:Teko,sans-serif; font-size:1.05rem; letter-spacing:0.08em; color:#6daa6d; margin-bottom:0.5rem; }
 #customerDataModal .volt-bank-panel__row { display:flex; justify-content:space-between; align-items:baseline; gap:0.5rem; padding:0.2rem 0; border-bottom:1px solid #222; font-size:0.8rem; flex-wrap:wrap; }
 #customerDataModal .volt-bank-panel__row:last-of-type { border-bottom:none; }
@@ -83,10 +97,57 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    padding: 0.85rem 1rem;
+    padding: 0.9rem 1.15rem;
 }
-#customerDataModal .modal-header { border-bottom: 1px solid #2c2c2c; }
-#customerDataModal .modal-footer { border-top: 1px solid #2c2c2c; }
+
+/* ── Superficie del modal ──
+   Antes: modal negro + panel gris #1a1a1a con borde + header/footer negros
+   separados por líneas duras = el modal se leía como tres bandas cosidas.
+   Ahora una sola superficie con un degradado vertical continuo, y los
+   separadores son hairlines que se desvanecen hacia los costados (mismo
+   recurso que .footer__top-rule del sitio), no líneas de punta a punta. */
+#customerDataModal .modal-content {
+    background: linear-gradient(180deg, #1b1b1b 0%, #131313 42%, #0b0b0b 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 32px 80px -24px rgba(0, 0, 0, 0.9) !important;
+}
+#customerDataModal .modal-header,
+#customerDataModal .modal-footer {
+    position: relative;
+    background: transparent;
+    border: 0;
+}
+#customerDataModal .modal-header::after,
+#customerDataModal .modal-footer::before {
+    content: "";
+    position: absolute;
+    left: 1.15rem;
+    right: 1.15rem;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.13) 20%,
+        rgba(255, 255, 255, 0.13) 80%,
+        transparent
+    );
+}
+#customerDataModal .modal-header::after { bottom: 0; }
+#customerDataModal .modal-footer::before { top: 0; }
+
+/* Campos: translúcidos sobre el degradado, no cajas negras recortadas. */
+#customerDataModal .form-control,
+#customerDataModal .form-select {
+    background-color: rgba(0, 0, 0, 0.32) !important;
+    border: 1px solid rgba(255, 255, 255, 0.11) !important;
+    transition: border-color 0.2s ease, background-color 0.2s ease !important;
+}
+#customerDataModal .form-control:focus,
+#customerDataModal .form-select:focus {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    border-color: rgba(193, 18, 31, 0.8) !important;
+    box-shadow: 0 0 0 3px rgba(193, 18, 31, 0.18) !important;
+}
 
 /* Jerarquía por color: verde = avanzar, gris = volver, rojo = abandonar.
    El CTA final de pago sigue siendo el rojo sólido de marca (.btn-danger),
@@ -102,13 +163,13 @@
     border-color: #16a34a;
 }
 #customerDataModal .volt-btn-back {
-    background: #333333;
-    border: 1px solid #444444;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.035));
+    border: 1px solid rgba(255, 255, 255, 0.13);
     color: #f2f2f2;
 }
 #customerDataModal .volt-btn-back:hover:not(:disabled) {
-    background: #3d3d3d;
-    border-color: #555555;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.06));
+    border-color: rgba(255, 255, 255, 0.22);
 }
 #customerDataModal .volt-btn-cancel {
     background: transparent;

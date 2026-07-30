@@ -3375,10 +3375,10 @@ body.quickview-open {
 
 /* Card (hi-spec: gana también en /pages/* con volt-ds.css cargado después) */
 #voltAuthModal.modal .modal-dialog .modal-content.auth-modal-content {
-    /* DEF-001: #111 era casi indistinguible de los inputs (#161616) y la
-       card se leía como un manchón negro. #1a1a1a = mismo gris de panel que
-       usa el checkout (.volt-step-panel), con los campos más oscuros encima. */
-    background: #1a1a1a !important;
+    /* Superficie continua (mismo lenguaje que el modal de checkout): un
+       degradado vertical en vez de un gris plano. Este selector gana por
+       especificidad sobre el de volt-ds.css, así que el degradado va acá. */
+    background: linear-gradient(180deg, #1e1e1e 0%, #141414 45%, #0c0c0c 100%) !important;
     border: 1px solid #262626 !important;
     border-radius: 16px !important;
     box-shadow: 0 24px 64px -16px rgba(0,0,0,.75), 0 0 0 1px rgba(255,255,255,.04) !important;
@@ -3389,7 +3389,7 @@ body.quickview-open {
 #voltAuthModal .auth-modal-header {
     padding: 18px 20px 0 !important;
     border-bottom: none !important;
-    background: #1a1a1a !important;
+    background: transparent !important;
     gap: 12px !important;
 }
 
@@ -3501,7 +3501,7 @@ body.quickview-open {
 /* Body */
 #voltAuthModal .auth-modal-body {
     padding: 20px 22px 22px !important;
-    background: #1a1a1a !important;
+    background: transparent !important;
 }
 
 /* Subtitle */
