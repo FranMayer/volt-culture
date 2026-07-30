@@ -1100,6 +1100,16 @@ input[type="submit"],
     color: #f2f2f2;
 }
 
+/* DEF-003: en el carrito .qty-input es un <span> (no el <input> del detalle
+   de producto) — como caja inline ignoraba width/height y el número quedaba
+   sobre la línea base, desalineado hacia arriba respecto de los botones ±. */
+span.qty-input {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
 .qty-input::-webkit-outer-spin-button,
 .qty-input::-webkit-inner-spin-button {
     -webkit-appearance: none;
