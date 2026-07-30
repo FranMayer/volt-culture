@@ -313,10 +313,9 @@ export default function QuickViewModal({
                 onClick={(e) => {
                   e.stopPropagation();
                   onClose();
-                  // legacy goToCheckoutFlow() abría el offcanvas y disparaba
-                  // el click de #checkout-btn para arrancar el stepper de
-                  // pago; ese stepper llega en F7 (aún no existe acá), así
-                  // que por ahora solo abrimos el carrito.
+                  // legacy goToCheckoutFlow(): abre el carrito, donde están
+                  // los dos botones de pago (MP / transferencia) que lanzan
+                  // el stepper de checkout.
                   openCart();
                 }}
               >

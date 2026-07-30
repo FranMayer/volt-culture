@@ -1161,7 +1161,10 @@ input[type="submit"],
 }
 
 .product-finalize-btn {
-    display: none;
+    /* DEF-002: el legacy lo mostraba con style.display='flex' desde JS; en
+       React el botón se monta condicionalmente (inCart) y este display:none
+       lo dejaba invisible siempre. El montaje condicional ya es el gate. */
+    display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;

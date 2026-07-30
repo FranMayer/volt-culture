@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Product } from "@/lib/types";
 import { cartLineKey } from "@/lib/types";
 import { useCartStore } from "@/lib/cart/store";
+import { useCartOffcanvas } from "@/components/layout/CartOffcanvasContext";
 import {
   computeAvailableStock,
   defaultVariantSelection,
@@ -19,10 +20,9 @@ const FALLBACK_IMG = getProductImageFallback();
 // Panel de compra de app/producto/[slug]/page.tsx. Mismo patrón de
 // estado/variantes que components/catalog/QuickViewModal.tsx (F4) — se
 // diferencia en que esto es una sección de página normal, no un diálogo
-// modal: sin overlay/close/Escape, sin lightbox y sin "Finalizar
-// compra"/share (no pedidos por la tarea de F5; el carrito global del
-// layout ya cubre ir a pagar).
+// modal: sin overlay/close/Escape, sin lightbox y sin share.
 export default function ProductDetail({ product }: { product: Product }) {
+  const { open: openCart } = useCartOffcanvas();
   const items = useCartStore((s) => s.items);
   const addItem = useCartStore((s) => s.addItem);
   const removeItem = useCartStore((s) => s.removeItem);
@@ -217,6 +217,19 @@ export default function ProductDetail({ product }: { product: Product }) {
           >
             {stock === 0 ? "Sin stock" : inCart ? "Eliminar del carrito" : "Añadir al carrito"}
           </button>
+          {/* DEF-002: mismo acceso directo al pago que QuickViewModal — sin
+              esto, con el producto ya en el carrito, la única salida era ir a
+              buscar el botón flotante del carrito. */}
+          {inCart && stock > 0 && (
+            <button
+              type="button"
+              className="product-finalize-btn"
+              aria-label="Finalizar compra e ir al pago"
+              onClick={openCart}
+            >
+              Finalizar compra
+            </button>
+          )}
         </div>
       </div>
     </div>
