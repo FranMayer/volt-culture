@@ -880,22 +880,26 @@ body.page-leaving {
     margin-right: auto !important;
 }
 
+/* DEF-001: la card era #000 puro mientras sus propios inputs son #161616 —
+   se leía como un parche negro irregular dentro del modal. Gris oscuro
+   homogéneo en card/header/body; el overlay lo sigue dando .modal-backdrop
+   (negro al 50%). */
 #voltAuthModal .modal-content.auth-modal-content,
 .auth-modal-content {
-    background: var(--volt-ds-black) !important;
+    background: #1a1a1a !important;
     border: 1px solid var(--volt-ds-border) !important;
     color: var(--volt-ds-white) !important;
 }
 
 .auth-modal-header {
     padding: 1.75rem 2.5rem 1.25rem !important;
-    background: var(--volt-ds-black) !important;
+    background: #1a1a1a !important;
     border-bottom: 1px solid var(--volt-ds-border) !important;
 }
 
 .auth-modal-body {
     padding: 2.25rem 2.5rem 2.5rem !important;
-    background: var(--volt-ds-black) !important;
+    background: #1a1a1a !important;
 }
 
 .auth-modal-subtitle {
@@ -2111,9 +2115,16 @@ main > .shop-page-header {
     background: #000000 !important;
 }
 
-[class*="card"]:not(img):not(svg):not(.product-card),
+/* DEF-001: este parche por substring de clase (para que el grid de fondo no
+   traspase superficies de texto) también pegaba dentro de los modales, que
+   ya pintan su propio fondo y están muy por encima del grid: la card del
+   login quedaba gris con un rectángulo negro puro encima (.auth-tab-panel),
+   y en el checkout se comían el gris de los paneles de paso / tarjetas de
+   envío / datos bancarios. Se excluyen esas clases, que tienen fondo propio
+   en style.css / checkout.css. */
+[class*="card"]:not(img):not(svg):not(.product-card):not(.volt-ship-card),
 [class*="block"]:not(img):not(svg),
-[class*="panel"]:not(img):not(svg),
+[class*="panel"]:not(img):not(svg):not(.auth-tab-panel):not(.volt-step-panel):not(.volt-bank-panel),
 [class*="box"]:not(img):not(svg):not(.bigbox):not(.catalog-wrap):not(.product-grid) {
     background: #000000 !important;
 }
