@@ -550,13 +550,17 @@ body.page-leaving {
 
 /* ─── Buttons & links (site) ─── */
 
+/* DEF-008: abajo a la izquierda pisaba el indicador "deslizá" del hero
+   (.home-page .hero__scroll, misma esquina). Pasa al rail derecho, apilado
+   arriba del carrito flotante (.btn-cart: 62px + su propio offset). */
 .whatsapp-float {
     border: 1px solid #25D366 !important;
     background: #25D366 !important;
     border-radius: 0 !important;
     z-index: 1100 !important;
-    left: 2rem !important;
-    right: auto !important;
+    left: auto !important;
+    right: clamp(16px, 3vw, 28px) !important;
+    bottom: calc(clamp(16px, 3vw, 28px) + 74px) !important;
     color: #ffffff !important;
 }
 
