@@ -1,6 +1,17 @@
+"use client";
+
+import { useCartOffcanvas } from "./CartOffcanvasContext";
+
 // Ported verbatim from legacy/pages/catalogo.html — same wa.me link/text used
 // across all legacy pages.
 export default function WhatsAppFloat() {
+  // El flotante vive en el rail derecho (z-index 1100), por encima del panel
+  // del carrito (1045) y sobre el mismo borde de la pantalla: con el carrito
+  // abierto tapaba el CTA "Pagar con Mercado Pago". Mientras el carrito esté
+  // abierto no se muestra — el chat de WhatsApp no compite con el pago.
+  const { isOpen: isCartOpen } = useCartOffcanvas();
+  if (isCartOpen) return null;
+
   return (
     <a
       href="https://wa.me/5493518588127?text=Hola!%20Quiero%20consultar%20sobre%20productos%20de%20VOLT"
