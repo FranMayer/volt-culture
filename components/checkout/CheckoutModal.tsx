@@ -712,19 +712,19 @@ export default function CheckoutModal() {
                             </div>
                         </div>
                         <div className="modal-footer flex-wrap gap-2">
-                            <button type="button" className="btn btn-outline-light btn-sm" disabled={submitting} onClick={close}>
+                            <button type="button" className="btn btn-sm volt-btn-cancel" disabled={submitting} onClick={close}>
                                 Cancelar
                             </button>
                             <div className="ms-auto d-flex flex-wrap gap-2">
                                 {step > 1 && (
-                                    <button type="button" className="btn btn-outline-secondary btn-sm" disabled={submitting} onClick={handleBack}>
+                                    <button type="button" className="btn btn-sm volt-btn-back" disabled={submitting} onClick={handleBack}>
                                         Atrás
                                     </button>
                                 )}
                                 {step < 3 && (
                                     <button
                                         type="button"
-                                        className="btn btn-danger btn-sm"
+                                        className="btn btn-sm volt-btn-next"
                                         onClick={() => (step === 1 ? handleStep1Continue() : handleStep2Continue())}
                                     >
                                         Continuar

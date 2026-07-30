@@ -72,6 +72,54 @@
     #customerDataModal .volt-ship-card__title { font-size:1.1rem; }
 }
 
+/* DEF-004/005/006: header y footer del modal se renderizaban como bloques —
+   bs-shim.css excluye a propósito el layout de `.modal-*` y acá nunca se
+   portó, así que Cancelar / Atrás / Continuar quedaban apilados uno debajo
+   del otro en los tres pasos. Un solo footer sirve a los tres pasos, así que
+   esta regla los arregla a todos. */
+#customerDataModal .modal-header,
+#customerDataModal .modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.85rem 1rem;
+}
+#customerDataModal .modal-header { border-bottom: 1px solid #2c2c2c; }
+#customerDataModal .modal-footer { border-top: 1px solid #2c2c2c; }
+
+/* Jerarquía por color: verde = avanzar, gris = volver, rojo = abandonar.
+   El CTA final de pago sigue siendo el rojo sólido de marca (.btn-danger),
+   por eso Cancelar es rojo *outline* y no compite con él en el paso 3. */
+#customerDataModal .volt-btn-next {
+    background: #22c55e;
+    border: 1px solid #22c55e;
+    color: #0a0a0a;
+    font-weight: 600;
+}
+#customerDataModal .volt-btn-next:hover:not(:disabled) {
+    background: #16a34a;
+    border-color: #16a34a;
+}
+#customerDataModal .volt-btn-back {
+    background: #333333;
+    border: 1px solid #444444;
+    color: #f2f2f2;
+}
+#customerDataModal .volt-btn-back:hover:not(:disabled) {
+    background: #3d3d3d;
+    border-color: #555555;
+}
+#customerDataModal .volt-btn-cancel {
+    background: transparent;
+    border: 1px solid #c1121f;
+    color: #e06b6b;
+}
+#customerDataModal .volt-btn-cancel:hover:not(:disabled) {
+    background: rgba(193, 18, 31, 0.15);
+    color: #f2f2f2;
+}
+
 /* Banners de error inline (paso 1/2 bloqueado, error del pago) — reemplazan
    los alert() de legacy pagos.js por texto en el modal (ver CheckoutModal.tsx). */
 #customerDataModal .volt-checkout-error {
