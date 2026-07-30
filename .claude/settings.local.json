@@ -63,7 +63,13 @@
       "Bash(git *)",
       "PowerShell(npm ls *)",
       "Bash(node --check api/create-preference.js)",
-      "Bash(echo \"exit=$?\")"
+      "Bash(echo \"exit=$?\")",
+      "PowerShell(npx next build)",
+      "Bash(npx tsc *)",
+      "Bash(echo \"---exit:$?---\")",
+      "Bash(npx next *)",
+      "Bash(echo \"---lint-exit:$?---\")",
+      "mcp__claude_ai_Vercel__list_teams"
     ]
   }
 }
