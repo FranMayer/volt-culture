@@ -777,6 +777,46 @@
     border-color: transparent;
 }
 
+/* DEF-007: los dos botones del header eran gris sobre gris (sin distinguir
+   navegar de cerrar sesión) y se estiraban a lo alto de la barra. Caja
+   propia + verde/rojo: verde = salir al sitio, rojo = cerrar sesión. */
+.admin-panel .admin-header .btn-outline-volt,
+.admin-panel .admin-header .logout-btn {
+    display: inline-flex;
+    align-items: center;
+    align-self: center;
+    height: auto;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    line-height: 1.2;
+    border-radius: 8px;
+}
+
+.admin-panel .admin-header .btn-outline-volt {
+    background: #22c55e;
+    border: 1px solid #22c55e;
+    color: #0a0a0a;
+    font-weight: 500;
+}
+
+.admin-panel .admin-header .btn-outline-volt:hover {
+    background: #16a34a;
+    border-color: #16a34a;
+    color: #0a0a0a;
+}
+
+.admin-panel .admin-header .logout-btn {
+    background: transparent;
+    border: 1px solid var(--admin-red);
+    color: var(--admin-red);
+}
+
+.admin-panel .admin-header .logout-btn:hover {
+    background: var(--admin-red);
+    border-color: var(--admin-red);
+    color: #ffffff;
+}
+
 /* Tabs — pill estilo shadcn */
 .admin-panel .admin-tabs {
     display: inline-flex;
