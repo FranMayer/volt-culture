@@ -49,8 +49,14 @@ const dmMono = DM_Mono({
 // it; registering it too would just duplicate the font download.
 export const metadata: Metadata = {
   title: "VOLT Culture",
-  // Mismo favicon que el sitio viejo (<link rel="icon"> en index.html).
-  icons: { icon: "/images-brand/Isotipo color.png" },
+  // DEF-010: el favicon era `/images-brand/Isotipo color.png` — 800x800 con
+  // el isotipo ocupando apenas el 30% central sobre transparente, así que a
+  // 16px quedaba un manchón mínimo y sin contraste contra la barra de
+  // pestañas. Ahora lo sirve `app/icon.png` (convención de archivo del App
+  // Router: inyecta el <link rel="icon"> con hash de cache-busting), un
+  // recorte al bounding box del isotipo sobre blanco — legible tanto en
+  // pestañas claras como oscuras. Un `icons` explícito acá pisaría esa
+  // convención, por eso se saca.
 };
 
 export default function RootLayout({
