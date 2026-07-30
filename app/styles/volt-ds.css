@@ -57,12 +57,17 @@ body {
     max-width: 100%;
 }
 
-/* Grid overlay (same as index) */
+/* Grid overlay (same as index).
+   z-index: -1 y no 0. Con 0 la grilla es un elemento posicionado y se pinta
+   ENCIMA de todo el contenido en flujo normal, que es lo que obligaba a
+   dar fondo opaco a media UI para taparla ("bleed-through"). En -1 queda
+   entre el fondo del body y el contenido: se ve igual, pero ya nunca
+   traspasa nada y ninguna superficie necesita pintarse por su culpa. */
 body::before {
     content: "";
     position: fixed;
     inset: 0;
-    z-index: 0;
+    z-index: -1;
     pointer-events: none;
     background-color: var(--volt-ds-black);
     background-image:
@@ -2109,27 +2114,28 @@ main > .shop-page-header {
     opacity: 0.45 !important;
 }
 
-/* ─── Opaque text surfaces (grid bleed-through) ─── */
+/* ─── Superficies opacas ───
+   Antes de esta lista había además un comodín por substring de clase
+   (`[class*="card"], [class*="block"], [class*="panel"], [class*="box"]`
+   -> `background:#000 !important`) para tapar la grilla de `body::before`.
+   Se eliminó: la grilla ya no traspasa nada (ver z-index arriba), y el
+   comodín era una fuente permanente de bugs porque matchea el ATRIBUTO
+   class por substring — se comía también a los hijos BEM
+   (`volt-ship-card__title`, `volt-ship-card__meta`, `auth-tab-panel`,
+   `volt-step-panel`, `volt-bank-panel`...) pintándolos de negro puro
+   dentro de superficies grises. Cada arreglo puntual destapaba otro.
+
+   Regla de acá en adelante: si una superficie necesita fondo opaco, va
+   nombrada acá o en su propio archivo. Nunca por substring. */
 .manifesto,
 .hero__badge,
 .ticker__item,
 .drop__visual,
 .drop__content,
-.identity__card {
-    background: #000000 !important;
-}
-
-/* DEF-001: este parche por substring de clase (para que el grid de fondo no
-   traspase superficies de texto) también pegaba dentro de los modales, que
-   ya pintan su propio fondo y están muy por encima del grid: la card del
-   login quedaba gris con un rectángulo negro puro encima (.auth-tab-panel),
-   y en el checkout se comían el gris de los paneles de paso / tarjetas de
-   envío / datos bancarios. Se excluyen esas clases, que tienen fondo propio
-   en style.css / checkout.css. */
-[class*="card"]:not(img):not(svg):not(.product-card):not(.volt-ship-card),
-[class*="block"]:not(img):not(svg),
-[class*="panel"]:not(img):not(svg):not(.auth-tab-panel):not(.volt-step-panel):not(.volt-bank-panel),
-[class*="box"]:not(img):not(svg):not(.bigbox):not(.catalog-wrap):not(.product-grid) {
+.identity__card,
+/* Card del carrusel de destacados: se solapa con el HUD de telemetría del
+   hero, que se le transparentaba encima del título/precio. */
+.home-featured-card {
     background: #000000 !important;
 }
 
