@@ -1,16 +1,18 @@
 import type { Metadata } from "next";
+import { pageMetadata, siteUrl } from "@/lib/seo";
 import "@/app/styles/home.css";
 import FeaturedCarousel from "@/components/home/FeaturedCarousel";
 import HeroVideo from "@/components/home/HeroVideo";
 import HomeMotion from "@/components/home/HomeMotion";
 
-// Ported from legacy/index.html <head> (title/description only — OG/canonical
-// parity deferred, same call as app/catalogo/page.tsx in F4).
-export const metadata: Metadata = {
+// title/description portados de legacy/index.html <head>; canonical + OG los
+// agrega pageMetadata (lib/seo.ts).
+export const metadata: Metadata = pageMetadata({
+  path: "/",
   title: "VOLT | Motorsport-Inspired Streetwear · Córdoba, Argentina",
   description:
     "VOLT — Motorsport-inspired streetwear from Córdoba, Argentina. Built for the fast lane.",
-};
+});
 
 // Port of legacy/index.html body markup (lines 1385-1628, minus the
 // navbar/offcanvas/footer/whatsapp block already covered by the shared
@@ -21,8 +23,50 @@ export const metadata: Metadata = {
 // `.lights-out` still keeps its pure-CSS 5s fallback fade (home.css) in
 // case JS fails to load.
 export default function Home() {
+  // Organization + WebSite: le dice a Google qué marca es y qué cuentas
+  // sociales le pertenecen (sameAs). Mismo mecanismo que los dos JSON-LD de
+  // producto/[slug] — React hoistea el <script> al <head> del documento.
+  const base = siteUrl();
+  const orgLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "VOLT Culture",
+    alternateName: "VOLT",
+    url: `${base}/`,
+    logo: `${base}/opengraph-image.png`,
+    description:
+      "Streetwear inspirado en el motorsport, desde Córdoba, Argentina.",
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Córdoba",
+      addressCountry: "AR",
+    },
+    sameAs: [
+      "https://www.instagram.com/volt.culture/",
+      "https://x.com/voltculturecba",
+    ],
+  };
+
+  const siteLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "VOLT Culture",
+    url: `${base}/`,
+    inLanguage: "es-AR",
+  };
+
   return (
     <div className="home-page">
+      {/* Mismo escape que producto/[slug]: ningún "</script>" puede romper
+          el documento. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd).replace(/</g, "\\u003c") }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(siteLd).replace(/</g, "\\u003c") }}
+      />
       <HomeMotion />
       <div className="lights-out" id="voltLightsOut" aria-hidden="true">
         <div className="lights-out__panel">

@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import RevealOnScroll from "@/components/RevealOnScroll";
 
-// Metadata ported from legacy/pages/novedades.html <head> (title/description).
-export const metadata: Metadata = {
+// title/description portados de legacy/pages/novedades.html <head>; canonical +
+// OG los agrega pageMetadata (lib/seo.ts).
+export const metadata: Metadata = pageMetadata({
+  path: "/novedades",
   title: "Novedades VOLT | Drops, re-stock y streetwear motorsport",
   description:
     "Drops, re-stock y noticias de VOLT: streetwear F1 y motorsport. Enterate antes en @volt.culture y en esta página.",
-};
+});
 
 // Ported almost verbatim from legacy/pages/novedades.html's <main id="main-content">.
 // Navbar/Footer/WhatsApp float come from app/layout.tsx — not duplicated here.

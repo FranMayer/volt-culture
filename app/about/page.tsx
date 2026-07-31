@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import RevealOnScroll from "@/components/RevealOnScroll";
 
-// Metadata ported from legacy/pages/about.html <head> (title/description).
-// OG/JSON-LD/canonical parity is deferred to F5's generateMetadata pattern,
-// same scope as app/catalogo/page.tsx.
-export const metadata: Metadata = {
+// title/description portados de legacy/pages/about.html <head>; canonical + OG
+// los agrega pageMetadata (lib/seo.ts).
+export const metadata: Metadata = pageMetadata({
+  path: "/about",
   title: "Nosotros VOLT | Historia, valores y streetwear motorsport | Córdoba",
   description:
     "VOLT nació en Córdoba: streetwear y cultura F1 / motorsport. Conocé la marca, el equipo y por qué hacemos ropa de racing para la calle.",
-};
+});
 
 // Ported almost verbatim from legacy/pages/about.html's <main id="main-content">.
 // Navbar/Footer/WhatsApp float come from app/layout.tsx — not duplicated here.

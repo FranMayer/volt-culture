@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import RevealOnScroll from "@/components/RevealOnScroll";
 
-// Metadata ported from legacy/pages/envios.html <head> (title/description).
-export const metadata: Metadata = {
+// title/description portados de legacy/pages/envios.html <head>; canonical + OG
+// los agrega pageMetadata (lib/seo.ts).
+export const metadata: Metadata = pageMetadata({
+  path: "/envios",
   title: "Envíos VOLT | Córdoba $2.500, Andreani / OCA y tiempos de entrega | Argentina",
   description:
     "Envíos VOLT: $2.500 en Córdoba Capital, Andreani u OCA al interior. Plazos, Mercado Pago y coordinación por WhatsApp.",
-};
+});
 
 // Ported almost verbatim from legacy/pages/envios.html's <main id="main-content">.
 // Navbar/Footer/WhatsApp float come from app/layout.tsx — not duplicated here.

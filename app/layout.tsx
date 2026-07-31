@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Teko, DM_Mono } from "next/font/google";
+import { siteUrl } from "@/lib/seo";
 
 // Cascade order replicates legacy exactly (see legacy/pages/catalogo.html):
 // theme vars first (so aliases are available to what follows) -> bootstrap
@@ -48,7 +49,20 @@ const dmMono = DM_Mono({
 // next/font registration needed here since nothing consumes a CSS var for
 // it; registering it too would just duplicate the font download.
 export const metadata: Metadata = {
+  // Resuelve a absoluto todo path relativo de OG/canonical (Next tira un
+  // warning en build y emite og:image relativo —que ningún crawler resuelve—
+  // sin esto).
+  metadataBase: new URL(siteUrl()),
   title: "VOLT Culture",
+  // twitter:card/site se declaran una sola vez acá y se heredan a todas las
+  // rutas: Next autocompleta twitter:title/description/image desde el
+  // openGraph de cada página cuando no están seteados explícitamente
+  // (resolve-metadata.js, autoFillProps). En producto/[slug], que emite sus
+  // og:* a mano, X cae al og:image del producto por la misma regla.
+  twitter: {
+    card: "summary_large_image",
+    site: "@voltculturecba",
+  },
   // DEF-010: el favicon era `/images-brand/Isotipo color.png` — 800x800 con
   // el isotipo ocupando apenas el 30% central sobre transparente, así que a
   // 16px quedaba un manchón mínimo y sin contraste contra la barra de
@@ -57,6 +71,17 @@ export const metadata: Metadata = {
   // recorte al bounding box del isotipo sobre blanco — legible tanto en
   // pestañas claras como oscuras. Un `icons` explícito acá pisaría esa
   // convención, por eso se saca.
+  //
+  // Por la misma convención, app/apple-icon.png (180x180, derivado de
+  // icon.png) emite el <link rel="apple-touch-icon"> del "Agregar a pantalla
+  // de inicio" de iOS, y app/opengraph-image.png sirve la imagen de preview
+  // social (ver lib/seo.ts).
+};
+
+// theme-color pinta la barra del navegador en mobile con el negro de la
+// marca. En Next 15 va en el export `viewport`, no en `metadata`.
+export const viewport: Viewport = {
+  themeColor: "#000000",
 };
 
 export default function RootLayout({

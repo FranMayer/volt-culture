@@ -69,7 +69,9 @@
       "Bash(echo \"---exit:$?---\")",
       "Bash(npx next *)",
       "Bash(echo \"---lint-exit:$?---\")",
-      "mcp__claude_ai_Vercel__list_teams"
+      "mcp__claude_ai_Vercel__list_teams",
+      "Bash(node -e ' *)",
+      "Bash(node -e \"console.log\\(require\\('next/package.json'\\).version\\)\")"
     ]
   }
 }

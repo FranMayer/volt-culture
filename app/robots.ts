@@ -1,8 +1,5 @@
 import type { MetadataRoute } from 'next';
-
-function siteUrl(): string {
-    return (process.env.SITE_URL || 'https://www.voltculture.com.ar').replace(/\/$/, '');
-}
+import { siteUrl } from '@/lib/seo';
 
 // Reemplaza legacy/robots.txt (estático) — mismas reglas: allow all, disallow /admin/.
 export default function robots(): MetadataRoute.Robots {

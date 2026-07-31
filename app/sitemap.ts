@@ -1,10 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { getAll } from '@/lib/products';
 import { productPath } from '@/lib/catalog-helpers';
-
-function siteUrl(): string {
-    return (process.env.SITE_URL || 'https://www.voltculture.com.ar').replace(/\/$/, '');
-}
+import { siteUrl } from '@/lib/seo';
 
 // Reemplaza legacy/sitemap.xml (estático). about/envios/novedades ya existen
 // como rutas del App Router (F8) y se listan acá. mis-pedidos/success/pending/

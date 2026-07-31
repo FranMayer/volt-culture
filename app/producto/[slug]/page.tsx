@@ -4,6 +4,7 @@ import { cache } from "react";
 import { getById } from "@/lib/products";
 import { adminDb } from "@/lib/firebase/admin";
 import { buildImageArray, productPath, slugify, totalStock } from "@/lib/catalog-helpers";
+import { siteUrl } from "@/lib/seo";
 import type { Product } from "@/lib/types";
 import ProductDetail from "@/components/catalog/ProductDetail";
 import "@/app/styles/product-page.css";
@@ -17,10 +18,6 @@ export const revalidate = 3600;
 export const dynamicParams = true;
 
 type Params = { slug: string };
-
-function siteUrl(): string {
-  return (process.env.SITE_URL || "https://www.voltculture.com.ar").replace(/\/$/, "");
-}
 
 // Los ids de Firestore (autogenerados) no contienen "-": el id de producto es
 // todo lo que sigue al ÚLTIMO guion del slug `${slugify(name)}-${id}`.
@@ -82,6 +79,12 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
     title: `${product.name} · VOLT Culture`,
     description: shortDesc,
     alternates: { canonical: url },
+    // Corta la herencia del openGraph del layout raíz: sin esto la página
+    // emitiría DOS juegos de og:title/description/image — el heredado (con la
+    // imagen genérica del sitio) y el que el body renderiza a mano más abajo.
+    // Los og:* de producto se siguen emitiendo a mano por el `og:type=product`
+    // que la Metadata API rechaza (ver comentario arriba).
+    openGraph: null,
   };
 }
 
