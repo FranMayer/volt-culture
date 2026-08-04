@@ -14,7 +14,7 @@ Escribís el código de la migración: componentes, rutas, lib, endpoints, tests
 - **`legacy/` es tu referencia, no tu lienzo.** Leé el código viejo antes de portar cualquier comportamiento (especialmente `legacy/js/cart-sync.js`, `pagos.js`, `catalog.js`); nunca edites nada dentro de `legacy/`.
 - **No adelantes fases.** Si la tarea es de F3, no toques nada de F4+ aunque "ya que estás" parezca eficiente. Si encontrás algo que pertenece a otra fase, reportalo como pendiente.
 - **Respetá las decisiones cerradas de CLAUDE.md**: CSS portado sin reescribir (mover + alias), `pages/api` con firma `(req,res)` intacta, Zustand key `'cart'` con shape actual, sin Bootstrap, sin dependencias nuevas que la tarea no pida.
-- **Paridad visual**: la referencia es `qa/baseline/`. Ante la duda entre "más lindo" y "idéntico al original", siempre idéntico.
+- **Paridad visual**: preservar el look & feel VOLT existente. Ante la duda entre "más lindo" y "idéntico al original", siempre idéntico.
 - Cambios mínimos que funcionan. No refactorices código que la tarea no toca.
 - **Verificá antes de reportar**: `npx next build` debe quedar verde en todo entregable; corré además los tests que la tarea toque (`node tests/...`) y mostrá la salida real. Nunca reportes éxito sin evidencia.
 - **Documentá decisiones no obvias** en tu respuesta (y en un comentario en el código solo si es una restricción que el código no puede mostrar): desvíos del legacy, semántica preservada a propósito, workarounds.

@@ -11,9 +11,9 @@ VOLT Culture es un e-commerce de streetwear inspirado en motorsport (Córdoba, A
 
 1. **Leer el plan antes de codear.** Cada tarea pertenece a una fase (F0-F10) con criterios de aceptación propios.
 2. **Una fase a la vez.** No adelantar trabajo de fases futuras; una fase se cierra con evidencia verificada antes de abrir la siguiente.
-3. **Paridad visual obligatoria.** El sitio migrado debe verse idéntico al actual. Referencia objetiva: screenshots en `qa/baseline/` (capturados de producción en 360/768/1280).
+3. **Paridad visual obligatoria.** El sitio debe preservar el look & feel VOLT (paleta, tipografía, corners sharp). La migración a Next ya está en producción.
 4. **No reescribir CSS.** El CSS existente se porta tal cual (mover + alias de variables). La limpieza (p. ej. los ~1070 `!important` de volt-ds) es explícitamente post-migración.
-5. **No tocar `main`.** Todo el trabajo de migración vive en `next-migration`. Nada se mergea sin pasar el QA end-to-end de F10.
+5. **Producción en `main`.** Cutover F10 hecho; trabajo nuevo va contra el sitio Next en `main`.
 
 ## Stack (destino)
 
@@ -43,9 +43,7 @@ components/     layout/, auth/, catalog/, checkout/, home/, admin/
 lib/            firebase/ (client, admin), cart/ (store, sync), server/ (helpers ex api/_*), types.ts
 pages/api/      endpoints serverless (firma (req,res) intacta)
 public/         images-brand/, images-ui/, glacial-indifference/
-legacy/         frontend viejo completo — SOLO referencia de lectura, no se sirve, no se edita; se borra en F10
-qa/baseline/    screenshots de producción (360/768/1280) — referencia de paridad visual
-tests/          node scripts sin framework (smoke HTTP + unit de stock/cupones)
+tests/          node scripts sin framework (smoke HTTP + unit de stock/cupones) + e2e Playwright
 ```
 
 ## Archivos críticos de referencia
