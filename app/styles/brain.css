@@ -1,0 +1,483 @@
+/**
+ * app/styles/brain.css — estilos del tab VOLT Brain. Se importa desde
+ * components/admin/BrainTab.tsx, así que viaja en el chunk dinámico del tab:
+ * no pesa en el resto de /admin ni del sitio.
+ *
+ * DESVÍO DELIBERADO DEL DS: el design system de VOLT es corners sharp
+ * (border-radius: 0). Este tab usa bordes redondeados por pedido explícito
+ * — formato minimalista, cards flotantes, botones pill. Es herramienta interna
+ * del admin: no toca ni un pixel de la tienda. La paleta sí se respeta
+ * (negro / blanco / rojo #c1121f + grises de label), y las fuentes también
+ * (Teko en títulos, DM Mono en labels, Glacial en cuerpo).
+ *
+ * Todo cuelga de `.brain` para no filtrarse a las otras solapas del admin, que
+ * siguen siendo sharp.
+ */
+
+.brain {
+    --brain-surface: #141414;
+    --brain-surface-2: #1c1c1c;
+    --brain-line: rgba(255, 255, 255, 0.07);
+    --brain-line-strong: rgba(255, 255, 255, 0.16);
+    --brain-muted: #8a8a8a;
+    --brain-pos: #4ade80;
+    --brain-neg: #ff4d5a;
+    --brain-warn: #facc15;
+    --brain-radius: 20px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* ── Superficies ───────────────────────────────────────────────────────── */
+.brain-card {
+    background: var(--brain-surface);
+    border: 1px solid var(--brain-line);
+    border-radius: var(--brain-radius);
+    padding: 1.5rem;
+}
+
+.brain-card__title {
+    font-family: var(--font-teko), sans-serif;
+    font-size: 1.6rem;
+    line-height: 1;
+    letter-spacing: 0.06em;
+    margin: 0 0 1.25rem;
+    color: #fff;
+}
+
+.brain-empty {
+    padding: 2.25rem 0;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--brain-muted);
+}
+
+/* ── Header ────────────────────────────────────────────────────────────── */
+.brain-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.brain-head__titles h2 {
+    font-family: var(--font-teko), sans-serif;
+    font-size: 2rem;
+    line-height: 1;
+    letter-spacing: 0.06em;
+    margin: 0;
+}
+
+.brain-head__titles p {
+    margin: 0.25rem 0 0;
+    font-size: 0.8rem;
+    color: var(--brain-muted);
+}
+
+.brain-head__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* ── Botones pill ──────────────────────────────────────────────────────── */
+.brain-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    border-radius: 999px;
+    padding: 0.6rem 1.2rem;
+    font-family: "Glacial Indifference", sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    border: 1px solid transparent;
+    line-height: 1.2;
+}
+
+.brain-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.brain-btn--primary {
+    background: #fff;
+    color: #0a0a0a;
+}
+
+.brain-btn--primary:hover:not(:disabled) {
+    background: #e6e6e6;
+    transform: translateY(-1px);
+}
+
+.brain-btn--ghost {
+    background: transparent;
+    border-color: var(--brain-line-strong);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.brain-btn--ghost:hover:not(:disabled) {
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+}
+
+.brain-btn--block {
+    width: 100%;
+}
+
+/* ── Badge de modo ─────────────────────────────────────────────────────── */
+.brain-mode {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.brain-mode__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.brain-mode--AHORRO {
+    color: var(--brain-neg);
+    background: rgba(193, 18, 31, 0.15);
+}
+
+.brain-mode--CRECIMIENTO {
+    color: var(--brain-pos);
+    background: rgba(34, 197, 94, 0.12);
+}
+
+.brain-mode--NEUTRO {
+    color: #9ca3af;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+/* ── Métricas ──────────────────────────────────────────────────────────── */
+.brain-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.brain-metric {
+    background: var(--brain-surface);
+    border: 1px solid var(--brain-line);
+    border-radius: var(--brain-radius);
+    padding: 1.25rem 1.5rem;
+    transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.brain-metric:hover {
+    transform: translateY(-2px);
+    border-color: var(--brain-line-strong);
+}
+
+.brain-metric__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.brain-label {
+    font-family: var(--font-dm-mono), monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--brain-muted);
+}
+
+.brain-metric__icon {
+    color: rgba(255, 255, 255, 0.35);
+    flex-shrink: 0;
+}
+
+.brain-metric__value {
+    margin-top: 0.6rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+.brain-metric__sub {
+    margin-top: 0.35rem;
+    font-size: 0.7rem;
+    line-height: 1.4;
+    color: var(--brain-muted);
+}
+
+.brain-pos { color: var(--brain-pos); }
+.brain-neg { color: var(--brain-neg); }
+
+/* ── Fila form + recomendaciones ───────────────────────────────────────── */
+.brain-row {
+    display: grid;
+    grid-template-columns: minmax(0, 40%) minmax(0, 1fr);
+    align-items: start;
+    gap: 1rem;
+}
+
+/* ── Selector de tipo de evento ────────────────────────────────────────── */
+.brain-seg {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.25rem;
+    background: var(--brain-surface-2);
+    border-radius: 999px;
+    padding: 0.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.brain-seg__btn {
+    border: none;
+    background: transparent;
+    border-radius: 999px;
+    padding: 0.5rem 0.5rem;
+    font-family: "Glacial Indifference", sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--brain-muted);
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.brain-seg__btn:hover {
+    color: #fff;
+}
+
+.brain-seg__btn.active {
+    background: var(--admin-red, #c1121f);
+    color: #fff;
+}
+
+/* ── Formulario ────────────────────────────────────────────────────────── */
+.brain-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.brain-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+/* `.brain input` a secas para ganarle al skin global de volt-ds/style.css sin
+   pelear con !important: acá los campos son redondeados y de fondo lleno. */
+.brain input,
+.brain select {
+    width: 100%;
+    background: var(--brain-surface-2);
+    border: 1px solid var(--brain-line);
+    border-radius: 12px;
+    padding: 0.65rem 0.85rem;
+    color: #fff;
+    font-family: "Glacial Indifference", sans-serif;
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease;
+}
+
+.brain input:focus,
+.brain select:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.brain input::placeholder {
+    color: #5c5c5c;
+}
+
+/* El picker nativo de date viene negro sobre negro en Chrome. */
+.brain input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+.brain select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%238a8a8a' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.85rem center;
+    padding-right: 2.2rem;
+}
+
+/* ── Recomendaciones ───────────────────────────────────────────────────── */
+.brain-recos {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.brain-recos li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--brain-line);
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+.brain-recos li:last-child {
+    border-bottom: none;
+}
+
+.brain-recos svg {
+    margin-top: 0.15rem;
+    flex-shrink: 0;
+    color: var(--admin-red, #c1121f);
+}
+
+/* ── Log de eventos ────────────────────────────────────────────────────── */
+.brain-log {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.brain-log th {
+    font-family: var(--font-dm-mono), monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--brain-muted);
+    text-align: left;
+    padding: 0 0.75rem 0.75rem;
+    border-bottom: 1px solid var(--brain-line);
+}
+
+.brain-log td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--brain-line);
+    font-size: 0.88rem;
+    vertical-align: middle;
+}
+
+.brain-log tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.brain-log tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.brain-log__date,
+.brain-log__amount {
+    white-space: nowrap;
+}
+
+.brain-log__date {
+    color: var(--brain-muted);
+}
+
+.brain-log__amount {
+    font-weight: 600;
+    text-align: right;
+}
+
+.brain-tag {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 0.25rem 0.7rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.brain-tag--venta { color: var(--brain-pos); background: rgba(34, 197, 94, 0.12); }
+.brain-tag--gasto { color: var(--brain-neg); background: rgba(193, 18, 31, 0.15); }
+.brain-tag--marketing { color: var(--brain-warn); background: rgba(234, 179, 8, 0.12); }
+
+.brain-log__origin {
+    margin-left: 0.4rem;
+    font-family: var(--font-dm-mono), monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    color: #5c5c5c;
+    text-transform: uppercase;
+}
+
+.brain-del {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--brain-muted);
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.brain-del:hover {
+    background: rgba(193, 18, 31, 0.15);
+    color: var(--brain-neg);
+}
+
+/* ── Mensajes de estado ────────────────────────────────────────────────── */
+.brain-msg {
+    border-radius: 12px;
+    padding: 0.7rem 1rem;
+    font-size: 0.85rem;
+}
+
+.brain-msg--ok {
+    color: var(--brain-pos);
+    background: rgba(34, 197, 94, 0.1);
+}
+
+.brain-msg--err {
+    color: var(--brain-neg);
+    background: rgba(193, 18, 31, 0.12);
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────── */
+@media (max-width: 992px) {
+    .brain-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .brain-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .brain-metrics {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .brain-card {
+        padding: 1.25rem;
+    }
+
+    /* La tabla del log no entra en 360px: scroll horizontal propio en vez de
+       romper el layout de la página (mismo criterio que las otras solapas). */
+    .brain-log-scroll {
+        overflow-x: auto;
+    }
+
+    .brain-log {
+        min-width: 520px;
+    }
+}

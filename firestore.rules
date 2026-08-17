@@ -37,6 +37,14 @@ service cloud.firestore {
       }
     }
 
+    // VOLT Brain: gestión interna del negocio (capital, gastos, ventas de
+    // afuera de la web). Son los números reales — admin y nadie más. La API key
+    // de Firebase viaja en el bundle del cliente, así que sin esta regla
+    // cualquiera con el project id los leería.
+    match /brain_eventos/{eventoId} {
+      allow read, write: if request.auth != null && request.auth.token.admin == true;
+    }
+
     // Bloquear cualquier otra colección.
     match /{document=**} {
       allow read, write: if false;

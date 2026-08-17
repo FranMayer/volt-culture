@@ -11,12 +11,14 @@ const ProductsTab = dynamic(() => import("./ProductsTab"), { ssr: false });
 const OrdersTab = dynamic(() => import("./OrdersTab"), { ssr: false });
 const DespachosTab = dynamic(() => import("./DespachosTab"), { ssr: false });
 const CouponsTab = dynamic(() => import("./CouponsTab"), { ssr: false });
+const BrainTab = dynamic(() => import("./BrainTab"), { ssr: false });
 
 const TABS = [
     { id: "productos", label: "Productos", Component: ProductsTab },
     { id: "pedidos", label: "Pedidos", Component: OrdersTab },
     { id: "despachos", label: "Despachos", Component: DespachosTab },
     { id: "cupones", label: "Cupones", Component: CouponsTab },
+    { id: "brain", label: "Brain", Component: BrainTab },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
