@@ -111,5 +111,40 @@ const items = [{ price: 10000, quantity: 1 }, { price: 5000, quantity: 2 }]; // 
     check('mensaje WA andreani incluye la dirección', msgCoupon.includes('Cba') && msgCoupon.includes('5000'));
 }
 
+// ── promo 2x1 en los totales del resumen ───────────────────────────────────
+const SHIP = { cordoba: { cost: 3000 }, andreani: { cost: 0 } };
+const buzoPromo = (price, quantity = 1) => ({
+    id: `b${price}`, title: 'Buzo TC', price, quantity, promo2x1: true,
+});
+
+// 2 buzos de 45000, envío 0, pago MP, sin cupón.
+const t1 = computeCheckoutTotals(
+    [buzoPromo(45000), buzoPromo(45000)], 'andreani', SHIP, 'mp', null);
+check('2x1 descuenta el más barato del par', t1.promoDiscount === 45000);
+check('2x1 en MP: total = 45000', t1.total === 45000);
+
+// Mismo carrito por transferencia: el 10% corre sobre el subtotal YA con 2x1.
+const t2 = computeCheckoutTotals(
+    [buzoPromo(45000), buzoPromo(45000)], 'andreani', SHIP, 'transfer', null);
+check('2x1 + transferencia: promo intacta', t2.promoDiscount === 45000);
+check('2x1 + transferencia: 10% sobre 45000 = 4500 → total 40500', t2.total === 40500);
+check('2x1 + transferencia: discountAmount suma los dos', t2.discountAmount === 49500);
+
+// Con envío: 2 buzos 45000 + envío 3000 → subtotal con promo 48000, −10% = 4800
+const t3 = computeCheckoutTotals(
+    [buzoPromo(45000), buzoPromo(45000)], 'cordoba', SHIP, 'transfer', null);
+check('2x1 + envío + transferencia: total 43200', t3.total === 43200);
+
+// Sin items en promo, el comportamiento viejo no cambia.
+const t4 = computeCheckoutTotals(
+    [{ id: 'x', title: 'Remera', price: 20000, quantity: 2 }], 'andreani', SHIP, 'transfer', null);
+check('sin promo, transferencia sigue igual', t4.total === 36000);
+check('sin promo, promoDiscount es 0', t4.promoDiscount === 0);
+
+// Cupón + promo: el cupón se ignora (no acumulan).
+const t5 = computeCheckoutTotals(
+    [buzoPromo(45000), buzoPromo(45000)], 'andreani', SHIP, 'mp', { code: 'X', percent: 20 });
+check('cupón no acumula con 2x1', t5.total === 45000);
+
 if (failed > 0) { console.error(`\n❌ ${failed} checkout logic checks failed`); process.exit(1); }
 console.log('✅ checkout logic checks passed');
