@@ -146,7 +146,11 @@ export interface Order {
     subtotal: number;
     discountPercent: number;
     discountAmount: number;
-    discountSource: 'coupon' | 'transfer' | null;
+    discountSource: 'coupon' | 'transfer' | 'promo2x1' | null;
+    /** Desglose cuando hay más de un descuento (2x1 + transferencia).
+     *  Las órdenes anteriores a la promo no lo tienen — es opcional a propósito.
+     *  `discountAmount` sigue siendo la SUMA de todos. */
+    discounts?: Array<{ source: string; amount: number; percent?: number; detail?: string }>;
     coupon: string | null;
     total: number;
     paymentId: string | null;

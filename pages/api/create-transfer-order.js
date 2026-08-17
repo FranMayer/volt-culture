@@ -18,6 +18,7 @@ import { computeAvailableStock } from '@/lib/server/stock';
 import { applyRateLimit } from '@/lib/server/rate-limit';
 import { SHIPPING_CONFIG } from '@/lib/shipping-config';
 import { normalizeCouponCode, isCouponValid, computeCouponDiscount } from '@/lib/server/coupons';
+import { computePromo2x1, tienePromo2x1 } from '@/lib/promo2x1';
 
 const TRANSFER_DISCOUNT_RATE = 0.10;
 
@@ -191,6 +192,10 @@ export default async function handler(req, res) {
                         throw err;
                     }
                     item.price = serverPrice;
+                    // El flag de la promo viene del doc de Firestore releído acá, nunca del body
+                    // del cliente — de lo contrario alcanzaría con forjar el request para llevarse
+                    // ítems gratis.
+                    item.promo2x1 = data.promo2x1 === true;
                     const available = computeAvailableStock(data, item.variantColor, item.variantSize);
                     if (available < item.quantity) {
                         const err = new Error(`Stock insuficiente para ${item.title}`);
@@ -209,14 +214,34 @@ export default async function handler(req, res) {
         const productsTotal = normalizedItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
         const subtotal = productsTotal + shippingCost;
 
-        // Default: descuento por transferencia (−10% sobre subtotal).
+        // 2x1 primero: el 10% de transferencia corre sobre lo que queda.
+        // El flag viene del doc de Firestore releído arriba, no del cliente.
+        const { descuento: promoDiscount, unidadesGratis } = computePromo2x1(normalizedItems);
+        const hayPromo = tienePromo2x1(normalizedItems);
+        const subtotalConPromo = subtotal - promoDiscount;
+
+        const discounts = [];
+        if (promoDiscount > 0) {
+            discounts.push({
+                source: 'promo2x1',
+                amount: promoDiscount,
+                detail: `2x1 — ${unidadesGratis} ${unidadesGratis === 1 ? 'unidad gratis' : 'unidades gratis'}`,
+            });
+        }
+
+        // Default: descuento por transferencia (−10% sobre el subtotal ya con 2x1).
         let coupon = null;
         let discountSource = 'transfer';
         let discountPercent = Math.round(TRANSFER_DISCOUNT_RATE * 100);
-        let discountAmount = Math.round(subtotal * TRANSFER_DISCOUNT_RATE);
+        let transferDiscount = Math.round(subtotalConPromo * TRANSFER_DISCOUNT_RATE);
 
-        // Cupón válido REEMPLAZA al −10% (descuento solo sobre productos).
+        // Cupón válido REEMPLAZA al −10%, pero NO acumula con el 2x1.
         const couponCode = normalizeCouponCode(body.couponCode);
+        if (couponCode && hayPromo) {
+            return res.status(400).json({
+                error: 'El cupón no es acumulable con la promo 2x1.',
+            });
+        }
         if (couponCode) {
             const couponSnap = await db.collection('coupons').doc(couponCode).get();
             const couponData = couponSnap.exists ? couponSnap.data() : null;
@@ -224,10 +249,18 @@ export default async function handler(req, res) {
                 coupon = couponData.code || couponCode;
                 discountSource = 'coupon';
                 discountPercent = Number(couponData.percent);
-                discountAmount = computeCouponDiscount(productsTotal, discountPercent);
+                transferDiscount = computeCouponDiscount(productsTotal, discountPercent);
             }
         }
 
+        discounts.push({
+            source: discountSource,
+            amount: transferDiscount,
+            percent: discountPercent,
+        });
+
+        if (hayPromo) discountSource = 'promo2x1';
+        const discountAmount = promoDiscount + transferDiscount;
         const total = subtotal - discountAmount;
 
         const orderId = generateOrderId();
@@ -252,6 +285,7 @@ export default async function handler(req, res) {
                 discountSource,
                 discountPercent,
                 discountAmount,
+                discounts,
                 total,
                 paymentId: null,
                 paidAt: null,
@@ -282,7 +316,9 @@ export default async function handler(req, res) {
             discountAmount,
             discountPercent,
             discountSource,
-            coupon
+            coupon,
+            promoDiscount,
+            promoUnidadesGratis: unidadesGratis
         });
     } catch (error) {
         if (error.message?.includes('Invalid PEM formatted message')) {
