@@ -119,6 +119,28 @@ export default function OrdersTab() {
         return { total: all.length, approved: paid.length, pending: pending.length, revenue };
     }, [orders]);
 
+    /**
+     * Borrado de una orden de prueba. Va por la API porque firestore.rules
+     * tiene `allow write: if false` en orders — el cliente no puede borrar ni
+     * con claim de admin. El endpoint se lleva también el evento gemelo de
+     * Brain, así la venta de prueba no queda sumando en el balance.
+     */
+    async function handleDelete(order: AdminOrder) {
+        const label = order.orderId || order.id;
+        const monto = (order.total || 0).toLocaleString("es-AR");
+        if (!confirm(`¿Borrar la orden ${label} ($${monto})?\n\nEs irreversible y también la saca de VOLT Brain. No repone stock.`)) return;
+        try {
+            await adminFetchJson("/api/admin-cleanup", {
+                method: "POST",
+                body: JSON.stringify({ target: "order", id: order.id }),
+            });
+            await load();
+        } catch (err) {
+            console.error("Error al borrar la orden:", err);
+            alert(`❌ Error: ${(err as Error).message}`);
+        }
+    }
+
     async function handleStatusChanged(orderId: string, status: OrderStatus, trackingNumber: string) {
         const payload: Record<string, unknown> = { orderId, status };
         if (status === "shipped") payload.trackingNumber = trackingNumber;
@@ -270,9 +292,25 @@ export default function OrdersTab() {
                                                 <span className={`order-status ${statusClass(order.status)}`}>{statusLabel(order.status)}</span>
                                             </td>
                                             <td>
-                                                <button type="button" className="btn btn-sm btn-detail" onClick={() => setDetailId(order.id)}>
-                                                    Ver detalle
-                                                </button>
+                                                <div className="d-flex gap-2 align-items-center">
+                                                    <button type="button" className="btn btn-sm btn-detail" onClick={() => setDetailId(order.id)}>
+                                                        Ver detalle
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="admin-icon-btn admin-icon-btn--danger"
+                                                        onClick={() => handleDelete(order)}
+                                                        title="Eliminar pedido"
+                                                        aria-label={`Eliminar pedido ${order.orderId || order.id}`}
+                                                    >
+                                                        <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                                            <path d="M3 6h18" />
+                                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                                            <line x1="10" x2="10" y1="11" y2="17" />
+                                                            <line x1="14" x2="14" y1="11" y2="17" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     );

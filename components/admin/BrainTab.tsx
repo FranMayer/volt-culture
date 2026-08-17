@@ -17,13 +17,13 @@ import {
 import { db } from "@/lib/firebase/client";
 import {
     ESTADOS_PAGADOS,
-    PREFIJO_ORDEN,
     calcularModo,
     crearEvento,
     derivarEstado,
     esDeOrden,
     eventoDesdeOrden,
     fmtARS,
+    idEventoDeOrden,
 } from "@/lib/brain/engine.js";
 import "@/app/styles/brain.css";
 
@@ -217,7 +217,7 @@ export default function BrainTab() {
                     sinFecha++;
                     continue;
                 }
-                const id = `${PREFIJO_ORDEN}${orderId}`;
+                const id = idEventoDeOrden(orden, d.id);
                 if (!yaCargados.has(id)) nuevas++;
                 await setDoc(
                     doc(db, "brain_eventos", id),
