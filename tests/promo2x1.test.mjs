@@ -28,6 +28,13 @@ check('3 unidades → una gratis, el impar se paga',
 check('4 unidades precios mixtos → el más barato de cada par',
     computePromo2x1([buzo(45000), buzo(45000), buzo(38000), buzo(38000)]).descuento === 83000);
 
+// Pares de precios DISTINTOS: sin esto, una regla invertida (regalar el más
+// caro de cada par) pasaría todos los tests de arriba.
+check('de un par con precios distintos, el gratis es el más barato',
+    computePromo2x1([buzo(999), buzo(1)]).descuento === 1);
+check('3 precios distintos → gratis el 2do más caro, el más barato se paga',
+    computePromo2x1([buzo(50000), buzo(30000), buzo(10000)]).descuento === 30000);
+
 check('quantity 2 en una línea cuenta como dos unidades',
     computePromo2x1([buzo(45000, 2)]).descuento === 45000);
 
