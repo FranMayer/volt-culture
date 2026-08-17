@@ -1781,6 +1781,25 @@ main.box a.secondary:hover {
     pointer-events: none !important;
 }
 
+.product-badge-promo2x1 {
+    position: absolute !important;
+    bottom: 10px !important;
+    left: 10px !important;
+    z-index: 2 !important;
+    background: #000000 !important;
+    color: #ffffff !important;
+    border: 1px solid #c1121f !important;
+    font-family: var(--font-ds-mono) !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    padding: 4px 8px !important;
+    border-radius: 0 !important;
+    line-height: 1.2 !important;
+    pointer-events: none !important;
+}
+
 .product-title {
     font-family: var(--font-ds-display) !important;
     font-weight: 700 !important;

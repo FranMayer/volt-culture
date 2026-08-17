@@ -113,6 +113,7 @@ export default function QuickViewModal({
         image: imageSrc,
         variantColor: selectedColor,
         variantSize: selectedSize,
+        promo2x1: product.promo2x1 === true,
       },
       qty
     );
