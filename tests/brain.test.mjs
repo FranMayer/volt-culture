@@ -11,6 +11,7 @@ import {
     esBackupValido,
     esDeOrden,
     fmtARS,
+    idEventoDeOrden,
 } from '../lib/brain/engine.js';
 
 let failed = 0;
@@ -72,6 +73,13 @@ check('orden sin total no rompe', eventoDesdeOrden({ orderId: 'X', timestamp: 1,
 check('esDeOrden reconoce el prefijo', esDeOrden('order_VOLT-L4EJVS') === true);
 check('esDeOrden rechaza un id manual', esDeOrden('aB3xY') === false);
 check('esDeOrden tolera no-string', esDeOrden(undefined) === false);
+
+// idEventoDeOrden: el import de BrainTab y el borrado de admin-cleanup tienen
+// que derivar el MISMO id, o borrar un pedido deja el evento huérfano sumando.
+check('idEventoDeOrden usa el orderId', idEventoDeOrden({ orderId: 'VOLT-L4EJVS' }, 'aB3xY') === 'order_VOLT-L4EJVS');
+check('idEventoDeOrden cae al doc id sin orderId', idEventoDeOrden({}, 'aB3xY') === 'order_aB3xY');
+check('idEventoDeOrden tolera orden nula', idEventoDeOrden(undefined, 'aB3xY') === 'order_aB3xY');
+check('idEventoDeOrden produce ids que esDeOrden reconoce', esDeOrden(idEventoDeOrden({ orderId: 'X' }, 'y')) === true);
 
 // ── derivarEstado ──────────────────────────────────────────────────────────
 const eventos = [
