@@ -51,8 +51,8 @@ export default function ProductCard({
           </span>
         )}
         {product.promo2x1 === true && (
-          <span className="product-badge-promo2x1" aria-label="Promoción dos por uno">
-            2x1
+          <span className="product-badge-promo2x1" role="img" aria-label="Promoción dos por uno">
+            2X1
           </span>
         )}
         <span className="product-index" aria-hidden="true">
