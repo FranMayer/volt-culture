@@ -146,5 +146,28 @@ const t5 = computeCheckoutTotals(
     [buzoPromo(45000), buzoPromo(45000)], 'andreani', SHIP, 'mp', { code: 'X', percent: 20 });
 check('cupón no acumula con 2x1', t5.total === 45000);
 
+// ── WhatsApp: promo 2x1 + transferencia no debe atribuir todo el descuento al 10% ──
+{
+    // t2: promoDiscount=45000, discountAmount=49500 (promo + 10% transfer), total=40500
+    const msgPromo = buildTransferWaMessage({
+        items: [buzoPromo(45000), buzoPromo(45000)],
+        customer: { name: 'Lu', dni: '11223344', phone: '351', email: 'lu@a.com' },
+        shippingOption: 'andreani',
+        shippingConfig: SHIP,
+        address: { street: 'Calle 1', city: 'Cba', province: 'Córdoba', postalCode: '5000' },
+        serverTotals: {
+            orderId: 'VOLT-PROMO1',
+            subtotal: t2.subtotal,
+            discountAmount: t2.discountAmount,
+            total: t2.total,
+            discountSource: 'transfer',
+            promoDiscount: t2.promoDiscount,
+        },
+    });
+    check('mensaje WA promo: incluye línea Promo 2x1 con su monto', msgPromo.includes('*Promo 2x1:* −$45.000'));
+    check('mensaje WA promo: línea transferencia muestra SOLO la porción del 10% (4500), no el combinado (49500)', msgPromo.includes('Descuento 10% transferencia:* −$4.500') && !msgPromo.includes('−$49.500'));
+    check('mensaje WA promo: total final correcto', msgPromo.includes('$40.500'));
+}
+
 if (failed > 0) { console.error(`\n❌ ${failed} checkout logic checks failed`); process.exit(1); }
 console.log('✅ checkout logic checks passed');

@@ -10,6 +10,7 @@ import { auth, db } from "@/lib/firebase/client";
 import { clearFirestore, clearLocal } from "@/lib/cart/sync";
 import { SHIPPING_CONFIG } from "@/lib/shipping-config";
 import { normalizeCouponCode } from "@/lib/server/coupons";
+import { tienePromo2x1 } from "@/lib/promo2x1";
 import {
     validateDni,
     formatMoney,
@@ -316,7 +317,10 @@ export default function CheckoutModal() {
 
         const postBody: Record<string, unknown> = { items: payloadItems, customer, shippingOption };
         if (shippingOption === "andreani") postBody.shipping = { type: "andreani", address };
-        if (coupon?.code) postBody.couponCode = coupon.code;
+        // El cupón no acumula con la promo 2x1 (lib/checkout.js computeCheckoutTotals
+        // lo ignora en el cálculo cuando hay promo) — si igual viajara acá, ambos
+        // endpoints devuelven 400 y la orden no se puede confirmar (Task 7 review).
+        if (coupon?.code && !tienePromo2x1(items)) postBody.couponCode = coupon.code;
 
         setSubmitting(true);
         try {
@@ -366,6 +370,7 @@ export default function CheckoutModal() {
                     discountSource: data.discountSource,
                     coupon: data.coupon,
                     discountPercent: data.discountPercent,
+                    promoDiscount: data.promoDiscount,
                 },
             });
             const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(waMessage)}`;
@@ -385,6 +390,7 @@ export default function CheckoutModal() {
         }
     }
 
+    const hasPromo = tienePromo2x1(items);
     const totals = computeCheckoutTotals(items, shippingOption ?? "cordoba", SHIPPING_CONFIG, mode, coupon);
 
     return (
@@ -613,7 +619,13 @@ export default function CheckoutModal() {
                                             <span>{formatMoney(SHIPPING_CONFIG.cordoba.cost)}</span>
                                         </li>
                                     )}
-                                    {coupon ? (
+                                    {totals.promoDiscount > 0 && (
+                                        <li className="volt-summary-discount">
+                                            <span>Promo 2x1 ({totals.promoUnidadesGratis} gratis)</span>
+                                            <span>−{formatMoney(totals.promoDiscount)}</span>
+                                        </li>
+                                    )}
+                                    {coupon && !hasPromo ? (
                                         <>
                                             <li><span>Subtotal</span><span>{formatMoney(totals.subtotal)}</span></li>
                                             <li className="volt-summary-discount">
@@ -630,7 +642,7 @@ export default function CheckoutModal() {
                                             <li><span>Subtotal</span><span>{formatMoney(totals.subtotal)}</span></li>
                                             <li className="volt-summary-discount">
                                                 <span>Descuento transferencia (−10%)</span>
-                                                <span>−{formatMoney(totals.discountAmount)}</span>
+                                                <span>−{formatMoney(totals.discountAmount - totals.promoDiscount)}</span>
                                             </li>
                                             <li className="volt-summary-total-transfer">
                                                 <span><strong>Total a transferir</strong></span>
@@ -649,6 +661,11 @@ export default function CheckoutModal() {
 
                                 <div className="volt-coupon" id="checkoutCouponBlock">
                                     <label className="form-label" htmlFor="checkoutCouponInput">¿Tenés un cupón?</label>
+                                    {hasPromo && (
+                                        <p className="volt-coupon-blocked">
+                                            El cupón no es acumulable con la promo 2x1.
+                                        </p>
+                                    )}
                                     <div className="volt-coupon__row">
                                         <input
                                             type="text"
@@ -657,9 +674,10 @@ export default function CheckoutModal() {
                                             placeholder="Ej: VOLT20"
                                             autoComplete="off"
                                             value={couponInput}
+                                            disabled={hasPromo}
                                             onChange={(e) => setCouponInput(e.target.value)}
                                         />
-                                        <button type="button" className="btn btn-danger btn-sm" disabled={couponBusy} onClick={handleCouponApply}>
+                                        <button type="button" className="btn btn-danger btn-sm" disabled={couponBusy || hasPromo} onClick={handleCouponApply}>
                                             Aplicar
                                         </button>
                                         {coupon && (

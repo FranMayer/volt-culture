@@ -68,6 +68,7 @@
 #customerDataModal .volt-summary-discount { color:#6daa6d; }
 #customerDataModal .volt-summary-total-transfer { color:#6daa6d; font-weight:700; }
 #customerDataModal .volt-coupon { margin:0.25rem 0 1rem; }
+#customerDataModal .volt-coupon-blocked { font-size:0.78rem; color:#888; margin:0 0 0.35rem; }
 #customerDataModal .volt-coupon__row { display:flex; gap:0.4rem; flex-wrap:wrap; }
 #customerDataModal .volt-coupon__row .form-control { flex:1 1 auto; min-width:0; text-transform:uppercase; }
 #customerDataModal .volt-coupon__feedback { font-size:0.78rem; margin-top:0.35rem; min-height:1em; }
