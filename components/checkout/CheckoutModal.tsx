@@ -10,7 +10,6 @@ import { auth, db } from "@/lib/firebase/client";
 import { clearFirestore, clearLocal } from "@/lib/cart/sync";
 import { SHIPPING_CONFIG } from "@/lib/shipping-config";
 import { normalizeCouponCode } from "@/lib/server/coupons";
-import { tienePromo2x1 } from "@/lib/promo2x1";
 import {
     validateDni,
     formatMoney,
@@ -100,8 +99,60 @@ export default function CheckoutModal() {
     const [submitting, setSubmitting] = useState(false);
     const [payError, setPayError] = useState("");
 
+    // Los items del carrito guardan una COPIA del flag promo2x1 del momento en
+    // que se agregaron, y queda vieja en las dos direcciones: "volver a pedir"
+    // (app/mis-pedidos) rearma los items sin el flag, y si el dueño destilda la
+    // promo el carrito sigue mostrando un descuento que el server no va a hacer
+    // (en MP no hay paso de confirmación antes del muro de pago). Al abrir el
+    // checkout se releen los flags de Firestore — misma fuente que usan los dos
+    // endpoints — y con esos se calculan los totales que se muestran.
+    const [promoFlags, setPromoFlags] = useState<Record<string, boolean> | null>(null);
+
     const quoteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const quoteReqId = useRef(0);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        setPromoFlags(null);
+        const ids = [...new Set(items.map((i) => String(i.id || "")).filter(Boolean))];
+        if (!ids.length) return;
+        let cancelado = false;
+        (async () => {
+            try {
+                const snaps = await Promise.all(ids.map((id) => getDoc(doc(db, "products", id))));
+                if (cancelado) return;
+                const flags: Record<string, boolean> = {};
+                snaps.forEach((snap, n) => {
+                    flags[ids[n]] = snap.exists() && (snap.data() as { promo2x1?: boolean }).promo2x1 === true;
+                });
+                setPromoFlags(flags);
+            } catch {
+                // Si la lectura falla se siguen usando los flags guardados en el
+                // carrito: el server recalcula todo desde Firestore igual, así que
+                // el riesgo es mostrar un total viejo — nunca dejar al cliente sin
+                // poder pagar por un read caído.
+            }
+        })();
+        return () => {
+            cancelado = true;
+        };
+    }, [isOpen, items]);
+
+    // Items con el flag fresco (o los guardados, si el refresh falló/aún no llegó).
+    const pricedItems = promoFlags
+        ? items.map((i) => ({ ...i, promo2x1: promoFlags[String(i.id || "")] === true }))
+        : items;
+    const totals = computeCheckoutTotals(pricedItems, shippingOption ?? "cordoba", SHIPPING_CONFIG, mode, coupon);
+    // Cupón bloqueado solo si el 2x1 descontó algo de verdad: un único item en
+    // promo no forma par y el cupón tiene que seguir aplicando (mismo criterio
+    // que lib/checkout.js y los dos endpoints).
+    const hayDescuentoPromo = totals.promoDiscount > 0;
+    const promoLine = hayDescuentoPromo ? (
+        <li className="volt-summary-discount">
+            <span>Promo 2x1 ({totals.promoUnidadesGratis} gratis)</span>
+            <span>−{formatMoney(totals.promoDiscount)}</span>
+        </li>
+    ) : null;
 
     // Reset del formulario cada vez que se abre — legacy pagos.js
     // askCheckoutData() (líneas 658-686) reseteaba _shippingConfirmado/
@@ -317,10 +368,10 @@ export default function CheckoutModal() {
 
         const postBody: Record<string, unknown> = { items: payloadItems, customer, shippingOption };
         if (shippingOption === "andreani") postBody.shipping = { type: "andreani", address };
-        // El cupón no acumula con la promo 2x1 (lib/checkout.js computeCheckoutTotals
-        // lo ignora en el cálculo cuando hay promo) — si igual viajara acá, ambos
-        // endpoints devuelven 400 y la orden no se puede confirmar (Task 7 review).
-        if (coupon?.code && !tienePromo2x1(items)) postBody.couponCode = coupon.code;
+        // El cupón no acumula con la promo 2x1 cuando la promo REALMENTE descontó
+        // (lib/checkout.js computeCheckoutTotals usa el mismo criterio, igual que
+        // los dos endpoints, que lo ignoran en silencio si igual viaja).
+        if (coupon?.code && !hayDescuentoPromo) postBody.couponCode = coupon.code;
 
         setSubmitting(true);
         try {
@@ -389,9 +440,6 @@ export default function CheckoutModal() {
             setSubmitting(false);
         }
     }
-
-    const hasPromo = tienePromo2x1(items);
-    const totals = computeCheckoutTotals(items, shippingOption ?? "cordoba", SHIPPING_CONFIG, mode, coupon);
 
     return (
         <>
@@ -619,13 +667,7 @@ export default function CheckoutModal() {
                                             <span>{formatMoney(SHIPPING_CONFIG.cordoba.cost)}</span>
                                         </li>
                                     )}
-                                    {totals.promoDiscount > 0 && (
-                                        <li className="volt-summary-discount">
-                                            <span>Promo 2x1 ({totals.promoUnidadesGratis} gratis)</span>
-                                            <span>−{formatMoney(totals.promoDiscount)}</span>
-                                        </li>
-                                    )}
-                                    {coupon && !hasPromo ? (
+                                    {coupon && !hayDescuentoPromo ? (
                                         <>
                                             <li><span>Subtotal</span><span>{formatMoney(totals.subtotal)}</span></li>
                                             <li className="volt-summary-discount">
@@ -640,6 +682,9 @@ export default function CheckoutModal() {
                                     ) : mode === "transfer" ? (
                                         <>
                                             <li><span>Subtotal</span><span>{formatMoney(totals.subtotal)}</span></li>
+                                            {/* La promo va DEBAJO del subtotal: el resumen tiene que
+                                                cerrar leído de arriba hacia abajo. */}
+                                            {promoLine}
                                             <li className="volt-summary-discount">
                                                 <span>Descuento transferencia (−10%)</span>
                                                 <span>−{formatMoney(totals.discountAmount - totals.promoDiscount)}</span>
@@ -650,7 +695,13 @@ export default function CheckoutModal() {
                                             </li>
                                         </>
                                     ) : (
-                                        <li><span><strong>Total</strong></span><span><strong>{formatMoney(totals.total)}</strong></span></li>
+                                        <>
+                                            {hayDescuentoPromo && (
+                                                <li><span>Subtotal</span><span>{formatMoney(totals.subtotal)}</span></li>
+                                            )}
+                                            {promoLine}
+                                            <li><span><strong>Total</strong></span><span><strong>{formatMoney(totals.total)}</strong></span></li>
+                                        </>
                                     )}
                                     {shippingOption === "andreani" && (
                                         <li style={{ fontSize: "0.78rem", color: "#888", fontWeight: "normal", paddingTop: "0.35rem", borderBottom: "none" }}>
@@ -661,7 +712,7 @@ export default function CheckoutModal() {
 
                                 <div className="volt-coupon" id="checkoutCouponBlock">
                                     <label className="form-label" htmlFor="checkoutCouponInput">¿Tenés un cupón?</label>
-                                    {hasPromo && (
+                                    {hayDescuentoPromo && (
                                         <p className="volt-coupon-blocked">
                                             El cupón no es acumulable con la promo 2x1.
                                         </p>
@@ -674,10 +725,10 @@ export default function CheckoutModal() {
                                             placeholder="Ej: VOLT20"
                                             autoComplete="off"
                                             value={couponInput}
-                                            disabled={hasPromo}
+                                            disabled={hayDescuentoPromo}
                                             onChange={(e) => setCouponInput(e.target.value)}
                                         />
-                                        <button type="button" className="btn btn-danger btn-sm" disabled={couponBusy || hasPromo} onClick={handleCouponApply}>
+                                        <button type="button" className="btn btn-danger btn-sm" disabled={couponBusy || hayDescuentoPromo} onClick={handleCouponApply}>
                                             Aplicar
                                         </button>
                                         {coupon && (
