@@ -146,6 +146,29 @@ const t5 = computeCheckoutTotals(
     [buzoPromo(45000), buzoPromo(45000)], 'andreani', SHIP, 'mp', { code: 'X', percent: 20 });
 check('cupón no acumula con 2x1', t5.total === 45000);
 
+// Un ÚNICO item en promo con quantity 1 no forma par: la promo no descuenta
+// nada, así que el cupón tiene que aplicar igual. Bloquearlo por la sola
+// presencia del flag mostraba $36.000 y cobraba $45.000.
+const t6 = computeCheckoutTotals(
+    [buzoPromo(45000)], 'andreani', SHIP, 'mp', { code: 'VOLT20', percent: 20 });
+check('1 item en promo qty 1: la promo no descuenta', t6.promoDiscount === 0);
+check('1 item en promo qty 1 + cupón 20%: el cupón SÍ se aplica', t6.discountAmount === 9000);
+check('1 item en promo qty 1 + cupón 20%: total 36000', t6.total === 36000);
+
+const t7 = computeCheckoutTotals(
+    [buzoPromo(45000)], 'andreani', SHIP, 'transfer', { code: 'VOLT20', percent: 20 });
+check('1 item en promo qty 1 + cupón por transferencia: cupón aplicado', t7.discountAmount === 9000);
+check('1 item en promo qty 1 + cupón por transferencia: total 36000', t7.total === 36000);
+
+// Sin cupón, ese mismo carrito sigue con el −10% de transferencia de siempre.
+const t8 = computeCheckoutTotals([buzoPromo(45000)], 'andreani', SHIP, 'transfer', null);
+check('1 item en promo qty 1 sin cupón: −10% transferencia intacto', t8.total === 40500);
+
+// Con un par de verdad el cupón sí queda bloqueado.
+const t9 = computeCheckoutTotals(
+    [buzoPromo(45000, 2)], 'andreani', SHIP, 'mp', { code: 'VOLT20', percent: 20 });
+check('con par real el cupón se ignora', t9.total === 45000 && t9.promoDiscount === 45000);
+
 // ── WhatsApp: promo 2x1 + transferencia no debe atribuir todo el descuento al 10% ──
 {
     // t2: promoDiscount=45000, discountAmount=49500 (promo + 10% transfer), total=40500

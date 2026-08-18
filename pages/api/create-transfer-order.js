@@ -18,7 +18,7 @@ import { computeAvailableStock } from '@/lib/server/stock';
 import { applyRateLimit } from '@/lib/server/rate-limit';
 import { SHIPPING_CONFIG } from '@/lib/shipping-config';
 import { normalizeCouponCode, isCouponValid, computeCouponDiscount } from '@/lib/server/coupons';
-import { computePromo2x1, tienePromo2x1 } from '@/lib/promo2x1';
+import { computePromo2x1 } from '@/lib/promo2x1';
 
 const TRANSFER_DISCOUNT_RATE = 0.10;
 
@@ -153,7 +153,7 @@ export default async function handler(req, res) {
         const normalizedItems = items.map((item) => ({
             id: String(item.id || item.productId || '').trim(),
             title: String(item.title || 'Producto'),
-            quantity: Math.max(1, Number(item.quantity) || 1),
+            quantity: Math.max(1, Math.floor(Number(item.quantity)) || 1),
             image: item.image || '',
             variantColor: item.variantColor || '',
             variantSize: item.variantSize || ''
@@ -217,7 +217,6 @@ export default async function handler(req, res) {
         // 2x1 primero: el 10% de transferencia corre sobre lo que queda.
         // El flag viene del doc de Firestore releído arriba, no del cliente.
         const { descuento: promoDiscount, unidadesGratis } = computePromo2x1(normalizedItems);
-        const hayPromo = tienePromo2x1(normalizedItems);
         const subtotalConPromo = subtotal - promoDiscount;
 
         const discounts = [];
@@ -237,10 +236,13 @@ export default async function handler(req, res) {
 
         // Cupón válido REEMPLAZA al −10%, pero NO acumula con el 2x1.
         const couponCode = normalizeCouponCode(body.couponCode);
-        // El cupón no acumula con la 2x1: si hay promo, se ignora en silencio
-        // (ni lectura del cupón ni usedCount) — mismo criterio que
-        // lib/checkout.js#computeCheckoutTotals (couponAplicable = coupon && !hayPromo).
-        if (couponCode && !hayPromo) {
+        // El cupón no acumula con la 2x1: si la promo descontó algo, se ignora en
+        // silencio (ni lectura del cupón ni usedCount) — mismo criterio que
+        // lib/checkout.js#computeCheckoutTotals (couponAplicable = coupon && promoDiscount === 0).
+        // Se gatea por el descuento REAL, no por el flag: un único item en promo
+        // con quantity 1 no forma par y el cupón tiene que seguir aplicando, o el
+        // cliente ve un precio y paga otro.
+        if (couponCode && promoDiscount === 0) {
             const couponSnap = await db.collection('coupons').doc(couponCode).get();
             const couponData = couponSnap.exists ? couponSnap.data() : null;
             if (isCouponValid(couponData).valid) {
@@ -257,7 +259,7 @@ export default async function handler(req, res) {
             percent: discountPercent,
         });
 
-        if (hayPromo) discountSource = 'promo2x1';
+        if (promoDiscount > 0) discountSource = 'promo2x1';
         const discountAmount = promoDiscount + transferDiscount;
         const total = subtotal - discountAmount;
 

@@ -5,7 +5,7 @@ import { computeAvailableStock } from '@/lib/server/stock';
 import { applyRateLimit } from '@/lib/server/rate-limit';
 import { SHIPPING_CONFIG } from '@/lib/shipping-config';
 import { normalizeCouponCode, isCouponValid } from '@/lib/server/coupons';
-import { computePromo2x1, tienePromo2x1, repartirDescuentoEnItems } from '@/lib/promo2x1';
+import { computePromo2x1, repartirDescuentoEnItems } from '@/lib/promo2x1';
 
 function generateOrderId() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -157,7 +157,7 @@ export default async function handler(req, res) {
         const normalizedItems = items.map(item => ({
             id: String(item.id || item.productId || '').trim(),
             title: String(item.title || 'Producto'),
-            quantity: Math.max(1, Number(item.quantity) || 1),
+            quantity: Math.max(1, Math.floor(Number(item.quantity)) || 1),
             image: item.image || '',
             variantColor: item.variantColor || '',
             variantSize: item.variantSize || ''
@@ -221,7 +221,6 @@ export default async function handler(req, res) {
         // nunca del body. El descuento se reparte bajando los unit_price de las
         // líneas en promo, porque MP no acepta una línea de descuento.
         const { descuento: promoDiscount, unidadesGratis } = computePromo2x1(normalizedItems);
-        const hayPromo = tienePromo2x1(normalizedItems);
 
         const discounts = [];
         if (promoDiscount > 0) {
@@ -235,13 +234,16 @@ export default async function handler(req, res) {
         // Cupón válido: baja el unit_price de cada producto en su %. NO acumula
         // con el 2x1.
         let coupon = null;
-        let discountSource = hayPromo ? 'promo2x1' : null;
+        let discountSource = promoDiscount > 0 ? 'promo2x1' : null;
         let discountPercent = 0;
         const couponCode = normalizeCouponCode(body.couponCode);
-        // El cupón no acumula con la 2x1: si hay promo, se ignora en silencio
-        // (ni lectura del cupón ni usedCount) — mismo criterio que
-        // lib/checkout.js#computeCheckoutTotals (couponAplicable = coupon && !hayPromo).
-        if (couponCode && !hayPromo) {
+        // El cupón no acumula con la 2x1: si la promo descontó algo, se ignora en
+        // silencio (ni lectura del cupón ni usedCount) — mismo criterio que
+        // lib/checkout.js#computeCheckoutTotals (couponAplicable = coupon && promoDiscount === 0).
+        // Se gatea por el descuento REAL, no por el flag: un único item en promo
+        // con quantity 1 no forma par, así que el cupón tiene que seguir aplicando
+        // — si no, MP cobra más de lo que el resumen mostró, sin paso de confirmación.
+        if (couponCode && promoDiscount === 0) {
             const couponSnap = await db.collection('coupons').doc(couponCode).get();
             const couponData = couponSnap.exists ? couponSnap.data() : null;
             if (isCouponValid(couponData).valid) {
