@@ -41,6 +41,8 @@ export interface Product {
     active: boolean;
     /** Sello "Edición limitada" en la card (F4, legacy/js/catalog.js:113-116). */
     limited?: boolean;
+    /** Entra en la promo 2x1 (ver docs/superpowers/specs/2026-08-17-promo-2x1-tc-design.md). */
+    promo2x1?: boolean;
     featured?: boolean;
     /** Orden en la home cuando featured === true (1 = primero). */
     featuredOrder?: number;
@@ -62,6 +64,10 @@ export interface CartItem {
     image: string;
     variantColor?: string;
     variantSize?: string;
+    /** Copia del flag del producto al momento de agregar. OPCIONAL: los
+     *  carritos viejos en localStorage no lo tienen y deben seguir siendo
+     *  válidos. El servidor es la autoridad — este campo es solo para mostrar. */
+    promo2x1?: boolean;
 }
 
 /** Misma semántica que lineKey() en legacy/js/cart-sync.js. */
@@ -140,7 +146,11 @@ export interface Order {
     subtotal: number;
     discountPercent: number;
     discountAmount: number;
-    discountSource: 'coupon' | 'transfer' | null;
+    discountSource: 'coupon' | 'transfer' | 'promo2x1' | null;
+    /** Desglose cuando hay más de un descuento (2x1 + transferencia).
+     *  Las órdenes anteriores a la promo no lo tienen — es opcional a propósito.
+     *  `discountAmount` sigue siendo la SUMA de todos. */
+    discounts?: Array<{ source: string; amount: number; percent?: number; detail?: string }>;
     coupon: string | null;
     total: number;
     paymentId: string | null;

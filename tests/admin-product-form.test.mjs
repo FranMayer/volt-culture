@@ -112,4 +112,13 @@ assert.deepEqual(diffChangedFields(original, next), { price: 200 }, 'solo price 
 assert.deepEqual(diffChangedFields(null, next), next, 'sin original: todo se considera cambiado');
 assert.deepEqual(diffChangedFields(original, original), {}, 'sin cambios: objeto vacío');
 
+// ── promo 2x1 ──────────────────────────────────────────────────────────────
+const formPromo = {
+    name: 'Buzo TC', category: 'buzos', line: 'TC', description: '',
+    price: '45000', active: true, limited: false, promo2x1: true,
+    variants: [], sizes: [], images: [],
+};
+assert.equal(buildProductPayload(formPromo).promo2x1, true);
+assert.equal(buildProductPayload({ ...formPromo, promo2x1: undefined }).promo2x1, false);
+
 console.log('admin-product-form.test.mjs: all assertions passed');

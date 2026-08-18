@@ -81,6 +81,7 @@ export default function ProductDetail({ product }: { product: Product }) {
         image: currentImage,
         variantColor: selectedColor,
         variantSize: selectedSize,
+        promo2x1: product.promo2x1 === true,
       },
       qty
     );

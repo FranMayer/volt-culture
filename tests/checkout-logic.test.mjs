@@ -111,5 +111,86 @@ const items = [{ price: 10000, quantity: 1 }, { price: 5000, quantity: 2 }]; // 
     check('mensaje WA andreani incluye la dirección', msgCoupon.includes('Cba') && msgCoupon.includes('5000'));
 }
 
+// ── promo 2x1 en los totales del resumen ───────────────────────────────────
+const SHIP = { cordoba: { cost: 3000 }, andreani: { cost: 0 } };
+const buzoPromo = (price, quantity = 1) => ({
+    id: `b${price}`, title: 'Buzo TC', price, quantity, promo2x1: true,
+});
+
+// 2 buzos de 45000, envío 0, pago MP, sin cupón.
+const t1 = computeCheckoutTotals(
+    [buzoPromo(45000), buzoPromo(45000)], 'andreani', SHIP, 'mp', null);
+check('2x1 descuenta el más barato del par', t1.promoDiscount === 45000);
+check('2x1 en MP: total = 45000', t1.total === 45000);
+
+// Mismo carrito por transferencia: el 10% corre sobre el subtotal YA con 2x1.
+const t2 = computeCheckoutTotals(
+    [buzoPromo(45000), buzoPromo(45000)], 'andreani', SHIP, 'transfer', null);
+check('2x1 + transferencia: promo intacta', t2.promoDiscount === 45000);
+check('2x1 + transferencia: 10% sobre 45000 = 4500 → total 40500', t2.total === 40500);
+check('2x1 + transferencia: discountAmount suma los dos', t2.discountAmount === 49500);
+
+// Con envío: 2 buzos 45000 + envío 3000 → subtotal con promo 48000, −10% = 4800
+const t3 = computeCheckoutTotals(
+    [buzoPromo(45000), buzoPromo(45000)], 'cordoba', SHIP, 'transfer', null);
+check('2x1 + envío + transferencia: total 43200', t3.total === 43200);
+
+// Sin items en promo, el comportamiento viejo no cambia.
+const t4 = computeCheckoutTotals(
+    [{ id: 'x', title: 'Remera', price: 20000, quantity: 2 }], 'andreani', SHIP, 'transfer', null);
+check('sin promo, transferencia sigue igual', t4.total === 36000);
+check('sin promo, promoDiscount es 0', t4.promoDiscount === 0);
+
+// Cupón + promo: el cupón se ignora (no acumulan).
+const t5 = computeCheckoutTotals(
+    [buzoPromo(45000), buzoPromo(45000)], 'andreani', SHIP, 'mp', { code: 'X', percent: 20 });
+check('cupón no acumula con 2x1', t5.total === 45000);
+
+// Un ÚNICO item en promo con quantity 1 no forma par: la promo no descuenta
+// nada, así que el cupón tiene que aplicar igual. Bloquearlo por la sola
+// presencia del flag mostraba $36.000 y cobraba $45.000.
+const t6 = computeCheckoutTotals(
+    [buzoPromo(45000)], 'andreani', SHIP, 'mp', { code: 'VOLT20', percent: 20 });
+check('1 item en promo qty 1: la promo no descuenta', t6.promoDiscount === 0);
+check('1 item en promo qty 1 + cupón 20%: el cupón SÍ se aplica', t6.discountAmount === 9000);
+check('1 item en promo qty 1 + cupón 20%: total 36000', t6.total === 36000);
+
+const t7 = computeCheckoutTotals(
+    [buzoPromo(45000)], 'andreani', SHIP, 'transfer', { code: 'VOLT20', percent: 20 });
+check('1 item en promo qty 1 + cupón por transferencia: cupón aplicado', t7.discountAmount === 9000);
+check('1 item en promo qty 1 + cupón por transferencia: total 36000', t7.total === 36000);
+
+// Sin cupón, ese mismo carrito sigue con el −10% de transferencia de siempre.
+const t8 = computeCheckoutTotals([buzoPromo(45000)], 'andreani', SHIP, 'transfer', null);
+check('1 item en promo qty 1 sin cupón: −10% transferencia intacto', t8.total === 40500);
+
+// Con un par de verdad el cupón sí queda bloqueado.
+const t9 = computeCheckoutTotals(
+    [buzoPromo(45000, 2)], 'andreani', SHIP, 'mp', { code: 'VOLT20', percent: 20 });
+check('con par real el cupón se ignora', t9.total === 45000 && t9.promoDiscount === 45000);
+
+// ── WhatsApp: promo 2x1 + transferencia no debe atribuir todo el descuento al 10% ──
+{
+    // t2: promoDiscount=45000, discountAmount=49500 (promo + 10% transfer), total=40500
+    const msgPromo = buildTransferWaMessage({
+        items: [buzoPromo(45000), buzoPromo(45000)],
+        customer: { name: 'Lu', dni: '11223344', phone: '351', email: 'lu@a.com' },
+        shippingOption: 'andreani',
+        shippingConfig: SHIP,
+        address: { street: 'Calle 1', city: 'Cba', province: 'Córdoba', postalCode: '5000' },
+        serverTotals: {
+            orderId: 'VOLT-PROMO1',
+            subtotal: t2.subtotal,
+            discountAmount: t2.discountAmount,
+            total: t2.total,
+            discountSource: 'transfer',
+            promoDiscount: t2.promoDiscount,
+        },
+    });
+    check('mensaje WA promo: incluye línea Promo 2x1 con su monto', msgPromo.includes('*Promo 2x1:* −$45.000'));
+    check('mensaje WA promo: línea transferencia muestra SOLO la porción del 10% (4500), no el combinado (49500)', msgPromo.includes('Descuento 10% transferencia:* −$4.500') && !msgPromo.includes('−$49.500'));
+    check('mensaje WA promo: total final correcto', msgPromo.includes('$40.500'));
+}
+
 if (failed > 0) { console.error(`\n❌ ${failed} checkout logic checks failed`); process.exit(1); }
 console.log('✅ checkout logic checks passed');

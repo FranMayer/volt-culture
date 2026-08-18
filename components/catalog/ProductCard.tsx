@@ -50,6 +50,11 @@ export default function ProductCard({
             Edición limitada
           </span>
         )}
+        {product.promo2x1 === true && (
+          <span className="product-badge-promo2x1" aria-label="Promoción dos por uno">
+            2x1
+          </span>
+        )}
         <span className="product-index" aria-hidden="true">
           {String(index + 1).padStart(2, "0")}
         </span>

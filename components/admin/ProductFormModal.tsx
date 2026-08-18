@@ -80,6 +80,7 @@ export default function ProductFormModal({
     const [price, setPrice] = useState("");
     const [active, setActive] = useState(true);
     const [limited, setLimited] = useState(false);
+    const [promo2x1, setPromo2x1] = useState(false);
 
     const [variants, setVariants] = useState<VariantRow[]>([emptyVariantRow()]);
     const [sizes, setSizes] = useState<SizeRow[]>([emptySizeRow()]);
@@ -114,6 +115,7 @@ export default function ProductFormModal({
             sizes: s,
             active: product.active !== false,
             limited: product.limited === true,
+            promo2x1: product.promo2x1 === true,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as Record<string, any>;
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -128,6 +130,7 @@ export default function ProductFormModal({
             setPrice(String(product.price ?? ""));
             setActive(product.active !== false);
             setLimited(product.limited === true);
+            setPromo2x1(product.promo2x1 === true);
             setVariants(normalizeVariants(product.variants, product.stock).map((v) => ({ id: newId(), ...v })));
             setSizes(normalizeSizes(product.sizes, product.stock).map((s) => ({ id: newId(), ...s })));
             setImages(
@@ -278,7 +281,7 @@ export default function ProductFormModal({
 
     // ── Guardar ─────────────────────────────────────────────────────────
     async function handleSave() {
-        const form = { name, category, line, description, price, active, limited, variants, sizes, images };
+        const form = { name, category, line, description, price, active, limited, promo2x1, variants, sizes, images };
         const payload = buildProductPayload(form);
 
         const req = validateRequiredFields(payload);
@@ -401,6 +404,20 @@ export default function ProductFormModal({
                                 <small className="d-block text-secondary">
                                     Muestra el sello “Edición limitada” en la card del catálogo. Usalo solo en drops reales.
                                 </small>
+                            </div>
+
+                            <div className="mb-3 form-check form-switch">
+                                <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    role="switch"
+                                    id="productPromo2x1"
+                                    checked={promo2x1}
+                                    onChange={(e) => setPromo2x1(e.target.checked)}
+                                />
+                                <label className="form-check-label" htmlFor="productPromo2x1">
+                                    Entra en promo 2x1
+                                </label>
                             </div>
 
                             <div className="admin-subsection">
