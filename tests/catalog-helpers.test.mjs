@@ -87,16 +87,22 @@ assert.equal(slugify('Remera Ñandú / Édition!'), 'remera-nandu-edition');
 assert.equal(slugify(''), 'producto');
 assert.equal(productPath({ name: 'Remera Ferrari', id: 'ferrari-001' }), '/producto/remera-ferrari-ferrari-001');
 
-// ── matchFilterFromQuery ────────────────────────────────────────────────
+// ── matchFilterFromQuery ──────────────────────────────────────
 assert.equal(matchFilterFromQuery('', ''), null, 'sin params -> null (default se mantiene)');
 assert.deepEqual(matchFilterFromQuery('f1', 'remeras'), { line: 'F1', category: 'Remeras' });
 assert.deepEqual(matchFilterFromQuery('TC', ''), { line: 'TC', category: 'all' }, 'solo line -> category all');
+assert.deepEqual(matchFilterFromQuery('jdm', ''), { line: 'JDM', category: 'all' }, 'estetica nueva');
+assert.deepEqual(matchFilterFromQuery('gt', 'gorras'), { line: 'GT', category: 'Gorras' });
 assert.deepEqual(
     matchFilterFromQuery('', 'gorras'),
-    { line: 'F1', category: 'Gorras' },
-    'sin line, cat sola matchea la primera línea (F1) con esa categoría, igual que el DOM order de applyCategoryFromQuery'
+    { line: 'all', category: 'Gorras' },
+    'cat sin line -> gorras de todas las esteticas (los ejes son independientes)'
 );
-assert.equal(matchFilterFromQuery('xx', 'remeras'), null, 'línea inexistente -> sin match');
+assert.deepEqual(
+    matchFilterFromQuery('xx', 'remeras'),
+    { line: 'all', category: 'Remeras' },
+    'linea inexistente degrada a all, no descarta la categoria valida'
+);
 
 // ── buildImageArray: dedupe + absolutiza + varias fuentes (F5, mismo caso
 //    que tests/product-page.test.mjs para la versión legacy de esta función) ─

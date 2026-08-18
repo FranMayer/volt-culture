@@ -16,6 +16,7 @@ import {
     buildProductPayload,
     diffChangedFields,
 } from "@/lib/admin/product-form.js";
+import { PRODUCTION_LINES, ALL_CATEGORIES } from "@/lib/catalog-helpers";
 import type { Product } from "@/lib/types";
 
 const PRESET_SIZES = ["XS", "S", "M", "L", "XL", "XXL", "ÚNICO"];
@@ -345,20 +346,20 @@ export default function ProductFormModal({
                                     <input className="form-control" value={name} onChange={(e) => setName(e.target.value)} required />
                                 </div>
                                 <div className="col-md-4 mb-3">
-                                    <label className="form-label">Línea de producción *</label>
+                                    <label className="form-label">Estética *</label>
                                     <select className="form-select" value={line} onChange={(e) => setLine(e.target.value)}>
-                                        <option value="TC">Turismo Carretera (TC)</option>
-                                        <option value="F1">Fórmula 1 (F1)</option>
+                                        {PRODUCTION_LINES.map((l) => (
+                                            <option key={l.id} value={l.id}>{l.label} — {l.blurb}</option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div className="col-md-4 mb-3">
                                     <label className="form-label">Tipo / Subcategoría *</label>
                                     <select className="form-select" value={category} onChange={(e) => setCategory(e.target.value)} required>
                                         <option value="">Seleccionar...</option>
-                                        <option value="Remeras">Remeras</option>
-                                        <option value="Buzos">Buzos</option>
-                                        <option value="Pantalones">Pantalones</option>
-                                        <option value="Gorras">Gorras</option>
+                                        {ALL_CATEGORIES.map((c) => (
+                                            <option key={c} value={c}>{c}</option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>

@@ -11,7 +11,7 @@ import QuickViewModal from "./QuickViewModal";
 import Lightbox from "./Lightbox";
 
 const FALLBACK_IMG = getProductImageFallback();
-const DEFAULT_FILTER: FilterState = { line: "F1", category: "all" };
+const DEFAULT_FILTER: FilterState = { line: "all", category: "all" };
 
 type LightboxState = { gallery: string[]; index: number; name: string };
 
@@ -55,15 +55,19 @@ export default function CatalogView() {
     };
   }, []);
 
+  // Una sola lectura de Firestore con todo el catálogo activo; ambos filtros
+  // (estética y prenda) se aplican en render. Así el sidebar puede contar
+  // productos por cada opción y marcar las vacías como PRONTO, y cambiar de
+  // filtro es instantáneo (antes cada cambio de categoría re-consultaba).
+  // ponytail: filtrado en memoria — si el catálogo pasa de unos cientos de
+  // productos, volver a filtrar `category` en la query de Firestore.
   useEffect(() => {
     let cancelled = false;
 
     async function loadProducts() {
       setLoading(true);
       try {
-        const category = filterState.category === "all" ? null : filterState.category;
-        const line = filterState.line === "all" ? null : filterState.line;
-        const list = await getAll(category, line);
+        const list = await getAll(null, null);
         if (cancelled) return;
 
         setProducts(list);
@@ -71,19 +75,11 @@ export default function CatalogView() {
 
         if (list.length > 0 && !deepLinkHandled.current) {
           deepLinkHandled.current = true;
+          // Las páginas /producto/ enlazan con ?product= a cualquier estética,
+          // no solo a la filtrada (legacy:71-78) — `list` ya es todo el catálogo.
           const wantedId = searchParams?.get("product");
-          if (wantedId) {
-            let target = list.find((p) => String(p.id) === wantedId);
-            if (!target) {
-              // El filtro inicial puede no incluir el producto buscado: las
-              // páginas /producto/ enlazan con ?product= a cualquier línea
-              // (legacy:71-78).
-              const all = await getAll(null, null);
-              if (cancelled) return;
-              target = all.find((p) => String(p.id) === wantedId);
-            }
-            if (target) setQuickViewProduct(target);
-          }
+          const target = wantedId ? list.find((p) => String(p.id) === wantedId) : null;
+          if (target) setQuickViewProduct(target);
         }
       } catch (err) {
         console.error("Error al cargar productos:", err);
@@ -101,7 +97,7 @@ export default function CatalogView() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterState.line, filterState.category]);
+  }, []);
 
   function openLightboxFor(product: Product, currentSrc: string) {
     const gallery = getProductGallery(product, FALLBACK_IMG);
@@ -110,7 +106,24 @@ export default function CatalogView() {
     setLightbox({ gallery, index: idx, name: product.name });
   }
 
-  const noProducts = !loading && !loadError && products.length === 0;
+  const visible = products.filter(
+    (p) =>
+      (filterState.line === "all" || p.line === filterState.line) &&
+      (filterState.category === "all" || p.category === filterState.category)
+  );
+
+  // Cuántos productos tiene cada opción en TODO el catálogo (no dentro del otro
+  // filtro): el badge significa "esto todavía no existe", y así no baila cada
+  // vez que se toca el otro eje. null mientras carga.
+  const countBy = (key: "line" | "category") =>
+    products.reduce<Record<string, number>>((acc, p) => {
+      const v = String(p[key] || (key === "line" ? "TC" : ""));
+      acc[v] = (acc[v] || 0) + 1;
+      return acc;
+    }, {});
+  const counts = loading ? null : { line: countBy("line"), category: countBy("category") };
+
+  const noProducts = !loading && !loadError && visible.length === 0;
 
   return (
     <>
@@ -146,6 +159,7 @@ export default function CatalogView() {
             onSelect={setFilterState}
             open={sidebarOpen}
             onToggleOpen={() => setSidebarOpen((v) => !v)}
+            counts={counts}
           />
 
           <div className="product-grid">
@@ -164,7 +178,7 @@ export default function CatalogView() {
               </div>
             )}
 
-            {products.map((product, index) => (
+            {visible.map((product, index) => (
               <ProductCard
                 key={product.id}
                 product={product}
