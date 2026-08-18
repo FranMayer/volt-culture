@@ -5,6 +5,7 @@ import { computeAvailableStock } from '@/lib/server/stock';
 import { applyRateLimit } from '@/lib/server/rate-limit';
 import { SHIPPING_CONFIG } from '@/lib/shipping-config';
 import { normalizeCouponCode, isCouponValid } from '@/lib/server/coupons';
+import { computePromo2x1, tienePromo2x1, repartirDescuentoEnItems } from '@/lib/promo2x1';
 
 function generateOrderId() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -195,6 +196,10 @@ export default async function handler(req, res) {
                         throw err;
                     }
                     item.price = serverPrice;
+                    // El flag de la promo viene del doc de Firestore releído acá, nunca del body
+                    // del cliente — de lo contrario alcanzaría con forjar el request para llevarse
+                    // ítems gratis.
+                    item.promo2x1 = data.promo2x1 === true;
                     const available = computeAvailableStock(data, item.variantColor, item.variantSize);
                     if (available < item.quantity) {
                         const err = new Error(`Stock insuficiente para ${item.title}`);
@@ -212,11 +217,32 @@ export default async function handler(req, res) {
 
         const productsTotal = normalizedItems.reduce((sum, i) => sum + (i.price * i.quantity), 0);
 
-        // Cupón válido: baja el unit_price de cada producto en su %.
+        // 2x1: el flag y el precio salen del doc de Firestore releído arriba,
+        // nunca del body. El descuento se reparte bajando los unit_price de las
+        // líneas en promo, porque MP no acepta una línea de descuento.
+        const { descuento: promoDiscount, unidadesGratis } = computePromo2x1(normalizedItems);
+        const hayPromo = tienePromo2x1(normalizedItems);
+
+        const discounts = [];
+        if (promoDiscount > 0) {
+            discounts.push({
+                source: 'promo2x1',
+                amount: promoDiscount,
+                detail: `2x1 — ${unidadesGratis} ${unidadesGratis === 1 ? 'unidad gratis' : 'unidades gratis'}`,
+            });
+        }
+
+        // Cupón válido: baja el unit_price de cada producto en su %. NO acumula
+        // con el 2x1.
         let coupon = null;
-        let discountSource = null;
+        let discountSource = hayPromo ? 'promo2x1' : null;
         let discountPercent = 0;
         const couponCode = normalizeCouponCode(body.couponCode);
+        if (couponCode && hayPromo) {
+            return res.status(400).json({
+                error: 'El cupón no es acumulable con la promo 2x1.',
+            });
+        }
         if (couponCode) {
             const couponSnap = await db.collection('coupons').doc(couponCode).get();
             const couponData = couponSnap.exists ? couponSnap.data() : null;
@@ -224,15 +250,22 @@ export default async function handler(req, res) {
                 coupon = couponData.code || couponCode;
                 discountSource = 'coupon';
                 discountPercent = Number(couponData.percent);
+                discounts.push({ source: 'coupon', amount: 0, percent: discountPercent });
             }
         }
 
-        const discountedItems = normalizedItems.map((i) => ({
-            ...i,
-            unitPrice: discountPercent ? Math.round(i.price * (100 - discountPercent) / 100) : i.price
-        }));
+        const discountedItems = promoDiscount > 0
+            ? repartirDescuentoEnItems(normalizedItems, promoDiscount)
+            : normalizedItems.map((i) => ({
+                ...i,
+                unitPrice: discountPercent ? Math.round(i.price * (100 - discountPercent) / 100) : i.price
+            }));
+
         const discountedProductsTotal = discountedItems.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
         const discountAmount = productsTotal - discountedProductsTotal;
+        if (discounts.length && discounts[discounts.length - 1].source === 'coupon') {
+            discounts[discounts.length - 1].amount = discountAmount;
+        }
         const subtotal = productsTotal + shippingCost;
         const total = discountedProductsTotal + shippingCost;
         const orderId = generateOrderId();
@@ -254,6 +287,7 @@ export default async function handler(req, res) {
                 subtotal,
                 discountPercent,
                 discountAmount,
+                discounts,
                 coupon,
                 discountSource,
                 total,
@@ -330,7 +364,9 @@ export default async function handler(req, res) {
 
             return res.status(200).json({
                 init_point: result.init_point || result.sandbox_init_point,
-                orderId
+                orderId,
+                promoDiscount,
+                promoUnidadesGratis: unidadesGratis
             });
         } catch (mpError) {
             await orderRef.update({
