@@ -237,12 +237,10 @@ export default async function handler(req, res) {
 
         // Cupón válido REEMPLAZA al −10%, pero NO acumula con el 2x1.
         const couponCode = normalizeCouponCode(body.couponCode);
-        if (couponCode && hayPromo) {
-            return res.status(400).json({
-                error: 'El cupón no es acumulable con la promo 2x1.',
-            });
-        }
-        if (couponCode) {
+        // El cupón no acumula con la 2x1: si hay promo, se ignora en silencio
+        // (ni lectura del cupón ni usedCount) — mismo criterio que
+        // lib/checkout.js#computeCheckoutTotals (couponAplicable = coupon && !hayPromo).
+        if (couponCode && !hayPromo) {
             const couponSnap = await db.collection('coupons').doc(couponCode).get();
             const couponData = couponSnap.exists ? couponSnap.data() : null;
             if (isCouponValid(couponData).valid) {
