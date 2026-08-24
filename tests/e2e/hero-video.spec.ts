@@ -2,7 +2,7 @@
 // Solo lectura: no toca Firestore ni MP.
 //
 // Lo que protege: el <video> se monta SOLO en desktop con motion habilitado.
-// Si alguien saca ese guard, mobile vuelve a descargar ~742 KB de video sin
+// Si alguien saca ese guard, mobile vuelve a descargar ~330 KB de video sin
 // que nada más falle — por eso el assert que importa es el de bytes, no el
 // de visibilidad.
 import { test, expect } from "@playwright/test";
@@ -12,7 +12,7 @@ import { disableLightsOut, expectNotCovered } from "./helpers";
 function trackVideoRequests(page: import("@playwright/test").Page) {
     const hits: string[] = [];
     page.on("request", (r) => {
-        if (r.url().includes("/video/hero-loop")) hits.push(r.url());
+        if (r.url().includes("/video/hero-exhaust.mp4")) hits.push(r.url());
     });
     return hits;
 }
@@ -68,6 +68,6 @@ test.describe("hero background loop", () => {
         const bg = await page
             .locator(".hero__bg")
             .evaluate((el) => getComputedStyle(el).backgroundImage);
-        expect(bg).toContain("hero-poster");
+        expect(bg).toContain("hero-exhaust-poster");
     });
 });
