@@ -89,6 +89,50 @@ export default function Home() {
         <main>
           <section className="hero" id="top" aria-label="Principal">
             <HeroVideo />
+            {/* Heat haze over the headline: fractal noise drives a displacement
+                map, so the glyphs refract like air over the exhaust instead of
+                just blurring. Zero-size SVG — it only carries the filter, which
+                app/styles/home.css applies to .hero__headline (desktop and
+                no-reduced-motion only). SMIL animates baseFrequency because
+                that is the one knob that needs no JS; it shimmers in place
+                rather than flowing upward, which reads fine at this scale.
+                ponytail: uniform displacement over the whole headline — a
+                gradient falloff (stronger near the pipes) needs feImage, whose
+                data-URI support is uneven. Add it if the flat version reads
+                wrong. */}
+            <svg className="heat-defs" aria-hidden="true" focusable="false">
+              <filter
+                id="voltHeat"
+                x="-8%"
+                y="-30%"
+                width="116%"
+                height="160%"
+                colorInterpolationFilters="sRGB"
+              >
+                <feTurbulence
+                  type="fractalNoise"
+                  baseFrequency="0.010 0.028"
+                  numOctaves={1}
+                  seed={7}
+                  stitchTiles="stitch"
+                  result="noise"
+                />
+                <feOffset in="noise" dx="0" dy="0" result="drift">
+                  <animate attributeName="dy" dur="4s" values="0;-48" repeatCount="indefinite" />
+                </feOffset>
+                <feDisplacementMap
+                  in="SourceGraphic"
+                  in2="drift"
+                  scale={26}
+                  xChannelSelector="R"
+                  yChannelSelector="G"
+                  result="displaced"
+                />
+                {/* Real heat haze softens what it bends; without this the glyphs
+                    warp but keep razor edges and read as grunge, not as air. */}
+                <feGaussianBlur in="displaced" stdDeviation={1.5} />
+              </filter>
+            </svg>
             <span className="hero__watermark" aria-hidden="true">
               VOLT
             </span>

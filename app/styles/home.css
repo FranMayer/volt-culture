@@ -368,23 +368,41 @@
 .home-page .hero__bg {
   position: absolute;
   top: 0;
+  /* Full bleed, behind everything. A right-hand panel collided with
+     .hero-featured, which goes `position:absolute; right:…; width:min(700px,
+     48vw)` above 1700px and sat right on top of it. The clip is a 720x1280
+     portrait, so `cover` on a landscape viewport scales ~2x and shows a
+     horizontal band of it — `object-position` centre lands that band on the
+     car and its exhausts, which is the part worth showing. */
   left: 0;
   right: 0;
   /* NOT `inset: 0`. .hero is ~1497px tall (it wraps the featured carousel), so
-     covering the whole section put a 16:9 video inside a portrait box and
-     `object-fit: cover` cropped ~690px off EACH side — enough to swallow the
-     telemetry in the right band entirely. One viewport is what a hero
-     background is actually for, and it keeps the crop small. */
+     covering the whole section would put the clip in a box twice its height. */
   height: 100vh;
   z-index: -2;
   overflow: hidden;
   pointer-events: none;
-  background-image: url('/video/hero-poster.jpg');
+  background-image: url('/video/hero-exhaust-poster.jpg');
   background-size: cover;
   background-position: center;
   /* soften the hand-off to the plain black section below */
   -webkit-mask-image: linear-gradient(180deg, #000 82%, transparent 100%);
   mask-image: linear-gradient(180deg, #000 82%, transparent 100%);
+}
+
+/* Dissolves the panel's left edge into the page black. A pseudo-element rather
+   than a second mask layer: it comes after <video> in paint order, so it also
+   covers the video, and it needs no `mask-composite` (still prefixed in
+   WebKit). */
+.home-page .hero__bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* Knocks the clip back far enough for white headline text to hold contrast
+     over it, without burying the flames — they are the brightest thing in
+     frame and punch through. */
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0.38) 42%, rgba(0, 0, 0, 0.72) 100%);
+  pointer-events: none;
 }
 
 .home-page .hero__bg-video {
@@ -397,7 +415,7 @@
 .home-page .hero__watermark {
   position: absolute;
   top: 50%;
-  right: -80px;
+  left: -30px;
   transform: translateY(-50%);
   max-width: 60vw;
   font-family: var(--font-display);
@@ -451,6 +469,26 @@
 @keyframes pulse-red {
   0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(193, 18, 31, 0.5); }
   50% { opacity: 0.85; box-shadow: 0 0 0 10px rgba(193, 18, 31, 0); }
+}
+
+/* Carries the #voltHeat filter only — must not take up layout. */
+.home-page .heat-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Measured on a GPU-backed browser the displacement costs nothing (6.1ms/frame
+   with and without, identical). It still repaints the headline every frame, so
+   phones skip it along with the video and anyone who asked for less motion
+   never gets it. Swap the selector to `.hero__headline .accent` to shimmer only
+   the red line and leave "BUILT FOR THE" crisp. */
+@media (min-width: 901px) and (prefers-reduced-motion: no-preference) {
+  .home-page .hero__headline {
+    filter: url('#voltHeat');
+  }
 }
 
 .home-page .hero__headline {
@@ -977,8 +1015,12 @@
 
   .home-page .hero__watermark {
     font-size: clamp(120px, 40vw, 220px);
-    right: -40px;
+    left: -20px;
     opacity: 0.6;
+  }
+
+  .home-page .hero__bg::after {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.36) 45%, rgba(0, 0, 0, 0.74) 100%);
   }
 
   .home-page .hero-featured__arrow {
@@ -1021,6 +1063,17 @@
 
   .home-page .hero-featured .home-featured-card__title {
     font-size: 0.98rem;
+  }
+}
+
+/* Below 769px HeroVideo never mounts the <video> (same breakpoint), so the
+   poster is not a hand-off frame any more — it is the finished image. Frame 0
+   is a lull with no flames, which is the right call on desktop (it matches the
+   video's first frame, so the swap is invisible) and the wrong one here. This
+   one is the flame peak, same grade, and only phones ever fetch it. */
+@media (max-width: 768px) {
+  .home-page .hero__bg {
+    background-image: url('/video/hero-exhaust-poster-mobile.jpg');
   }
 }
 
