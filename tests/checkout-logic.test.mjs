@@ -5,7 +5,6 @@
 import {
     validateDni,
     formatMoney,
-    estimateCartShipment,
     validateAndreaniAddress,
     checkCoupon,
     computeCheckoutTotals,
@@ -35,15 +34,6 @@ check('DNI con espacios se trimea', validateDni('  1234567  ') === true);
 // ── formatMoney ──
 check('formatMoney formatea es-AR', formatMoney(2500) === '$2.500');
 check('formatMoney redondea negativo/undefined a 0', formatMoney(undefined) === '$0');
-
-// ── estimateCartShipment ──
-{
-    const r1 = estimateCartShipment([{ title: 'Remera VOLT', quantity: 2 }]);
-    check('remera: 0.3kg/u, 3000cm3/u', r1.pesoKg === 0.6 && r1.volumenCm3 === 6000);
-    const r2 = estimateCartShipment([{ title: 'Hoodie VOLT', quantity: 1 }, { title: 'Buzo Canguro', quantity: 1 }]);
-    check('hoodie/buzo: 0.7kg/u, 6000cm3/u', r2.pesoKg === 1.4 && r2.volumenCm3 === 12000);
-    check('carrito vacío -> 0/0', estimateCartShipment([]).pesoKg === 0);
-}
 
 // ── validateAndreaniAddress ──
 check('dirección completa válida', validateAndreaniAddress({ street: 'Calle 1', city: 'Cba', province: 'Córdoba', postalCode: '5000' }) === null);

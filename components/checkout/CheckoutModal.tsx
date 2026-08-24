@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { useCheckout } from "./CheckoutContext";
@@ -13,7 +13,6 @@ import { normalizeCouponCode } from "@/lib/server/coupons";
 import {
     validateDni,
     formatMoney,
-    estimateCartShipment,
     checkCoupon,
     computeCheckoutTotals,
     buildTransferWaMessage,
@@ -72,8 +71,6 @@ const SHIPPING_LABELS: Record<"cordoba" | "andreani", string> = {
 type ShippingOption = "cordoba" | "andreani";
 type Customer = { name: string; dni: string; phone: string; email: string };
 type AndreaniAddress = { street: string; city: string; province: string; postalCode: string };
-type QuoteState = { status: "idle" | "loading" | "ok" | "error"; text: string };
-
 function emptyCustomer(): Customer {
     return { name: "", dni: "", phone: "", email: "" };
 }
@@ -91,7 +88,6 @@ export default function CheckoutModal() {
     const [stepError, setStepError] = useState("");
     const [shippingOption, setShippingOption] = useState<ShippingOption | null>(null);
     const [address, setAddress] = useState<AndreaniAddress>(emptyAddress());
-    const [quote, setQuote] = useState<QuoteState>({ status: "idle", text: "" });
     const [couponInput, setCouponInput] = useState("");
     const [coupon, setCoupon] = useState<{ code: string; percent: number } | null>(null);
     const [couponFeedback, setCouponFeedback] = useState<{ text: string; ok: boolean | null }>({ text: "", ok: null });
@@ -107,9 +103,6 @@ export default function CheckoutModal() {
     // checkout se releen los flags de Firestore — misma fuente que usan los dos
     // endpoints — y con esos se calculan los totales que se muestran.
     const [promoFlags, setPromoFlags] = useState<Record<string, boolean> | null>(null);
-
-    const quoteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const quoteReqId = useRef(0);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -175,7 +168,6 @@ export default function CheckoutModal() {
         setStepError("");
         setShippingOption(null);
         setAddress(emptyAddress());
-        setQuote({ status: "idle", text: "" });
         setCouponInput("");
         setCoupon(null);
         setCouponFeedback({ text: "", ok: null });
@@ -200,70 +192,11 @@ export default function CheckoutModal() {
             document.body.style.overflow = prevOverflow;
             document.body.style.paddingRight = prevPadding;
             document.removeEventListener("keydown", onKeyDown);
-            if (quoteTimer.current) {
-                clearTimeout(quoteTimer.current);
-                quoteTimer.current = null;
-            }
         };
     }, [isOpen, close, submitting]);
 
     function persistCustomer(c: Customer) {
         localStorage.setItem(CUSTOMER_STORAGE_KEY, JSON.stringify(c));
-    }
-
-    // ── Cotización Andreani (debounce 600ms, legacy pagos.js:432-448) ──
-    function scheduleQuote(option: ShippingOption | null, postalCode: string) {
-        if (quoteTimer.current) {
-            clearTimeout(quoteTimer.current);
-            quoteTimer.current = null;
-        }
-        if (option !== "andreani" || !/^\d{4}$/.test(postalCode)) {
-            quoteReqId.current += 1;
-            setQuote({ status: "idle", text: "" });
-            return;
-        }
-        quoteTimer.current = setTimeout(() => {
-            quoteTimer.current = null;
-            void fetchQuote(postalCode);
-        }, 600);
-    }
-
-    async function fetchQuote(postalCode: string) {
-        const myReq = ++quoteReqId.current;
-        setQuote({ status: "loading", text: "Cotizando envío…" });
-        const { pesoKg, volumenCm3 } = estimateCartShipment(items);
-        try {
-            const url = `/api/cotizar-envio?codigoPostalDestino=${encodeURIComponent(postalCode)}&pesoKg=${pesoKg}&volumenCm3=${volumenCm3}`;
-            const res = await fetch(url);
-            if (myReq !== quoteReqId.current) return;
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json();
-            if (myReq !== quoteReqId.current) return;
-            const tarifa = Number(data.tarifaConIva);
-            if (!Number.isFinite(tarifa)) throw new Error("tarifa inválida");
-            setQuote({
-                status: "ok",
-                text: `Costo estimado de envío (Andreani): ${formatMoney(Math.round(tarifa))} IVA incluido — se coordina el pago del envío por WhatsApp.`,
-            });
-        } catch {
-            if (myReq !== quoteReqId.current) return;
-            // NOTA (F7): ANDREANI_USER/ANDREANI_PASS no están configuradas en
-            // este entorno (el usuario descartó Andreani por falta de
-            // credenciales) — /api/cotizar-envio devuelve 502 y este catch
-            // es la ruta esperada mientras tanto. No se mockean datos: en
-            // cuanto haya credenciales esto cotiza sin cambios de código acá.
-            setQuote({ status: "error", text: "No pudimos cotizar el envío para ese código postal." });
-        }
-    }
-
-    function selectShipping(option: ShippingOption) {
-        setShippingOption(option);
-        scheduleQuote(option, address.postalCode);
-    }
-
-    function handlePostalCodeChange(value: string) {
-        setAddress((a) => ({ ...a, postalCode: value }));
-        scheduleQuote(shippingOption, value);
     }
 
     // ── Navegación del stepper (legacy pagos.js:634-651, 816-847) ──
@@ -551,7 +484,7 @@ export default function CheckoutModal() {
                                         type="button"
                                         className={`volt-ship-card${shippingOption === "cordoba" ? " is-selected" : ""}`}
                                         aria-pressed={shippingOption === "cordoba"}
-                                        onClick={() => selectShipping("cordoba")}
+                                        onClick={() => setShippingOption("cordoba")}
                                     >
                                         <div className="volt-ship-card__title">
                                             Envío {SHIPPING_CONFIG.cordoba.label} — {formatMoney(SHIPPING_CONFIG.cordoba.cost)}
@@ -564,7 +497,7 @@ export default function CheckoutModal() {
                                         type="button"
                                         className={`volt-ship-card${shippingOption === "andreani" ? " is-selected" : ""}`}
                                         aria-pressed={shippingOption === "andreani"}
-                                        onClick={() => selectShipping("andreani")}
+                                        onClick={() => setShippingOption("andreani")}
                                     >
                                         <div className="volt-ship-card__title">{SHIPPING_CONFIG.andreani.label} del país</div>
                                         <p className="volt-ship-card__meta">
@@ -629,17 +562,8 @@ export default function CheckoutModal() {
                                                     autoComplete="postal-code"
                                                     inputMode="numeric"
                                                     value={address.postalCode}
-                                                    onChange={(e) => handlePostalCodeChange(e.target.value)}
+                                                    onChange={(e) => setAddress((a) => ({ ...a, postalCode: e.target.value }))}
                                                 />
-                                                {quote.text && (
-                                                    <p
-                                                        className="small mb-0"
-                                                        id="andreaniQuoteBox"
-                                                        style={{ color: quote.status === "error" ? "#e06b6b" : "#ccc", marginTop: "0.6rem" }}
-                                                    >
-                                                        {quote.text}
-                                                    </p>
-                                                )}
                                             </div>
                                         </div>
                                     </>

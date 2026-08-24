@@ -110,15 +110,9 @@ export interface OrderShipping {
     notes?: string;
     /** Nota libre mostrada en el detalle admin (legacy/js/admin-orders.js#adminShippingHtml). */
     note?: string;
-    /** Seteados por pages/api/notify-status.js al pasar a `shipped` (F9). */
+    /** Seteados a mano por el admin en pages/api/notify-status.js al pasar a `shipped`. */
     carrier?: string;
     trackingNumber?: string;
-    /** Seteado por pages/api/crear-orden-andreani.js al generar el despacho (F9). */
-    andreani?: {
-        numeroDeEnvio: string;
-        bultos?: unknown[];
-        createdAt?: unknown;
-    };
 }
 
 export interface OrderItem {
@@ -170,10 +164,4 @@ export interface Coupon {
     maxUses?: number;
     usedCount?: number;
     createdAt?: unknown;
-}
-
-/** Respuesta de api/cotizar-envio.js (Andreani). */
-export interface ShippingQuote {
-    tarifaSinIva: number;
-    tarifaConIva: number;
 }

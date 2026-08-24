@@ -21,7 +21,7 @@ VOLT Culture es un e-commerce de streetwear inspirado en motorsport (Córdoba, A
 - **Estado del carrito**: Zustand + `persist`
 - **Auth + DB**: Firebase — Firestore + Auth (SDK modular `firebase@12.8`; Admin SDK en backend)
 - **Pagos**: MercadoPago Checkout Pro (server-side, `pages/api/create-preference` + webhook con firma HMAC)
-- **Emails**: Resend · **Imágenes**: Cloudinary (upload firmado) · **Envíos**: Andreani API · **Rate limit**: Upstash Redis
+- **Emails**: Resend · **Imágenes**: Cloudinary (upload firmado) · **Envíos**: despacho manual (sin API de transporte) · **Rate limit**: Upstash Redis
 - **Hosting**: Vercel (mismo proyecto que el sitio viejo; QA en preview deploys de la rama)
 - **Design system**: paleta `#000`/`#FFF`/`#c1121f` + grises de label `#444–#888`, corners sharp, fuentes Teko 700 / DM Mono / Glacial Indifference (via `next/font`)
 
@@ -89,6 +89,7 @@ El agente principal (Fable 5) actúa como **orquestador** y minimiza sus propios
 - `legacy/js/animations.js` — código muerto (apunta a IDs inexistentes)
 - `api/admin-redeploy.js` + `triggerRedeploy` + deploy hook de Vercel — reemplazados por ISR/revalidate (F5)
 - `scripts/gen-product-pages.mjs` + `product-page-template.mjs` + `producto/*.html` generados — solo sobrevive `slugify` copiado a `lib/`
+- **API de Andreani** — eliminada el 2026-08-24 (Andreani exige 350 envíos/mes y todavía no se llega). El despacho es manual: el admin marca la orden como enviada y pega el nº de tracking a mano en el detalle de la orden (`notify-status`), que lo manda por mail con el link público de rastreo. Andreani/OCA siguen siendo el transportista al interior — lo que se fue es la integración (`andreani-auth`, `cotizar-envio`, `crear-orden-andreani`, `etiqueta-andreani`, `tracking-andreani` y la solapa Despachos del admin). No re-introducir sin contrato.
 - `sitemap.xml`/`robots.txt` estáticos → `app/sitemap.ts` / `app/robots.ts`
 - Bootstrap CDN, Firebase compat CDN, evento global `cartUpdated`, markup duplicado de layout
 - Limpieza profunda de CSS / `!important` — post-migración
@@ -96,7 +97,7 @@ El agente principal (Fable 5) actúa como **orquestador** y minimiza sus propios
 ## Env vars
 
 - **No hardcodear secretos ni URLs de entorno.** Todo por env vars (ver `.env.example`); la config pública de Firebase client es la única excepción tolerada.
-- El **Firebase project es único**: preview escribe en el Firestore real. El QA de pagos usa env vars **scoped a Preview** en Vercel: `MP_ACCESS_TOKEN`/`MP_WEBHOOK_SECRET` de TEST, `SITE_URL` = URL estable de la rama (no la de cada deploy), Andreani en QA (default del código). Compras de prueba solo contra productos de prueba dedicados; órdenes de QA se borran por id (nunca `admin-cleanup`).
+- El **Firebase project es único**: preview escribe en el Firestore real. El QA de pagos usa env vars **scoped a Preview** en Vercel: `MP_ACCESS_TOKEN`/`MP_WEBHOOK_SECRET` de TEST, `SITE_URL` = URL estable de la rama (no la de cada deploy). Compras de prueba solo contra productos de prueba dedicados; órdenes de QA se borran por id (nunca `admin-cleanup`).
 - Las overrides de Preview se eliminan en el cutover (checklist F10).
 
 ## Comandos

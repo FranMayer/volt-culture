@@ -2,11 +2,10 @@
  * lib/admin/api-client.ts — fetch autenticado a pages/api/* desde el panel
  * admin. Mismo patrón que components/admin/ProductFormModal.tsx (auth.
  * currentUser?.getIdToken() + Bearer header), factorizado acá porque
- * OrdersTab (notify-status) y DespachosTab (crear-orden-andreani,
- * etiqueta-andreani) lo necesitan igual. Port del wrapper fetch de
- * legacy/js/{admin-orders,admin-despachos}.js (getAdminToken/
- * formatAdminApiError) — sin el branch de "Live Server puerto 5500" (next
- * dev sirve /api/* directo, ese caso no existe acá).
+ * OrdersTab (notify-status) lo necesita igual. Port del wrapper fetch de
+ * legacy/js/admin-orders.js (getAdminToken/formatAdminApiError) — sin el
+ * branch de "Live Server puerto 5500" (next dev sirve /api/* directo, ese
+ * caso no existe acá).
  */
 "use client";
 
@@ -37,12 +36,4 @@ export async function adminFetchJson<T = unknown>(path: string, options: Request
     });
     await throwOnError(resp);
     return resp.json();
-}
-
-/** GET binario (etiqueta PDF) a un endpoint admin con el Bearer token. */
-export async function adminFetchBlob(path: string): Promise<Blob> {
-    const idToken = await getAdminIdToken();
-    const resp = await fetch(path, { headers: { Authorization: `Bearer ${idToken}` } });
-    await throwOnError(resp);
-    return resp.blob();
 }
