@@ -18,11 +18,9 @@
  *    `localStorage['cart']` a mano + `dispatchEvent('cartUpdated')` (evento
  *    global eliminado por decisión de CLAUDE.md — Zustand ya notifica a los
  *    suscriptores).
- *  - Suma tracking Andreani por fetch a /api/tracking-andreani (pedido de
- *    esta tarea, no existe en el legacy: ese archivo solo arma un link a
- *    andreani.com). Degrada sin bloquear: si el fetch falla o no hay
- *    credenciales de Andreani configuradas, la tarjeta de la orden se
- *    renderiza igual con un texto de "no disponible".
+ *  - El seguimiento es el nº de tracking que carga el admin a mano al marcar
+ *    la orden como enviada, con link al rastreo público del correo. No hay
+ *    consulta de estado en vivo: la API de Andreani no está contratada.
  */
 
 import { useEffect, useState, type ReactNode } from "react";
@@ -205,65 +203,6 @@ function PageLoader() {
     );
 }
 
-// ── Tracking Andreani (fetch a pages/api/tracking-andreani.js) ────────────
-
-type TrackingState =
-    | { status: "loading" }
-    | { status: "empty" }
-    | { status: "error" }
-    | { status: "ok"; estado: string; fecha: string | null };
-
-function TrackingStatus({ trackingNumber }: { trackingNumber: string }) {
-    const [state, setState] = useState<TrackingState>({ status: "loading" });
-
-    useEffect(() => {
-        let cancelled = false;
-        setState({ status: "loading" });
-
-        fetch(`/api/tracking-andreani?numeroAndreani=${encodeURIComponent(trackingNumber)}`)
-            .then((res) => {
-                if (!res.ok) throw new Error(`status ${res.status}`);
-                return res.json();
-            })
-            .then((data: { eventos?: Array<{ estado?: string; fecha?: string }> }) => {
-                if (cancelled) return;
-                const eventos = Array.isArray(data.eventos) ? data.eventos : [];
-                if (eventos.length === 0) {
-                    setState({ status: "empty" });
-                    return;
-                }
-                const last = eventos[0];
-                setState({ status: "ok", estado: last.estado || "Sin novedades", fecha: last.fecha || null });
-            })
-            .catch(() => {
-                // ponytail: sin credenciales de Andreani en preview/dev el
-                // endpoint devuelve 502 — degrada a texto, no bloquea la orden.
-                if (!cancelled) setState({ status: "error" });
-            });
-
-        return () => {
-            cancelled = true;
-        };
-    }, [trackingNumber]);
-
-    if (state.status === "loading") {
-        return <div className="order-card__ship-line">Consultando seguimiento...</div>;
-    }
-    if (state.status === "error") {
-        return <div className="order-card__ship-line">Seguimiento no disponible por el momento.</div>;
-    }
-    if (state.status === "empty") {
-        return <div className="order-card__ship-line">Sin novedades de seguimiento aún.</div>;
-    }
-    const fechaFmt = state.fecha ? toDate(state.fecha) : null;
-    return (
-        <div className="order-card__ship-line">
-            <strong>Último estado:</strong> {state.estado}
-            {fechaFmt ? ` — ${formatDate(fechaFmt)}` : ""}
-        </div>
-    );
-}
-
 // ── Tarjeta de orden ────────────────────────────────────────────────────
 
 function normalizeStatusKey(status: string): string {
@@ -287,7 +226,6 @@ function OrderShippingBlock({ order }: { order: OrderView }) {
         : null;
 
     const showTracking = status === "shipped" && !!s.trackingNumber;
-    const isAndreani = s.type === "andreani" || s.method === "andreani";
 
     const addressBlock = s.address ? (
         <div className="order-card__ship-address" key="addr">
@@ -341,10 +279,7 @@ function OrderShippingBlock({ order }: { order: OrderView }) {
     if (!lines.length) return null;
 
     return (
-        <div className="order-card__shipping">
-            {lines}
-            {showTracking && isAndreani && <TrackingStatus trackingNumber={s.trackingNumber} />}
-        </div>
+        <div className="order-card__shipping">{lines}</div>
     );
 }
 

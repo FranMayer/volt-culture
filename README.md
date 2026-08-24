@@ -19,7 +19,7 @@ Diseños únicos para quienes llevan el motor en la sangre.
 - **JavaScript** vanilla (ES6+) — sin framework ni bundler
 - **Firebase** (compat 9.22) — Auth (Google) + Firestore (productos, órdenes, carritos)
 - **Mercado Pago** (Checkout Pro) + **transferencia** con comprobante
-- **Andreani** — cotización y envíos vía funciones serverless en `/api/`
+- **Envíos al interior** — despacho manual (Andreani/OCA); el nº de tracking se carga a mano desde el admin
 - **Vercel** — hosting estático + funciones serverless + build step (páginas de producto SEO)
 
 ---

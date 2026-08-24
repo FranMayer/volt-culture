@@ -69,8 +69,8 @@ test.describe("checkout", () => {
         await modal.getByRole("button", { name: "Continuar" }).click();
         await expect(modal.locator(".volt-stepper__item").nth(1)).toHaveClass(/is-active/);
 
-        // Paso 2 — envío. Cordoba no depende de red externa (Andreani sí, y
-        // el checkout puede degradar esa cotización — se prueba aparte).
+        // Paso 2 — envío. Córdoba tiene costo fijo; el interior pide dirección
+        // y se prueba aparte.
         await modal.getByRole("button", { name: /Envío Córdoba/ }).click();
         await modal.getByRole("button", { name: "Continuar" }).click();
         await expect(modal.locator(".volt-stepper__item").nth(2)).toHaveClass(/is-active/);
@@ -85,7 +85,7 @@ test.describe("checkout", () => {
         expect(createPreferenceCalled).toBe(false);
     });
 
-    test("cotización Andreani degrada sin credenciales y no bloquea el formulario", async ({ page }) => {
+    test("envío al interior pide dirección y no cotiza", async ({ page }) => {
         let createPreferenceCalled = false;
         await page.route("**/api/create-preference", async (route) => {
             createPreferenceCalled = true;
@@ -100,18 +100,12 @@ test.describe("checkout", () => {
         await modal.getByRole("button", { name: "Continuar" }).click();
 
         await modal.getByRole("button", { name: /Andreani/ }).click();
+
+        // El costo del interior se coordina por WhatsApp: hay formulario de
+        // dirección y NO hay cotización automática (la API no está contratada).
+        await expect(modal.locator("#andreaniAddressForm")).toBeVisible();
         await modal.locator("#shippingPostalCode").fill("5000");
-
-        // No asumimos que la cotización devuelve números (ANDREANI_USER/PASS
-        // no están configuradas en este entorno, ver CheckoutModal fetchQuote
-        // catch): solo que el estado deja de estar "cotizando" — tolera tanto
-        // un número real como el mensaje de error.
-        await expect
-            .poll(async () => (await modal.locator("#andreaniQuoteBox").textContent()) ?? "", { timeout: 10000 })
-            .not.toMatch(/Cotizando envío/);
-
-        const quoteText = (await modal.locator("#andreaniQuoteBox").textContent()) ?? "";
-        expect(quoteText.length).toBeGreaterThan(0);
+        await expect(modal.locator("#andreaniQuoteBox")).toHaveCount(0);
 
         expect(createPreferenceCalled).toBe(false);
     });
