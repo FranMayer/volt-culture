@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
 import { adminFetchJson } from "@/lib/admin/api-client";
+import { ESTADOS_PAGADOS } from "@/lib/brain/engine";
 import type { Order, OrderStatus } from "@/lib/types";
 import OrderDetailModal from "./OrderDetailModal";
 
@@ -113,7 +114,10 @@ export default function OrdersTab() {
 
     const stats = useMemo(() => {
         const all = orders || [];
-        const paid = all.filter((o) => o.status === "paid");
+        // Aprobados/ingresos cuentan todo lo cobrado, no solo `paid`: una orden
+        // que avanza a shipped/delivered sigue siendo plata entrada. Misma
+        // lista que usa Brain, así el balance no se contradice.
+        const paid = all.filter((o) => ESTADOS_PAGADOS.includes(o.status as string));
         const pending = all.filter((o) => o.status === "pending" || o.status === "pending_payment" || o.status === "pending_transfer");
         const revenue = paid.reduce((sum, o) => sum + (o.total || 0), 0);
         return { total: all.length, approved: paid.length, pending: pending.length, revenue };
