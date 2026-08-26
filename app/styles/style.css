@@ -855,6 +855,22 @@ input[type="submit"],
     margin: 0;
 }
 
+/* Cada categoría es un <a href> (URL propia y compartible). El link hereda el
+   look del <li> y su ::after estirado mantiene clickeable todo el item,
+   incluido el padding — igual que cuando el handler vivía en el <li>. */
+.category-list .cat-item__link {
+    display: inline;
+    color: inherit;
+    text-decoration: none;
+    font: inherit;
+    letter-spacing: inherit;
+}
+.category-list .cat-item__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+}
+
 .product-grid {
     flex: 1;
     display: grid;

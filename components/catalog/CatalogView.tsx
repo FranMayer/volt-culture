@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { Product } from "@/lib/types";
 import { getAll, getProductImageFallback } from "@/lib/products";
-import { getProductGallery, matchFilterFromQuery } from "@/lib/catalog-helpers";
+import { catalogHref, getProductGallery, matchFilterFromQuery } from "@/lib/catalog-helpers";
 import CategorySidebar, { type FilterState } from "./CategorySidebar";
 import ProductCard from "./ProductCard";
 import QuickViewModal from "./QuickViewModal";
@@ -22,12 +22,14 @@ type LightboxState = { gallery: string[]; index: number; name: string };
 export default function CatalogView() {
   const searchParams = useSearchParams();
 
-  // legacy applyCategoryFromQuery() ran a second loadProducts() after the
-  // initial one if `?line=`/`?cat=` matched; computing the initial filter
-  // synchronously here gets to the same end state in a single fetch.
-  const [filterState, setFilterState] = useState<FilterState>(
-    () => matchFilterFromQuery(searchParams?.get("line"), searchParams?.get("cat")) ?? DEFAULT_FILTER
-  );
+  // La URL es la fuente de verdad del filtro (no hay useState duplicado): cada
+  // categoría tiene link propio `/catalogo?line=f1&cat=remeras`, compartible,
+  // con back/forward del browser gratis. legacy applyCategoryFromQuery() corría
+  // un segundo loadProducts() cuando `?line=`/`?cat=` matcheaba; acá el filtro
+  // se aplica en memoria sobre el catálogo ya cargado, sin re-fetch.
+  const router = useRouter();
+  const filterState: FilterState =
+    matchFilterFromQuery(searchParams?.get("line"), searchParams?.get("cat")) ?? DEFAULT_FILTER;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -156,7 +158,7 @@ export default function CatalogView() {
         <div className="bigbox">
           <CategorySidebar
             filterState={filterState}
-            onSelect={setFilterState}
+            onSelect={(next) => router.push(catalogHref(next), { scroll: false })}
             open={sidebarOpen}
             onToggleOpen={() => setSidebarOpen((v) => !v)}
             counts={counts}

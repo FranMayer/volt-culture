@@ -13,6 +13,7 @@ import {
     slugify,
     productPath,
     matchFilterFromQuery,
+    catalogHref,
     buildImageArray,
     totalStock,
 } from '../lib/catalog-helpers.js';
@@ -131,3 +132,22 @@ assert.equal(totalStock({ stock: 7 }), 7, 'sin variantes/talles -> stock plano')
 assert.equal(totalStock({}), 0);
 
 console.log('catalog-helpers.test.mjs OK');
+
+// ── catalogHref: link propio por categoría, round-trip con matchFilterFromQuery ──
+assert.equal(catalogHref({ line: 'all', category: 'all' }), '/catalogo', 'sin filtro -> URL limpia');
+assert.equal(catalogHref({ line: 'F1', category: 'all' }), '/catalogo?line=f1');
+assert.equal(catalogHref({ line: 'all', category: 'Remeras' }), '/catalogo?cat=remeras');
+assert.equal(catalogHref({ line: 'JDM', category: 'Buzos' }), '/catalogo?line=jdm&cat=buzos');
+assert.equal(catalogHref(), '/catalogo', 'sin argumento no explota');
+
+for (const state of [
+    { line: 'all', category: 'all' },
+    { line: 'F1', category: 'all' },
+    { line: 'all', category: 'Gorras' },
+    { line: 'GT', category: 'Pantalones' },
+    { line: 'TC', category: 'Remeras' },
+]) {
+    const params = new URLSearchParams(catalogHref(state).split('?')[1] || '');
+    const back = matchFilterFromQuery(params.get('line'), params.get('cat')) ?? { line: 'all', category: 'all' };
+    assert.deepEqual(back, state, `round-trip de ${JSON.stringify(state)}`);
+}
