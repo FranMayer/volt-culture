@@ -1,10 +1,10 @@
 "use client";
 
-import { PRODUCTION_LINES, ALL_CATEGORIES } from "@/lib/catalog-helpers";
+import { PRODUCTION_LINES, ALL_CATEGORIES, catalogHref } from "@/lib/catalog-helpers";
 
 export type FilterState = { line: string; category: string };
 
-type Item = { key: string; label: string; active: boolean; title?: string; soon?: boolean; onPick: () => void };
+type Item = { key: string; label: string; href: string; active: boolean; title?: string; soon?: boolean; onPick: () => void };
 
 // Dos filtros ORTOGONALES (estética × tipo de prenda), no un árbol línea->categorías:
 // VOLT es cultura automotriz, la estética es una lente sobre el mismo catálogo.
@@ -39,12 +39,14 @@ export default function CategorySidebar({
         {
           key: "line-all",
           label: "Todo VOLT",
+          href: catalogHref({ ...filterState, line: "all" }),
           active: filterState.line === "all",
           onPick: () => pick({ ...filterState, line: "all" }),
         },
         ...PRODUCTION_LINES.map((l) => ({
           key: `line-${l.id}`,
           label: l.label,
+          href: catalogHref({ ...filterState, line: l.id }),
           title: l.blurb,
           active: filterState.line === l.id,
           soon: !!counts && !counts.line[l.id],
@@ -58,12 +60,14 @@ export default function CategorySidebar({
         {
           key: "cat-all",
           label: "Ver todos",
+          href: catalogHref({ ...filterState, category: "all" }),
           active: filterState.category === "all",
           onPick: () => pick({ ...filterState, category: "all" }),
         },
         ...ALL_CATEGORIES.map((cat) => ({
           key: `cat-${cat}`,
           label: cat,
+          href: catalogHref({ ...filterState, category: cat }),
           active: filterState.category === cat,
           soon: !!counts && !counts.category[cat],
           onPick: () => pick({ ...filterState, category: cat }),
@@ -89,23 +93,24 @@ export default function CategorySidebar({
             <h3 className="line-group__title">{group.title}</h3>
             <ul className="cat-list">
               {group.items.map((it) => (
-                <li
-                  key={it.key}
-                  className={`cat-item${it.active ? " active" : ""}`}
-                  title={it.title}
-                  role="button"
-                  tabIndex={0}
-                  aria-pressed={it.active}
-                  onClick={it.onPick}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
+                <li key={it.key} className={`cat-item${it.active ? " active" : ""}`} title={it.title}>
+                  {/* <a> real: la categoría tiene URL propia, se puede copiar,
+                      compartir y abrir en pestaña nueva. El click normal lo
+                      maneja el router (sin recargar); ctrl/cmd/click y el
+                      middle-click caen en el comportamiento nativo. */}
+                  <a
+                    className="cat-item__link"
+                    href={it.href}
+                    aria-current={it.active ? "page" : undefined}
+                    onClick={(e) => {
+                      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
                       e.preventDefault();
                       it.onPick();
-                    }
-                  }}
-                >
-                  {it.label}
-                  {it.soon && <span className="category-soon-badge">PRONTO</span>}
+                    }}
+                  >
+                    {it.label}
+                    {it.soon && <span className="category-soon-badge">PRONTO</span>}
+                  </a>
                 </li>
               ))}
             </ul>
