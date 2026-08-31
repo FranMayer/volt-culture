@@ -3286,6 +3286,21 @@ body.quickview-open {
     flex-basis: 100%;
 }
 
+/* Bajada en prosa del header (/personalizacion). Toma la tipografía de
+   .news-page__intro — .envios-page__lead está forzado a mono 11px uppercase
+   en volt-ds y sirve solo para el renglón de specs. Acá solo se centra y se
+   acota el ancho de línea; volt-ds no toca alineación, así que no hace falta
+   !important. */
+.envios-page__header .personalizacion-page__hook {
+    text-align: center;
+    max-width: 46ch;
+    margin: 0 auto 1.1rem;
+    /* !important porque volt-ds.css:116 clava .news-page__intro en 14px con
+       !important y gana por cascada aunque acá la especificidad sea mayor. */
+    font-size: clamp(1rem, 1.5vw, 1.15rem) !important;
+    line-height: 1.55 !important;
+}
+
 .howbuy__main {
     position: relative;
 }

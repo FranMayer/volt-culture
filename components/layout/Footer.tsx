@@ -37,6 +37,9 @@ export default function Footer() {
               <a href="/envios">Envíos</a>
             </li>
             <li>
+              <a href="/personalizacion">Personalización</a>
+            </li>
+            <li>
               <a href="/novedades">Novedades</a>
             </li>
           </ul>
