@@ -63,6 +63,11 @@ export default function Navbar() {
             </Link>
           </li>
           <li>
+            <Link href="/personalizacion" className="nav-link" onClick={closeMenu}>
+              Personalización
+            </Link>
+          </li>
+          <li>
             <Link href="/novedades" className="nav-link" onClick={closeMenu}>
               Novedades
             </Link>
