@@ -3,7 +3,6 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { Resend } from 'resend';
 import { createHmac } from 'crypto';
 import { adminDb } from '@/lib/firebase/admin';
-import { applyStockDecrement } from '@/lib/server/stock';
 import { applyRateLimit } from '@/lib/server/rate-limit';
 import {
     formatShippingBlockAdminHtml,
@@ -153,7 +152,10 @@ function buildAdminWhatsAppMessage(orderData) {
 }
 
 /**
- * Transacción: idempotente con inventoryAdjusted; descuenta stock solo la primera vez.
+ * Transacción: idempotente vía `inventoryAdjusted`. El nombre es legado —
+ * ya no descuenta inventario (VOLT dejó de manejar stock numérico), pero
+ * sigue siendo la marca que evita reprocesar la transición a `paid` (y por
+ * lo tanto reenviar los mails de confirmación) en reintentos del webhook.
  */
 async function applyPaidTransition(db, orderRef, paymentInfo) {
     const paymentId = String(paymentInfo.id);
@@ -191,35 +193,6 @@ async function applyPaidTransition(db, orderRef, paymentInfo) {
                 { merge: true }
             );
             return;
-        }
-
-        const items = Array.isArray(o.items) ? o.items : [];
-
-        for (const item of items) {
-            const pid = item.id || item.productId;
-            if (!pid) {
-                console.warn('[Webhook] Ítem sin id de producto — sin decremento:', item.title || '?');
-                continue;
-            }
-            const pref = db.collection('products').doc(pid);
-            const psnap = await tx.get(pref);
-            if (!psnap.exists) {
-                console.warn('[Webhook] Producto no existe:', pid);
-                continue;
-            }
-            const pdata = psnap.data();
-            const { variants, sizes, stock } = applyStockDecrement(
-                pdata,
-                item.quantity,
-                item.variantColor,
-                item.variantSize
-            );
-            tx.update(pref, {
-                variants,
-                sizes,
-                stock,
-                updatedAt: FieldValue.serverTimestamp()
-            });
         }
 
         if (o.status === 'paid' && !o.inventoryAdjusted) {
@@ -415,7 +388,7 @@ export default async function handler(req, res) {
     } catch (error) {
         // Error transitorio (Firestore/MP caídos, timeout). Respondemos 500 para
         // que Mercado Pago reintente con backoff en vez de dar por entregada la
-        // notificación: así un pago aprobado no queda huérfano sin stock ni mails.
+        // notificación: así un pago aprobado no queda huérfano sin mails.
         // Los casos de negocio que NO deben reintentar ya devolvieron 200 antes.
         console.error('[Webhook] Error procesando notificación — respondiendo 500 para reintento de MP:', error.message);
         return res.status(500).json({ error: 'Error interno procesando webhook' });

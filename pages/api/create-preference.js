@@ -1,7 +1,7 @@
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { FieldValue } from 'firebase-admin/firestore';
 import { adminDb } from '@/lib/firebase/admin';
-import { computeAvailableStock } from '@/lib/server/stock';
+import { isAvailable, MAX_QTY_PER_LINE } from '@/lib/catalog-helpers';
 import { applyRateLimit } from '@/lib/server/rate-limit';
 import { SHIPPING_CONFIG } from '@/lib/shipping-config';
 import { normalizeCouponCode, isCouponValid } from '@/lib/server/coupons';
@@ -166,7 +166,15 @@ export default async function handler(req, res) {
         for (const it of normalizedItems) {
             if (!it.id) {
                 return res.status(400).json({
-                    error: 'Cada producto del carrito debe incluir su id de Firestore para validar stock.'
+                    error: 'Cada producto del carrito debe incluir su id de Firestore para validar disponibilidad.'
+                });
+            }
+            // Trust boundary: rechazar, no clampear en silencio — es plata.
+            // El cliente ya clampea a MAX_QTY_PER_LINE (lib/cart/reducer.js),
+            // esto es la validación real contra un request forjado.
+            if (it.quantity > MAX_QTY_PER_LINE) {
+                return res.status(400).json({
+                    error: `Cantidad máxima por producto: ${MAX_QTY_PER_LINE} (${it.title})`
                 });
             }
         }
@@ -180,19 +188,19 @@ export default async function handler(req, res) {
                     const snap = await t.get(pref);
                     if (!snap.exists) {
                         const err = new Error(`Producto no encontrado: ${item.title}`);
-                        err.code = 'STOCK_INSUFFICIENT';
+                        err.code = 'UNAVAILABLE';
                         throw err;
                     }
                     const data = snap.data();
                     if (data.active === false) {
                         const err = new Error(`Producto no disponible: ${item.title}`);
-                        err.code = 'STOCK_INSUFFICIENT';
+                        err.code = 'UNAVAILABLE';
                         throw err;
                     }
                     const serverPrice = Number(data.price);
                     if (!Number.isFinite(serverPrice) || serverPrice <= 0) {
                         const err = new Error(`Precio inválido en catálogo: ${item.title}`);
-                        err.code = 'STOCK_INSUFFICIENT';
+                        err.code = 'UNAVAILABLE';
                         throw err;
                     }
                     item.price = serverPrice;
@@ -200,16 +208,15 @@ export default async function handler(req, res) {
                     // del cliente — de lo contrario alcanzaría con forjar el request para llevarse
                     // ítems gratis.
                     item.promo2x1 = data.promo2x1 === true;
-                    const available = computeAvailableStock(data, item.variantColor, item.variantSize);
-                    if (available < item.quantity) {
-                        const err = new Error(`Stock insuficiente para ${item.title}`);
-                        err.code = 'STOCK_INSUFFICIENT';
+                    if (!isAvailable(data, item.variantSize)) {
+                        const err = new Error(`Producto no disponible: ${item.title}`);
+                        err.code = 'UNAVAILABLE';
                         throw err;
                     }
                 }
             });
         } catch (e) {
-            if (e.code === 'STOCK_INSUFFICIENT') {
+            if (e.code === 'UNAVAILABLE') {
                 return res.status(400).json({ error: e.message });
             }
             throw e;

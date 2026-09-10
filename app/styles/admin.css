@@ -464,7 +464,10 @@
 
 .list-editor-row {
     display: grid;
-    grid-template-columns: 1.2fr 90px 110px auto;
+    /* 3 columnas: color, color-picker, acciones — el stock por variante se
+       eliminó (VOLT pasó de stock numérico a disponible/no disponible; los
+       colores heredan la disponibilidad del producto, no tienen la propia). */
+    grid-template-columns: 1.2fr 90px auto;
     gap: 0.5rem;
     align-items: center;
     margin-bottom: 0.5rem;

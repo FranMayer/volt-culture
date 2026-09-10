@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { cache } from "react";
 import { getById } from "@/lib/products";
 import { adminDb } from "@/lib/firebase/admin";
-import { buildImageArray, productPath, slugify, totalStock } from "@/lib/catalog-helpers";
+import { buildImageArray, isAvailable, productPath, slugify } from "@/lib/catalog-helpers";
 import { siteUrl } from "@/lib/seo";
 import type { Product } from "@/lib/types";
 import ProductDetail from "@/components/catalog/ProductDetail";
@@ -103,7 +103,7 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
   if (slug !== canonicalSlug) permanentRedirect(productPath(product));
 
   const { base, url, images, mainImage, desc } = buildSeo(product);
-  const inStock = totalStock(product) > 0;
+  const inStock = isAvailable(product);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -148,6 +148,8 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
     description: product.description,
     price: product.price,
     stock: product.stock,
+    available: product.available,
+    promo2x1: product.promo2x1,
     category: product.category,
     image: product.image,
     images: product.images,

@@ -26,7 +26,6 @@ import {
     getDocs,
     query,
     where,
-    runTransaction,
     addDoc,
     updateDoc,
     serverTimestamp,
@@ -86,19 +85,6 @@ export async function getById(id: string): Promise<Product | null> {
 export async function getCategories(): Promise<string[]> {
     const products = await getAll();
     return [...new Set(products.map((p) => p.category))].sort();
-}
-
-/** Descuenta `quantity` del stock del producto. */
-export async function updateStock(id: string, quantity: number): Promise<void> {
-    const productRef = doc(db, COLLECTION, id);
-    await runTransaction(db, async (transaction) => {
-        const snap = await transaction.get(productRef);
-        if (snap.exists()) {
-            const current = snap.data().stock as number;
-            const newStock = Math.max(0, current - quantity);
-            transaction.update(productRef, { stock: newStock });
-        }
-    });
 }
 
 // =====================================================

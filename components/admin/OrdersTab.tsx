@@ -132,7 +132,7 @@ export default function OrdersTab() {
     async function handleDelete(order: AdminOrder) {
         const label = order.orderId || order.id;
         const monto = (order.total || 0).toLocaleString("es-AR");
-        if (!confirm(`¿Borrar la orden ${label} ($${monto})?\n\nEs irreversible y también la saca de VOLT Brain. No repone stock.`)) return;
+        if (!confirm(`¿Borrar la orden ${label} ($${monto})?\n\nEs irreversible y también la saca de VOLT Brain.`)) return;
         try {
             await adminFetchJson("/api/admin-cleanup", {
                 method: "POST",

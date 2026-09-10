@@ -129,6 +129,17 @@ for (const [idx, items] of casos.entries()) {
 check('sin descuento, los precios quedan intactos',
     repartirDescuentoEnItems([buzo(45000, 1, false)], 0)[0].unitPrice === 45000);
 
+// ── ProductDetail.tsx lee product.promo2x1 para el ítem que mete al carrito
+// (ver handleAddOrRemove). Si la ficha de producto no le pasa `promo2x1` al
+// componente, el flag siempre llega false y el carrito muestra el total SIN
+// el 2x1 mientras create-preference cobra CON el descuento (releé el doc de
+// Firestore). Guard barato contra esa regresión, sin montar el componente.
+{
+    const src = readFileSync(new URL('../app/producto/[slug]/page.tsx', import.meta.url), 'utf8');
+    check('page.tsx pasa promo2x1 al productForClient que consume ProductDetail',
+        /promo2x1:\s*product\.promo2x1/.test(src));
+}
+
 if (failed) {
     console.error(`\n${failed} test(s) fallaron`);
     process.exit(1);
