@@ -33,6 +33,7 @@ VOLT Culture es un e-commerce de streetwear inspirado en motorsport (Córdoba, A
 - **Zustand con key `'cart'` y shape de item idéntico al actual** (`{id, title, price, quantity, image, variantColor?, variantSize?}`, lineKey `id-color-size`) — los carritos existentes en localStorage sobreviven el cutover.
 - **volt-motion adaptado** a hooks/client components (no portado tal cual): intro lights-out solo primera carga, FLIP badge conectado al store, parallax/reveals con cleanup.
 - **Cutover big-bang**: paridad total verificada en preview → merge a main → dominio cambia de una.
+- **Sin manejo de stock** (2026-09-10): no hay inventario numérico. Producto y talle llevan un booleano `available`; los colores heredan el del producto. La lectura hace fallback `available ?? (stock agregado > 0)`, así los docs viejos de Firestore migran solos — los `stock` que quedan son dato muerto, nadie los escribe. Helper único `isAvailable()` en `lib/catalog-helpers.js`, compartido por catálogo y endpoints (`lib/server/stock.js` ya no existe). `webhook.js`/`notify-status.js` no tocan inventario, pero conservan la transacción y la marca `inventoryAdjusted`. Tope de cantidad por línea: `MAX_QTY_PER_LINE` (10), el carrito clampea y los endpoints rechazan con 400.
 
 ## Estructura del repo durante la migración
 
@@ -43,7 +44,7 @@ components/     layout/, auth/, catalog/, checkout/, home/, admin/
 lib/            firebase/ (client, admin), cart/ (store, sync), server/ (helpers ex api/_*), types.ts
 pages/api/      endpoints serverless (firma (req,res) intacta)
 public/         images-brand/, images-ui/, glacial-indifference/
-tests/          node scripts sin framework (smoke HTTP + unit de stock/cupones) + e2e Playwright
+tests/          node scripts sin framework (smoke HTTP + unit de disponibilidad/cupones) + e2e Playwright
 ```
 
 ## Archivos críticos de referencia
@@ -52,7 +53,7 @@ tests/          node scripts sin framework (smoke HTTP + unit de stock/cupones) 
 |---|---|---|
 | `js/cart-sync.js` | Semántica exacta de merge por lineKey + debounce 800ms a preservar | F3 |
 | `js/pagos.js` | Checkout completo (stepper, DNI, cotización Andreani, MP/transferencia/cupones) | F7 |
-| `api/create-preference.js` | back_urls/SITE_URL/allowlist CORS, validación server-side de precio y stock | F2/F7 |
+| `api/create-preference.js` | back_urls/SITE_URL/allowlist CORS, validación server-side de precio y disponibilidad | F2/F7 |
 | `scripts/product-page-template.mjs` | Slug `${slugify(name)}-${id}` + metadata/OG/JSON-LD a replicar en ISR | F5 |
 | `vercel.json` | CSP/headers a conservar (incl. `Cross-Origin-Opener-Policy: unsafe-none` para Google popup) | F0/F10 |
 
@@ -106,4 +107,4 @@ El agente principal (Fable 5) actúa como **orquestador** y minimiza sus propios
 - `npx next build` — build de verificación (obligatorio verde para cerrar cualquier tarea)
 - `npm run test:smoke` — smoke HTTP (`BASE_URL=<preview>` para QA de fase)
 - `npm run test:e2e` — E2E Playwright (producto/carrito/checkout). Levanta el dev server solo; `E2E_BASE_URL=<url>` lo apunta a prod/preview sin levantarlo. **Se corren a mano antes de commitear features — no hay CI para ellos, a propósito.** Son solo lectura: no escriben en Firestore ni crean preferencia de MP.
-- `node tests/<archivo>` — unit tests individuales (stock, cupones)
+- `node tests/<archivo>` — unit tests individuales (disponibilidad, cupones)

@@ -1054,9 +1054,6 @@ input[type="submit"],
     box-shadow: 0 0 0 2px #111111, 0 0 0 4px #c1121f;
 }
 
-.color-swatch[data-no-stock="true"] {
-    opacity: 0.45;
-}
 
 .size-buttons {
     display: flex;

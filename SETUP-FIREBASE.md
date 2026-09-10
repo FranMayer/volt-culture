@@ -61,7 +61,7 @@ Cada documento tiene estos campos:
 | `name` | string | Nombre del producto |
 | `description` | string | Descripción corta |
 | `price` | number | Precio en pesos (ej: 15200) |
-| `stock` | number | Cantidad disponible |
+| `available` | boolean | Si el producto está disponible para comprar |
 | `category` | string | Categoría (Remeras, Buzos, etc.) |
 | `image` | string | Ruta de la imagen (ej: /multi/imagen.jpg) |
 | `active` | boolean | Si está visible en el catálogo |

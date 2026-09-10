@@ -9,14 +9,13 @@ import {
     normalizeVariants,
     normalizeSizes,
     normalizeImageUrls,
-    computeStock,
     validateVariantsAndSizes,
     validateImages,
     validateRequiredFields,
     buildProductPayload,
     diffChangedFields,
 } from "@/lib/admin/product-form.js";
-import { PRODUCTION_LINES, ALL_CATEGORIES } from "@/lib/catalog-helpers";
+import { PRODUCTION_LINES, ALL_CATEGORIES, isAvailable } from "@/lib/catalog-helpers";
 import type { Product } from "@/lib/types";
 
 const PRESET_SIZES = ["XS", "S", "M", "L", "XL", "XXL", "ÚNICO"];
@@ -25,12 +24,11 @@ interface VariantRow {
     id: string;
     color: string;
     hex: string;
-    stock: number;
 }
 interface SizeRow {
     id: string;
     size: string;
-    stock: number;
+    available: boolean;
 }
 interface ImageRow {
     id: string;
@@ -43,10 +41,10 @@ function newId(): string {
 }
 
 function emptyVariantRow(): VariantRow {
-    return { id: newId(), color: "Original", hex: "#0b0b0b", stock: 0 };
+    return { id: newId(), color: "Original", hex: "#0b0b0b" };
 }
 function emptySizeRow(): SizeRow {
-    return { id: newId(), size: "ÚNICO", stock: 0 };
+    return { id: newId(), size: "ÚNICO", available: true };
 }
 
 /**
@@ -80,6 +78,7 @@ export default function ProductFormModal({
     const [description, setDescription] = useState("");
     const [price, setPrice] = useState("");
     const [active, setActive] = useState(true);
+    const [available, setAvailable] = useState(true);
     const [limited, setLimited] = useState(false);
     const [promo2x1, setPromo2x1] = useState(false);
 
@@ -99,8 +98,9 @@ export default function ProductFormModal({
     // original para el diff de saveProduct() (solo se manda lo que cambió).
     const editOriginal = useMemo(() => {
         if (!product) return null;
-        const v = normalizeVariants(product.variants, product.stock);
-        const s = normalizeSizes(product.sizes, product.stock);
+        const productAvailable = isAvailable(product);
+        const v = normalizeVariants(product.variants);
+        const s = normalizeSizes(product.sizes, productAvailable);
         const imgs = normalizeImageUrls(product.images, product.imageUrl, product.image);
         return {
             name: product.name || "",
@@ -108,7 +108,7 @@ export default function ProductFormModal({
             line: (product.line || "TC").toUpperCase(),
             description: product.description || "",
             price: Number(product.price) || 0,
-            stock: computeStock(v, s),
+            available: productAvailable,
             imageUrl: imgs[0] || "",
             image: imgs[0] || "",
             images: imgs,
@@ -124,16 +124,18 @@ export default function ProductFormModal({
 
     useEffect(() => {
         if (product) {
+            const productAvailable = isAvailable(product);
             setName(product.name || "");
             setCategory(product.category || "");
             setLine((product.line || "TC").toUpperCase());
             setDescription(product.description || "");
             setPrice(String(product.price ?? ""));
             setActive(product.active !== false);
+            setAvailable(productAvailable);
             setLimited(product.limited === true);
             setPromo2x1(product.promo2x1 === true);
-            setVariants(normalizeVariants(product.variants, product.stock).map((v) => ({ id: newId(), ...v })));
-            setSizes(normalizeSizes(product.sizes, product.stock).map((s) => ({ id: newId(), ...s })));
+            setVariants(normalizeVariants(product.variants).map((v) => ({ id: newId(), ...v })));
+            setSizes(normalizeSizes(product.sizes, productAvailable).map((s) => ({ id: newId(), ...s })));
             setImages(
                 normalizeImageUrls(product.images, product.imageUrl, product.image).map((url) => ({
                     id: newId(),
@@ -148,7 +150,9 @@ export default function ProductFormModal({
             setDescription("");
             setPrice("");
             setActive(true);
+            setAvailable(true);
             setLimited(false);
+            setPromo2x1(false);
             setVariants([emptyVariantRow()]);
             setSizes([emptySizeRow()]);
             setImages([]);
@@ -173,11 +177,9 @@ export default function ProductFormModal({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const totalStock = computeStock(variants, sizes);
-
     // ── Variantes ───────────────────────────────────────────────────────
     function addVariant() {
-        setVariants((v) => [...v, { id: newId(), color: "", hex: "#0b0b0b", stock: 0 }]);
+        setVariants((v) => [...v, { id: newId(), color: "", hex: "#0b0b0b" }]);
     }
     function updateVariant(id: string, patch: Partial<VariantRow>) {
         setVariants((v) => v.map((row) => (row.id === id ? { ...row, ...patch } : row)));
@@ -196,11 +198,11 @@ export default function ProductFormModal({
     }
 
     // ── Talles ──────────────────────────────────────────────────────────
-    function addSize(size = "", stock = 0) {
+    function addSize(size = "", available = true) {
         const normalized = String(size || "").trim().toUpperCase();
         setSizes((s) => {
             if (normalized && s.some((row) => row.size === normalized)) return s; // legacy: duplicado, no-op silencioso
-            return [...s, { id: newId(), size: normalized, stock: Math.max(0, Number(stock) || 0) }];
+            return [...s, { id: newId(), size: normalized, available }];
         });
     }
     function updateSizeName(id: string, rawValue: string) {
@@ -212,8 +214,8 @@ export default function ProductFormModal({
             return s.map((row) => (row.id === id ? { ...row, size: next } : row));
         });
     }
-    function updateSizeStock(id: string, stock: number) {
-        setSizes((s) => s.map((row) => (row.id === id ? { ...row, stock: Math.max(0, Number(stock) || 0) } : row)));
+    function updateSizeAvailable(id: string, available: boolean) {
+        setSizes((s) => s.map((row) => (row.id === id ? { ...row, available } : row)));
     }
     function removeSize(id: string) {
         setSizes((s) => s.filter((row) => row.id !== id));
@@ -282,7 +284,7 @@ export default function ProductFormModal({
 
     // ── Guardar ─────────────────────────────────────────────────────────
     async function handleSave() {
-        const form = { name, category, line, description, price, active, limited, promo2x1, variants, sizes, images };
+        const form = { name, category, line, description, price, active, available, limited, promo2x1, variants, sizes, images };
         const payload = buildProductPayload(form);
 
         const req = validateRequiredFields(payload);
@@ -378,16 +380,26 @@ export default function ProductFormModal({
                                     </div>
                                 </div>
                                 <div className="col-md-4 mb-3">
-                                    <label className="form-label">Stock total (auto)</label>
-                                    <input type="number" className="form-control" value={totalStock} readOnly />
-                                </div>
-                                <div className="col-md-4 mb-3">
                                     <label className="form-label">Estado</label>
                                     <select className="form-select" value={active ? "true" : "false"} onChange={(e) => setActive(e.target.value === "true")}>
                                         <option value="true">Activo</option>
                                         <option value="false">Inactivo</option>
                                     </select>
                                 </div>
+                            </div>
+
+                            <div className="mb-3 form-check form-switch">
+                                <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    role="switch"
+                                    id="productAvailable"
+                                    checked={available}
+                                    onChange={(e) => setAvailable(e.target.checked)}
+                                />
+                                <label className="form-check-label" htmlFor="productAvailable">
+                                    Disponible
+                                </label>
                             </div>
 
                             <div className="mb-3 form-check form-switch">
@@ -437,13 +449,6 @@ export default function ProductFormModal({
                                             value={v.hex}
                                             onChange={(e) => updateVariant(v.id, { hex: e.target.value || "#0b0b0b" })}
                                         />
-                                        <input
-                                            type="number"
-                                            min={0}
-                                            className="form-control"
-                                            value={v.stock}
-                                            onChange={(e) => updateVariant(v.id, { stock: Math.max(0, Number(e.target.value) || 0) })}
-                                        />
                                         <div className="d-flex align-items-center gap-1">
                                             <div className="swatch-preview" style={{ background: v.hex || "#44464c" }} />
                                             <button type="button" className="icon-btn" disabled={i === 0} onClick={() => moveVariant(i, -1)} aria-label="Subir">
@@ -471,10 +476,10 @@ export default function ProductFormModal({
                             </div>
 
                             <div className="admin-subsection">
-                                <h6 className="admin-subsection__title">Talles y stock *</h6>
+                                <h6 className="admin-subsection__title">Talles *</h6>
                                 <div className="mb-2">
                                     {PRESET_SIZES.map((s) => (
-                                        <button key={s} type="button" className="chip-btn" onClick={() => addSize(s, 0)}>
+                                        <button key={s} type="button" className="chip-btn" onClick={() => addSize(s, true)}>
                                             {s}
                                         </button>
                                     ))}
@@ -487,13 +492,19 @@ export default function ProductFormModal({
                                             value={s.size}
                                             onChange={(e) => updateSizeName(s.id, e.target.value)}
                                         />
-                                        <input
-                                            type="number"
-                                            min={0}
-                                            className="form-control"
-                                            value={s.stock}
-                                            onChange={(e) => updateSizeStock(s.id, Number(e.target.value))}
-                                        />
+                                        <div className="form-check form-switch d-flex align-items-center">
+                                            <input
+                                                className="form-check-input"
+                                                type="checkbox"
+                                                role="switch"
+                                                id={`sizeAvailable-${s.id}`}
+                                                checked={s.available}
+                                                onChange={(e) => updateSizeAvailable(s.id, e.target.checked)}
+                                            />
+                                            <label className="form-check-label ms-1" htmlFor={`sizeAvailable-${s.id}`}>
+                                                Disponible
+                                            </label>
+                                        </div>
                                         <div className="d-flex align-items-center gap-1">
                                             <button type="button" className="icon-btn" disabled={i === 0} onClick={() => moveSize(i, -1)} aria-label="Subir">
                                                 ↑

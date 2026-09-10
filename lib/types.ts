@@ -6,12 +6,16 @@
 export interface ProductVariant {
     color: string;
     hex: string;
-    stock: number;
+    /** Legacy: ya no se lee ni se escribe (VOLT dejó el stock numérico por un flag de disponibilidad). Los colores no tienen disponibilidad propia, heredan la del producto. */
+    stock?: number;
 }
 
 export interface ProductSize {
     size: string;
-    stock: number;
+    /** Disponibilidad de este talle puntual. Opcional: fallback a `stock > 0` para docs viejos — ver isAvailable() en lib/catalog-helpers.js. */
+    available?: boolean;
+    /** Legacy: ya no se lee ni se escribe, solo sobrevive como dato muerto en docs viejos (fallback de `available`). */
+    stock?: number;
 }
 
 /** Documento Firestore products/{id} (ver legacy/js/{products-service,catalog,admin-products}.js). */
@@ -20,7 +24,10 @@ export interface Product {
     name: string;
     description?: string;
     price: number;
-    stock: number;
+    /** Legacy: ya no se lee ni se escribe, solo sobrevive como dato muerto en docs viejos (fallback de `available`). */
+    stock?: number;
+    /** Disponibilidad del producto. Opcional: fallback al stock agregado para docs viejos — ver isAvailable() en lib/catalog-helpers.js. */
+    available?: boolean;
     category: string;
     /** Imagen principal (fallback cuando no hay `images`). */
     image: string;

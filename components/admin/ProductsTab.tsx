@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getAllAdmin, remove, update } from "@/lib/products";
 import { auth } from "@/lib/firebase/client";
 import { postRevalidate } from "@/lib/admin/upload-client";
-import { slugify } from "@/lib/catalog-helpers";
+import { isAvailable, slugify } from "@/lib/catalog-helpers";
 import type { Product } from "@/lib/types";
 import ProductFormModal from "./ProductFormModal";
 
@@ -105,34 +105,27 @@ export default function ProductsTab() {
 
     const active = (products || []).filter((p) => p.active !== false);
     const categories = new Set(active.map((p) => p.category));
-    const lowStock = active.filter((p) => p.stock > 0 && p.stock <= 3);
-    const outOfStock = active.filter((p) => p.stock === 0);
+    const unavailable = active.filter((p) => !isAvailable(p));
 
     return (
         <div>
             <div className="row mb-4">
-                <div className="col-md-3 mb-3">
+                <div className="col-md-4 mb-3">
                     <div className="stats-card">
                         <h3>{active.length}</h3>
                         <p>Productos</p>
                     </div>
                 </div>
-                <div className="col-md-3 mb-3">
+                <div className="col-md-4 mb-3">
                     <div className="stats-card">
                         <h3>{categories.size}</h3>
                         <p>Categorías</p>
                     </div>
                 </div>
-                <div className="col-md-3 mb-3">
+                <div className="col-md-4 mb-3">
                     <div className="stats-card">
-                        <h3>{lowStock.length}</h3>
-                        <p>Stock bajo</p>
-                    </div>
-                </div>
-                <div className="col-md-3 mb-3">
-                    <div className="stats-card">
-                        <h3>{outOfStock.length}</h3>
-                        <p>Sin stock</p>
+                        <h3>{unavailable.length}</h3>
+                        <p>No disponibles</p>
                     </div>
                 </div>
             </div>
@@ -153,7 +146,7 @@ export default function ProductsTab() {
                                     <th>Nombre</th>
                                     <th>Categoría</th>
                                     <th>Precio</th>
-                                    <th>Stock</th>
+                                    <th>Disponible</th>
                                     <th>Estado</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -229,6 +222,7 @@ function ProductRow({
 }) {
     const p = product;
     const isFeatured = p.featured === true;
+    const available = isAvailable(p);
     return (
         <tr>
             <td>
@@ -252,19 +246,24 @@ function ProductRow({
             </td>
             <td>${p.price.toLocaleString("es-AR")}</td>
             <td>
-                <span className={p.stock === 0 ? "text-danger" : p.stock <= 3 ? "status-inactive" : undefined}>
-                    {p.stock}
-                </span>
+                {available ? (
+                    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#3ddc84" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-label="Disponible">
+                        <path d="M20 6 9 17l-5-5" />
+                    </svg>
+                ) : (
+                    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#c1121f" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-label="No disponible">
+                        <path d="M18 6 6 18" />
+                        <path d="M6 6l12 12" />
+                    </svg>
+                )}
             </td>
             <td>
                 {p.active === false ? (
                     <span className="admin-badge admin-badge--muted">Inactivo</span>
-                ) : p.stock === 0 ? (
-                    <span className="admin-badge admin-badge--muted">Sin stock</span>
-                ) : p.stock <= 3 ? (
-                    <span className="admin-badge admin-badge--warn">Stock bajo</span>
-                ) : (
+                ) : available ? (
                     <span className="admin-badge admin-badge--ok">Activo</span>
+                ) : (
+                    <span className="admin-badge admin-badge--muted">No disponible</span>
                 )}
             </td>
             <td>

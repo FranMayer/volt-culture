@@ -4,7 +4,8 @@
  */
 import assert from 'node:assert/strict';
 import {
-    computeAvailableStock,
+    isAvailable,
+    isSizeAvailable,
     getImageForColor,
     getProductGallery,
     isHoodieProduct,
@@ -15,22 +16,27 @@ import {
     matchFilterFromQuery,
     catalogHref,
     buildImageArray,
-    totalStock,
 } from '../lib/catalog-helpers.js';
 
-// ── computeAvailableStock: color+talle, solo color, solo talle, ninguno ────
-const product = {
-    stock: 5,
-    variants: [{ color: 'Negro', stock: 3 }, { color: 'Rojo', stock: 0 }],
-    sizes: [{ size: 'M', stock: 2 }, { size: 'L', stock: 4 }],
-};
-assert.equal(computeAvailableStock(product, 'Negro', 'M'), 2, 'min(color, talle)');
-assert.equal(computeAvailableStock(product, 'Negro', 'L'), 3, 'min(3,4) = 3');
-assert.equal(computeAvailableStock(product, 'Rojo', 'L'), 0, 'color sin stock manda 0');
-assert.equal(computeAvailableStock(product, 'Negro', null), 3, 'solo color');
-assert.equal(computeAvailableStock(product, null, 'M'), 2, 'solo talle');
-assert.equal(computeAvailableStock(product, null, null), 5, 'sin selección -> stock del producto');
-assert.equal(computeAvailableStock({ stock: 5, variants: [], sizes: [] }, 'X', 'Y'), 5, 'variantes/talles vacíos -> stock producto');
+// ── isAvailable / isSizeAvailable: ver tests/availability.test.mjs para el
+//    detalle exhaustivo (fallbacks de migración incluidos) — acá solo lo
+//    imprescindible para no duplicar cobertura.
+assert.equal(isAvailable({ available: true }), true);
+assert.equal(isAvailable({ available: false }), false);
+assert.equal(
+    isAvailable({ available: true, sizes: [{ size: 'M', available: false }] }, 'M'),
+    false,
+    'producto disponible pero el talle puntual no'
+);
+assert.equal(
+    isAvailable({ available: true, sizes: [{ size: 'M', available: false }] }, 'L'),
+    true,
+    'talle pedido no existe en sizes[] -> no bloquea'
+);
+assert.equal(isSizeAvailable({ size: 'M', available: true }), true);
+assert.equal(isSizeAvailable({ size: 'M', available: false }), false);
+assert.equal(isSizeAvailable({ size: 'M', stock: 3 }), true, 'sin available -> fallback a stock > 0');
+assert.equal(isSizeAvailable(null), true, 'sin talle seleccionado no bloquea');
 
 // ── getImageForColor: variantImages/imagesByColor y objetos en images[] ───
 assert.equal(getImageForColor({ variantImages: { Negro: 'a.jpg' } }, 'Negro'), 'a.jpg');
@@ -67,18 +73,20 @@ assert.equal(getProductTypeLabel({ category: 'Autos a escala' }), 'ESCALA');
 assert.equal(getProductTypeLabel({ category: 'Pantalones' }), 'PANTALONE', 'fallback: categoría sin "s" final, uppercased');
 assert.equal(getProductTypeLabel({ category: '' }), '');
 
-// ── defaultVariantSelection: prioriza stock > 0 ────────────────────────────
+// ── defaultVariantSelection: color = primero de la lista (no tiene
+//    disponibilidad propia); talle = primero disponible, o el primero igual ──
 assert.deepEqual(
     defaultVariantSelection({
-        variants: [{ color: 'Rojo', stock: 0 }, { color: 'Negro', stock: 3 }],
-        sizes: [{ size: 'S', stock: 0 }, { size: 'M', stock: 1 }],
+        variants: [{ color: 'Rojo', hex: '#f00' }, { color: 'Negro', hex: '#000' }],
+        sizes: [{ size: 'S', available: false }, { size: 'M', available: true }],
     }),
-    { selectedColor: 'Negro', selectedSize: 'M' }
+    { selectedColor: 'Rojo', selectedSize: 'M' },
+    'color siempre el primero de la lista'
 );
 assert.deepEqual(
-    defaultVariantSelection({ variants: [{ color: 'Rojo', stock: 0 }], sizes: [] }),
-    { selectedColor: 'Rojo', selectedSize: '' },
-    'todas sin stock -> cae a la primera igual'
+    defaultVariantSelection({ variants: [{ color: 'Rojo' }], sizes: [{ size: 'S', available: false }] }),
+    { selectedColor: 'Rojo', selectedSize: 'S' },
+    'ningún talle disponible -> cae al primero igual'
 );
 assert.deepEqual(defaultVariantSelection({}), { selectedColor: '', selectedSize: '' });
 
@@ -124,12 +132,6 @@ assert.deepEqual(
     'buildImageArray dedupe + absolutiza'
 );
 assert.deepEqual(buildImageArray({}, SITE), [], 'buildImageArray sin imágenes -> vacío');
-
-// ── totalStock: variantes > talles > stock plano ───────────────────────────
-assert.equal(totalStock({ variants: [{ stock: 3 }, { stock: 2 }], sizes: [{ stock: 9 }], stock: 1 }), 5, 'suma variantes');
-assert.equal(totalStock({ sizes: [{ stock: 4 }, { stock: 1 }], stock: 1 }), 5, 'sin variantes -> suma talles');
-assert.equal(totalStock({ stock: 7 }), 7, 'sin variantes/talles -> stock plano');
-assert.equal(totalStock({}), 0);
 
 console.log('catalog-helpers.test.mjs OK');
 

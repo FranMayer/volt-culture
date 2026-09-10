@@ -5,9 +5,6 @@ import { esDeOrden, idEventoDeOrden } from '@/lib/brain/engine.js';
 /**
  * Borra una orden y su evento gemelo en brain_eventos. Los dos juntos o el
  * balance de Brain sigue contando una venta que ya no existe.
- * ponytail: no repone stock — una orden pagada ya lo descontó (webhook.js,
- * flag inventoryAdjusted) y reponerlo a ciegas infla el inventario de las
- * órdenes reales. Corregir a mano en Productos si la de prueba movió stock.
  */
 async function deleteOrder(db, docId) {
     const ref = db.collection('orders').doc(docId);

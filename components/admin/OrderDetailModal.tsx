@@ -260,8 +260,8 @@ export default function OrderDetailModal({
                                                 color: "#f5a623",
                                             }}
                                         >
-                                            Esperando comprobante de transferencia. Al marcar <strong>Pagado</strong> se descuenta el
-                                            stock y se notifica al cliente.
+                                            Esperando comprobante de transferencia. Al marcar <strong>Pagado</strong> se
+                                            notifica al cliente.
                                         </div>
                                     )}
 

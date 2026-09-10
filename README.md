@@ -53,7 +53,7 @@ Diseños únicos para quienes llevan el motor en la sangre.
 ### Tienda
 - Catálogo con filtro por **línea** (Turismo Carretera / Fórmula 1 *PRÓXIMAMENTE*) y por tipo (Remeras, Buzos, Gorras…)
 - Quick-view del producto (galería, talles, colores) enlazado con las páginas SEO `/producto/`
-- Stock por variante (color/talle) y checkout **con o sin cuenta** (invitado, con DNI)
+- Disponibilidad por variante (color/talle) y checkout **con o sin cuenta** (invitado, con DNI)
 - **Cupones de descuento** y páginas de producto generadas para SEO (JSON-LD)
 - Botón **Añadir al carrito** con estado ✓ Añadido
 

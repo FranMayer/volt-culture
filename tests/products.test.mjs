@@ -11,7 +11,7 @@ import { SAMPLE_PRODUCTS, normalizeProduct, getFromSample, sanitizeImageUrl, get
 const all = getFromSample(null, null);
 assert.equal(all.length, SAMPLE_PRODUCTS.length, 'devuelve los 9 productos de ejemplo (todos active:true)');
 for (const p of all) {
-    assert.equal(typeof p.stock, 'number', `${p.id}: stock normalizado a number`);
+    assert.equal(p.available, false, `${p.id}: sample products se marcan no disponibles (sin stock real)`);
     assert.deepEqual(p.variants, [], `${p.id}: variants normalizado a []`);
     assert.deepEqual(p.sizes, [], `${p.id}: sizes normalizado a []`);
     assert.equal(p.line, 'TC', `${p.id}: line default TC (productos viejos sin campo line)`);
@@ -30,14 +30,23 @@ assert.equal(getFromSample(null, 'F1').length, 0, 'line=F1 no matchea ningún sa
 assert.equal(getFromSample(null, 'all').length, SAMPLE_PRODUCTS.length, 'line=all no filtra');
 
 // ── normalizeProduct: variantes/talles con defaults ──────────────────────
+// `stock` es legado: sobrevive tal cual (dato muerto, fallback de isAvailable())
+// pero ya no se normaliza ni se clampea.
 const withVariants = normalizeProduct({
     id: 'x', name: 'X', price: 100, stock: '5', category: 'Remeras', active: true,
     variants: [{ color: ' Negro ', stock: -3 }],
-    sizes: [{ size: ' m ', stock: '7' }],
+    sizes: [{ size: ' m ', available: true, stock: '7' }],
 });
-assert.equal(withVariants.stock, 5, 'stock string → number');
-assert.deepEqual(withVariants.variants, [{ color: 'Negro', hex: '#44464c', stock: 0 }], 'stock negativo clamped a 0, hex default');
-assert.deepEqual(withVariants.sizes, [{ size: 'M', stock: 7 }], 'size uppercased/trimmed');
+assert.equal(withVariants.stock, '5', 'stock legado se preserva tal cual, sin coerción');
+assert.deepEqual(withVariants.variants, [{ color: 'Negro', hex: '#44464c', stock: -3 }], 'color trimeado/hex default, stock legado intacto');
+assert.deepEqual(withVariants.sizes, [{ size: 'M', available: true, stock: '7' }], 'size uppercased/trimmed, available preservado, stock legado intacto');
+
+// ── normalizeProduct: talle viejo sin `available` conserva solo `stock` ──
+const legacySize = normalizeProduct({
+    id: 'y', name: 'Y', price: 100, category: 'Remeras', active: true,
+    sizes: [{ size: 'l', stock: 0 }],
+});
+assert.deepEqual(legacySize.sizes, [{ size: 'L', stock: 0 }], 'sin available: no se inventa el campo');
 
 // ── sanitizeImageUrl: fallback en vacío/null, Cloudinary optimizado, resto intacto ──
 assert.equal(sanitizeImageUrl(null), getProductImageFallback());

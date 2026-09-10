@@ -6,12 +6,14 @@ import { cartLineKey } from "@/lib/types";
 import { useCartStore } from "@/lib/cart/store";
 import { useCartOffcanvas } from "@/components/layout/CartOffcanvasContext";
 import {
-  computeAvailableStock,
+  MAX_QTY_PER_LINE as QTY_MAX,
   defaultVariantSelection,
   getImageForColor,
   getProductGallery,
   getProductTypeLabel,
+  isAvailable,
   isHoodieProduct,
+  isSizeAvailable,
   productPath,
 } from "@/lib/catalog-helpers";
 import { getProductImageFallback } from "@/lib/products";
@@ -55,18 +57,12 @@ export default function QuickViewModal({
   });
   const [shareLabel, setShareLabel] = useState("Compartir");
 
-  const stock = computeAvailableStock(product, selectedColor, selectedSize);
+  const available = isAvailable(product, selectedSize);
   const typeLabel = getProductTypeLabel(product);
   const formattedPrice = product.price.toLocaleString("es-AR");
 
   const lineKey = cartLineKey({ id: product.id, variantColor: selectedColor, variantSize: selectedSize });
   const inCart = items.some((i) => cartLineKey(i) === lineKey);
-
-  // Clamp qty to available stock whenever the selection changes stock
-  // (legacy refresh():720-730).
-  useEffect(() => {
-    setQty((q) => Math.min(Math.max(1, q), Math.max(1, stock)));
-  }, [stock]);
 
   // Follow the color's own image if it has one (legacy refresh():732-737).
   useEffect(() => {
@@ -102,7 +98,7 @@ export default function QuickViewModal({
       removeItem(lineKey);
       return;
     }
-    if (stock <= 0) return;
+    if (!available) return;
     const imageSrc = gallery[galleryIndex] || product.image || FALLBACK_IMG;
     addItem(
       {
@@ -134,7 +130,6 @@ export default function QuickViewModal({
     }
   }
 
-  const qtyMax = Math.max(1, stock);
   const currentImage = gallery[galleryIndex] || product.image || FALLBACK_IMG;
 
   return (
@@ -227,7 +222,6 @@ export default function QuickViewModal({
                     title={variant.color || ""}
                     aria-label={`Color ${variant.color || ""}`}
                     style={{ ["--swatch-color" as string]: variant.hex || "#44464c" }}
-                    data-no-stock={Number(variant.stock) === 0 ? "true" : undefined}
                     onClick={() => setSelectedColor(variant.color)}
                   />
                 ))}
@@ -240,14 +234,14 @@ export default function QuickViewModal({
               <span className="variant-label">Talle</span>
               <div className="size-buttons">
                 {sizes.map((item) => {
-                  const itemStock = Number(item.stock) || 0;
+                  const sizeAvailable = isSizeAvailable(item);
                   const active = item.size === selectedSize;
                   return (
                     <button
                       key={item.size}
                       type="button"
-                      className={`size-btn ${active ? "is-active" : ""} ${itemStock === 0 ? "is-disabled" : ""}`}
-                      disabled={itemStock === 0}
+                      className={`size-btn ${active ? "is-active" : ""} ${!sizeAvailable ? "is-disabled" : ""}`}
+                      disabled={!sizeAvailable}
                       onClick={() => setSelectedSize(item.size)}
                     >
                       {item.size || ""}
@@ -273,11 +267,11 @@ export default function QuickViewModal({
                 type="number"
                 className="qty-input"
                 min={1}
-                max={qtyMax}
+                max={QTY_MAX}
                 value={qty}
                 inputMode="numeric"
                 onChange={(e) => {
-                  const normalized = Math.min(qtyMax, Math.max(1, parseInt(e.target.value, 10) || 1));
+                  const normalized = Math.min(QTY_MAX, Math.max(1, parseInt(e.target.value, 10) || 1));
                   setQty(normalized);
                 }}
               />
@@ -285,28 +279,27 @@ export default function QuickViewModal({
                 type="button"
                 className="qty-btn qty-plus"
                 aria-label="Aumentar cantidad"
-                onClick={() => setQty((q) => Math.min(qtyMax, q + 1))}
+                onClick={() => setQty((q) => Math.min(QTY_MAX, q + 1))}
               >
                 +
               </button>
             </div>
           </div>
 
-          <p className={`product-stock ${stock === 0 ? "product-stock--out" : ""}`}>
-            {stock === 0 ? "Sin stock " : "Disponibles: "}
-            <span>{stock}</span>
+          <p className={`product-stock ${!available ? "product-stock--out" : ""}`}>
+            <span>{available ? "Disponible" : "No disponible"}</span>
           </p>
 
           <div className="product-buttons">
             <button
               type="button"
               className={`add-to-cart${inCart ? " add-to-cart--in-cart" : ""}`}
-              disabled={stock === 0}
+              disabled={!available}
               onClick={handleAddOrRemove}
             >
-              {stock === 0 ? "Sin stock" : inCart ? "Eliminar del carrito" : "Añadir al carrito"}
+              {!available ? "No disponible" : inCart ? "Eliminar del carrito" : "Añadir al carrito"}
             </button>
-            {inCart && stock > 0 && (
+            {inCart && available && (
               <button
                 type="button"
                 className="product-finalize-btn"

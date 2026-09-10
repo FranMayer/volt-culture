@@ -1,13 +1,14 @@
 /**
  * Tests unitarios de lib/cart/reducer.js (lógica pura detrás de
  * lib/cart/store.ts). Uso: node tests/cart-store.test.mjs
- * .js (no .ts), mismo motivo que tests/stock.test.mjs: se importa sin
+ * .js (no .ts), mismo motivo que tests/availability.test.mjs: se importa sin
  * loader TS. Cubre addItem/removeItem/setQty/clear, count/subtotal, y el
  * parseo del formato legacy de localStorage['cart'] (compatibilidad crítica
  * de F3, ver comentario en lib/cart/store.ts).
  */
 import assert from 'node:assert/strict';
 import { addItem, removeItem, setQty, cartCount, cartSubtotal, parseCartStorage } from '../lib/cart/reducer.js';
+import { MAX_QTY_PER_LINE } from '../lib/catalog-helpers.js';
 
 // ── addItem: nueva línea ──────────────────────────────────────────────────
 let items = addItem([], { id: 'p1', title: 'Remera', price: 1000, quantity: 0, image: '/x.jpg' }, 2);
@@ -30,6 +31,15 @@ assert.equal(items.find((i) => i.id === 'p1' && !i.variantColor).quantity, 10);
 // setQty <= 0 elimina la línea
 items = setQty(items, 'p1-negro-', 0);
 assert.equal(items.length, 1);
+
+// ── addItem/setQty: clampean a MAX_QTY_PER_LINE (trust boundary del checkout,
+//    ver pages/api/create-preference.js) ───────────────────────────────────
+let clamped = addItem([], { id: 'p2', title: 'Buzo', price: 1000, quantity: 0, image: '' }, MAX_QTY_PER_LINE + 5);
+assert.equal(clamped[0].quantity, MAX_QTY_PER_LINE, 'addItem clampea de una en línea nueva');
+clamped = addItem(clamped, { id: 'p2', title: 'Buzo', price: 1000, quantity: 0, image: '' }, 3);
+assert.equal(clamped[0].quantity, MAX_QTY_PER_LINE, 'addItem clampea al sumar sobre línea existente');
+clamped = setQty(clamped, 'p2--', MAX_QTY_PER_LINE + 100);
+assert.equal(clamped[0].quantity, MAX_QTY_PER_LINE, 'setQty clampea');
 
 // ── removeItem ────────────────────────────────────────────────────────────
 items = removeItem(items, 'p1--');
