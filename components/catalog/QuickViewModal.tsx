@@ -287,7 +287,7 @@ export default function QuickViewModal({
           </div>
 
           <p className={`product-stock ${!available ? "product-stock--out" : ""}`}>
-            <span>{available ? "Disponible" : "No disponible"}</span>
+            <span>{available ? "Disponible" : "Agotado"}</span>
           </p>
 
           <div className="product-buttons">
@@ -297,7 +297,7 @@ export default function QuickViewModal({
               disabled={!available}
               onClick={handleAddOrRemove}
             >
-              {!available ? "No disponible" : inCart ? "Eliminar del carrito" : "Añadir al carrito"}
+              {!available ? "Agotado" : inCart ? "Eliminar del carrito" : "Añadir al carrito"}
             </button>
             {inCart && available && (
               <button

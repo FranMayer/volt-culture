@@ -1,7 +1,7 @@
 "use client";
 
 import type { Product } from "@/lib/types";
-import { getProductGallery, getProductTypeLabel, isHoodieProduct } from "@/lib/catalog-helpers";
+import { getProductGallery, getProductTypeLabel, isAvailable, isHoodieProduct } from "@/lib/catalog-helpers";
 import { getProductImageFallback } from "@/lib/products";
 
 const FALLBACK_IMG = getProductImageFallback();
@@ -24,6 +24,7 @@ export default function ProductCard({
   const initialImage = gallery[0] || product.image || FALLBACK_IMG;
   const formattedPrice = product.price.toLocaleString("es-AR");
   const typeLabel = getProductTypeLabel(product);
+  const available = isAvailable(product);
 
   // Tap en la card (fuera de imagen/botones/inputs) también abre el modal
   // (legacy:255-264).
@@ -45,12 +46,15 @@ export default function ProductCard({
       onClick={handleCardClick}
     >
       <div className="product-image-wrap">
-        {product.limited === true && (
+        {!available && (
+          <span className="product-badge-unavailable">Agotado</span>
+        )}
+        {available && product.limited === true && (
           <span className="product-badge-limited" aria-hidden="true">
             Edición limitada
           </span>
         )}
-        {product.promo2x1 === true && (
+        {available && product.promo2x1 === true && (
           <span className="product-badge-promo2x1" role="img" aria-label="Promoción dos por uno">
             2X1
           </span>
