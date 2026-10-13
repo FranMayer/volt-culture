@@ -199,7 +199,7 @@ export default function ProductDetail({ product }: { product: Product }) {
         </div>
 
         <p className={`product-stock ${!available ? "product-stock--out" : ""}`}>
-          <span>{available ? "Disponible" : "No disponible"}</span>
+          <span>{available ? "Disponible" : "Agotado"}</span>
         </p>
 
         <div className="product-buttons">
@@ -209,7 +209,7 @@ export default function ProductDetail({ product }: { product: Product }) {
             disabled={!available}
             onClick={handleAddOrRemove}
           >
-            {!available ? "No disponible" : inCart ? "Eliminar del carrito" : "Añadir al carrito"}
+            {!available ? "Agotado" : inCart ? "Eliminar del carrito" : "Añadir al carrito"}
           </button>
           {/* DEF-002: mismo acceso directo al pago que QuickViewModal — sin
               esto, con el producto ya en el carrito, la única salida era ir a

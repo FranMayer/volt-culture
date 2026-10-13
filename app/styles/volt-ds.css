@@ -1810,6 +1810,32 @@ main.box a.secondary:hover {
     pointer-events: none !important;
 }
 
+/* Si el producto no está disponible, un solo overlay tapa imagen + dorsal +
+   tick de hover + (si los hubiera) limitada/2X1 — por eso z-index 4, por
+   encima del 3 de la cinta 2X1. Los otros badges ni se renderizan (no tiene
+   sentido mostrar una promo de algo que no se puede comprar). */
+.product-badge-unavailable {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 4 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: rgba(0, 0, 0, 0.78) !important;
+    color: #ffffff !important;
+    font-family: var(--font-ds-mono) !important;
+    font-weight: 700 !important;
+    font-size: clamp(11px, 3.6vw, 13px) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.14em !important;
+    text-align: center !important;
+    padding: 0 10px !important;
+    border-top: 2px solid var(--volt-ds-red) !important;
+    border-bottom: 2px solid var(--volt-ds-red) !important;
+    border-radius: 0 !important;
+    pointer-events: none !important;
+}
+
 .product-title {
     font-family: var(--font-ds-display) !important;
     font-weight: 700 !important;
